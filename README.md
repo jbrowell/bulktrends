@@ -13,3 +13,12 @@ Trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
 * [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm))
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/)
+
+### Storging data
+
+Store data in the `data/` directory.
+
+## Working with this repo
+
+### renv
+
