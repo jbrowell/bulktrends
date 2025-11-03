@@ -20,5 +20,10 @@ Store data in the `data/` directory.
 
 ## Working with this repo
 
+### roxygen2
+
+We use the pacakge [roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html), which provides a framework for adjacent code and documentationso when you modify your code, it's easy to remember that you need to update the documentation. See link for more.
+
 ### renv
 
+We use the [renv](https://rstudio.github.io/renv/) package create a reproducible environment for package development.
