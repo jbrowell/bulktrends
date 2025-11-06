@@ -1,0 +1,35 @@
+---
+title: "UserGuide"
+format: html
+editor: visual
+---
+
+## bulktrends User Guide
+
+Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.
+
+```{r}
+#| code-fold: true
+
+library(data.table)
+library(devtools)
+devtools::load_all("../")
+```
+
+## Load UK Trade Info Bulk Data Files
+
+Load a single bulk data file:
+
+```{r}
+load_uktradeinfo( path = "../data/Imports 2016/BDSimp1601.txt")
+```
+
+## Request Data from UK Trade Data API
+
+Simple example...
+
+```{r}
+uktrades_request()
+
+```
+
