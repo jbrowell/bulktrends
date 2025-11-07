@@ -44,3 +44,7 @@ head(commodities$value,20)
 ```{r}
 # ggplot(...)
 ```
+
+```{r}
+# ggplot
+```
