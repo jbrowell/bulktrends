@@ -21,8 +21,9 @@ devtools::load_all("../")
 Load a single bulk data file or all of the files in a directory (and subdirectories).
 
 ```{r}
-imports <- read_uktradeinfo( path = "../data/imports/Imports 2016/")
+imports <- read_uktradeinfo( path = "../data/imports/")
 head(imports)
+saveRDS(imports, file = "../data/imports.rds")
 ```
 
 ## Request Data from UK Trade Data API
@@ -32,7 +33,7 @@ Simple example...
 ```{r}
 commodities <- uktrades_request(endpoint = "Commodity")
 head(commodities$value,20)
-
+saveRDS(commodities, file = "../data/commodities.rds")
 ```
 
 ## Quick visualisation
