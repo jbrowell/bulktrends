@@ -18,10 +18,10 @@ devtools::load_all("../")
 
 ## Load UK Trade Info Bulk Data Files
 
-Load a single bulk data file:
+Load a single bulk data file or all of the files in a directory (an subdirectories).
 
 ```{r}
-load_uktradeinfo( path = "../data/Imports 2016/BDSimp1601.txt")
+read_uktradeinfo( path = "../data/imports/Imports 2016/")
 ```
 
 ## Request Data from UK Trade Data API
@@ -32,4 +32,3 @@ Simple example...
 uktrades_request()
 
 ```
-
