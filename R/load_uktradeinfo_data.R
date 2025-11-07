@@ -1,6 +1,7 @@
-#' Load bulk data file form UK Trade Info
+#' Load bulk data form UK Trade Info
 #'
-#' Load a single bulk data file from UK Trade Info
+#' Load a single bulk data file of all files in a directory (and its
+#' subdirectories) from UK Trade Info.
 #'
 #' @param path Path to a file to read, or directory containing multiple files,
 #' subdirectories are recursed.

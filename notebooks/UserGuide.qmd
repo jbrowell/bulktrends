@@ -18,7 +18,7 @@ devtools::load_all("../")
 
 ## Load UK Trade Info Bulk Data Files
 
-Load a single bulk data file or all of the files in a directory (an subdirectories).
+Load a single bulk data file or all of the files in a directory (and subdirectories).
 
 ```{r}
 read_uktradeinfo( path = "../data/imports/Imports 2016/")
@@ -29,6 +29,7 @@ read_uktradeinfo( path = "../data/imports/Imports 2016/")
 Simple example...
 
 ```{r}
-uktrades_request()
+commodities <- uktrades_request(endpoint = "Commodity")
+head(commodities$value,20)
 
 ```

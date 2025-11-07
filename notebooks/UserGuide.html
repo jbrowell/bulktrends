@@ -130,64 +130,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="load-uk-trade-info-bulk-data-files" class="level2">
 <h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
-<p>Load a single bulk data file:</p>
+<p>Load a single bulk data file or all of the files in a directory (and subdirectories).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load_uktradeinfo</span>( <span class="at">path =</span> <span class="st">"../data/Imports 2016/BDSimp1601.txt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in data.table::fread(path, header = F, strip.white = F): Stopped early
-on line 58957. Expected 2 fields but found 1. Consider fill=TRUE and
-comment.char=. First discarded non-empty line:
-&lt;&lt;20160112025070101210000150024IS495ZLC024IS300000000013700000000004000000000000010imp0&gt;&gt;</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_uktradeinfo</span>( <span class="at">path =</span> <span class="st">"../data/imports/Imports 2016/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       period_reference type month_of_account  comcode  SITC COD_SEQUENCE
-    1:           201601    2           202507 01------ 00---          001
-    2:           201601    2           202507 01------ 00---          003
-    3:           201601    2           202507 01------ 00---          004
-    4:           201601    2           202507 01------ 00---          005
-    5:           201601    2           202507 01------ 00---          007
-   ---                                                                   
-58952:           201601    1           202507 99908700 93100          064
-58953:           201601    1           202507 99908700 93100          066
-58954:           201601    1           202507 99908700 93100          068
-58955:           201601    1           202507 99908800 93100          001
-58956:           201601    1           202507 99908800 93100          060
-       COD_ALPHA port_code PORT_ALPHA country_of_origin COO_ALPHA
-    1:        FR       000        ZZZ               000        00
-    2:        NL       000        ZZZ               000        00
-    3:        DE       000        ZZZ               000        00
-    4:        IT       000        ZZZ               000        00
-    5:        IE       000        ZZZ               000        00
-   ---                                                           
-58952:        HU       000        ZZZ               000        00
-58953:        RO       000        ZZZ               000        00
-58954:        BG       000        ZZZ               000        00
-58955:        FR       000        ZZZ               000        00
-58956:        PL       000        ZZZ               000        00
-       mode_of_transport statistical_value     net_mass supplementary_unit
-    1:                02                98 531000000002       091000000000
-    2:                03                19 270000000020       318000000000
-    3:                00                00 555000000000       025000000000
-    4:                00                05 033000000000       258000000000
-    5:                13                32 312000000406       697000000795
-   ---                                                                    
-58952:                00                34 753000000000       933000000000
-58953:                00                01 040000000000       003000000000
-58954:                00                34 185000000005       593000000000
-58955:                00                01 658000000000       415000000000
-58956:                01                41 183000000000       926000000000
-       suppression flow record_type
-    1:           0  220        imp0
-    2:           0  000        imp0
-    3:           0  000        imp0
-    4:           0  000        imp0
-    5:           0  570        imp0
-   ---                             
-58952:           0  000        imp0
-58953:           0  000        imp0
-58954:           0  000        imp0
-58955:           0  000        imp0
-58956:           0  000        imp0</code></pre>
+<pre><code>         PERREF TYPE MONTHAC  COMCODE  SITC COD_SEQ COD_ALPHA PORT_SEQ
+      1: 201601    2  202507 01------ 00---     001        FR      000
+      2: 201601    2  202507 01------ 00---     003        NL      000
+      3: 201601    2  202507 01------ 00---     004        DE      000
+      4: 201601    2  202507 01------ 00---     005        IT      000
+      5: 201601    2  202507 01------ 00---     007        IE      000
+     ---                                                              
+2110602: 201612    4  202507          930       959        QV      496
+2110603: 201612    4  202507          960       959        QV      496
+2110604: 201612    4  202507          970       959        QV      496
+2110605: 201612    4  202507          980       959        QV      496
+2110606: 201612    4  202507          990       959        QV      496
+         PORT_CODE COO_SEQ COO_ALPHA MODE_OF_TRANSPORT   STAT_VALUE
+      1:       ZZZ                                     000000298531
+      2:       ZZZ                                     000000319270
+      3:       ZZZ                                     000000000555
+      4:       ZZZ                                     000000005033
+      5:       ZZZ                                     000001332312
+     ---                                                           
+2110602:       QVV     959        QV                   000000384603
+2110603:       QVV     959        QV                   000000000000
+2110604:       QVV     959        QV                   000000000000
+2110605:       QVV     959        QV                   000000000000
+2110606:       QVV     959        QV                   000096287000
+             NET_MASS    SUMM_UNIT SUPRESSION FLOW REC_TYPE
+      1: 000000002091 000000000022          0  imp        0
+      2: 000000020318 000000000000          0  imp        0
+      3: 000000000025 000000000000          0  imp        0
+      4: 000000000258 000000000000          0  imp        0
+      5: 000000406697 000000795057          0  imp        0
+     ---                                                   
+2110602:            .            .          0  imp        0
+2110603:            .            .          0  imp        0
+2110604:            .            .          0  imp        0
+2110605:            .            .          0  imp        0
+2110606:            .            .          0  imp        0</code></pre>
 </div>
 </div>
 </section>
@@ -195,33 +177,78 @@ comment.char=. First discarded non-empty line:
 <h2 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h2>
 <p>Simple example…</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">uktrades_request</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>commodities <span class="ot">&lt;-</span> <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> <span class="st">"Commodity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: jsonlite</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: package 'jsonlite' was built under R version 4.1.3</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(commodities<span class="sc">$</span>value,<span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>$`@odata.context`
-[1] "https://api.uktradeinfo.com/$metadata#Commodity(Exports(Trader()))"
-
-$value
-  CommodityId  Cn8Code Hs2Code Hs4Code Hs6Code Hs2Description
-1     1012910 01012910      01    0101  010129   Live animals
-2     1012990 01012990      01    0101  010129   Live animals
-                         Hs4Description
-1 Live horses, asses, mules and hinnies
-2 Live horses, asses, mules and hinnies
-                              Hs6Description SitcCommodityCode
-1 Live horses (excl. pure-bred for breeding)             00150
-2 Live horses (excl. pure-bred for breeding)             00150
-                                         Cn8LongDescription
-1                                      Horses for slaughter
-2 Live horses (excl. for slaughter, pure-bred for breeding)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Exports
-1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 NULL
-2 165616, 50485, 50485, 50485, 50485, 50485, 50485, 50485, 50485, 132859, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 137089, 78423, 34152, 34152, 34152, 34152, 34152, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 1012990, 201909, 201903, 201905, 201907, 201908, 201909, 201910, 201911, 201912, 201911, 201901, 201903, 201904, 201905, 201907, 201908, 201909, 201910, 201911, 201912, 201912, 201909, 201903, 201905, 201910, 201911, 201912, 165616, 50485, 50485, 50485, 50485, 50485, 50485, 50485, 50485, 132859, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 216120, 137089, 78423, 34152, 34152, 34152, 34152, 34152, FAWZI ABDULLA NASS, TATTERSALLS LTD, TATTERSALLS LTD, TATTERSALLS LTD, TATTERSALLS LTD, TATTERSALLS LTD, TATTERSALLS LTD, TATTERSALLS LTD, TATTERSALLS LTD, COWELL FARMS, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, BBA SHIPPING AND TRANSPORT LIMITED, JUDDMONTE FARMS LTD, VARIAN STABLE LTD, JANAH MANAGEMENT COMPANY, JANAH MANAGEMENT COMPANY, JANAH MANAGEMENT COMPANY, JANAH MANAGEMENT COMPANY, JANAH MANAGEMENT COMPANY, AISLABIE STUD, TERRACE HOUSE, TERRACE HOUSE, TERRACE HOUSE, TERRACE HOUSE, TERRACE HOUSE, TERRACE HOUSE, TERRACE HOUSE, TERRACE HOUSE, HEATH HOUSE, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, QUEENSBERRY MEWS, BANSTEAD MANOR STUD, 49 BURY ROAD, JANAH OFFICE, JANAH OFFICE, JANAH OFFICE, JANAH OFFICE, JANAH OFFICE, LEY ROAD, 125 HIGH STREET, 125 HIGH STREET, 125 HIGH STREET, 125 HIGH STREET, 125 HIGH STREET, 125 HIGH STREET, 125 HIGH STREET, 125 HIGH STREET, BOTTISHAM HEATH STUD, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, HIGH STREET, CHEVELEY, NEWMARKET, DALHAM HALL STUD, DALHAM HALL STUD, DALHAM HALL STUD, DALHAM HALL STUD, DALHAM HALL STUD, STETCHWORTH, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, SIX MILE BOTTOM, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, SUFFOLK, DUCHESS DRIVE, DUCHESS DRIVE, DUCHESS DRIVE, DUCHESS DRIVE, DUCHESS DRIVE, NEWMARKET, SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, NEWMARKET, , , , , , , , , , , SUFFOLK, , NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, NEWMARKET, SUFFOLK, , , , , , , , , SUFFOLK, , , , , , , , , , , , , SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, SUFFOLK, CB8 9TS, CB8 9BT, CB8 9BT, CB8 9BT, CB8 9BT, CB8 9BT, CB8 9BT, CB8 9BT, CB8 9BT, CB8 0TT, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9AE, CB8 9RD, CB8 7BY, CB8 9HE, CB8 9HE, CB8 9HE, CB8 9HE, CB8 9HE</code></pre>
+<pre><code>   CommodityId Cn8Code Hs2Code Hs4Code Hs6Code
+1            0      00    &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;
+2            1      01      01    &lt;NA&gt;    &lt;NA&gt;
+3            2      02      02    &lt;NA&gt;    &lt;NA&gt;
+4            3      03      03    &lt;NA&gt;    &lt;NA&gt;
+5            4      04      04    &lt;NA&gt;    &lt;NA&gt;
+6            5      05      05    &lt;NA&gt;    &lt;NA&gt;
+7            6      06      06    &lt;NA&gt;    &lt;NA&gt;
+8            7      07      07    &lt;NA&gt;    &lt;NA&gt;
+9            8      08      08    &lt;NA&gt;    &lt;NA&gt;
+10           9      09      09    &lt;NA&gt;    &lt;NA&gt;
+11          10      10      10    &lt;NA&gt;    &lt;NA&gt;
+12          11      11      11    &lt;NA&gt;    &lt;NA&gt;
+13          12      12      12    &lt;NA&gt;    &lt;NA&gt;
+14          13      13      13    &lt;NA&gt;    &lt;NA&gt;
+15          14      14      14    &lt;NA&gt;    &lt;NA&gt;
+16          15      15      15    &lt;NA&gt;    &lt;NA&gt;
+17          16      16      16    &lt;NA&gt;    &lt;NA&gt;
+18          17      17      17    &lt;NA&gt;    &lt;NA&gt;
+19          18      18      18    &lt;NA&gt;    &lt;NA&gt;
+20          19      19      19    &lt;NA&gt;    &lt;NA&gt;
+                                                                                                           Hs2Description
+1                                                                                                                    &lt;NA&gt;
+2                                                                                                            Live animals
+3                                                                                              Meat and edible meat offal
+4                                                          Fish and crustaceans, molluscs and other aquatic invertebrates
+5        Dairy produce; birds' eggs; natural honey; edible products of animal origin, not elsewhere specified or included
+6                                                           Products of animal origin not elsewhere specified or included
+7                              Live trees and other plants; bulbs, roots and the like; cut flowers and ornamental foliage
+8                                                                          Edible vegetables and certain roots and tubers
+9                                                                  Edible fruit and nuts; peel of citrus fruits or melons
+10                                                                                           Coffee, tea, mate and spices
+11                                                                                                                Cereals
+12                                                 Products of the milling industry; malt; starches; inulin; wheat gluten
+13 Oil seeds and oleaginous fruits; miscellaneous grains, seeds and fruit; industrial or medical plants; straw and fodder
+14                                                               Lacs; gums, resins and other vegetable saps and extracts
+15                                   Vegetable plaiting materials; vegetable products not elsewhere specified or included
+16         Animal or vegetable fats and oils and their cleavage products; prepared edible fats; animal or vegetable waxes
+17                                     Preparations of meat, fish or crustaceans, molluscs or other aquatic invertebrates
+18                                                                                         Sugars and sugar confectionery
+19                                                                                           Cocoa and cocoa preparations
+20                                                  Preparations of cereals, flour, starch or milk; pastrycooks' products
+   Hs4Description Hs6Description SitcCommodityCode Cn8LongDescription
+1            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+2            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+3            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+4            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+5            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+6            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+7            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+8            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+9            &lt;NA&gt;           &lt;NA&gt;                 0                  -
+10           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+11           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+12           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+13           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+14           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+15           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+16           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+17           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+18           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+19           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+20           &lt;NA&gt;           &lt;NA&gt;                 0                  -</code></pre>
 </div>
 </div>
 </section>
