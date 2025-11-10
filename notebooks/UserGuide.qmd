@@ -54,16 +54,92 @@ for ( i in lookup_tables ) {
 
 ```
 
-## Quick visualisation
+## Quick Visualisation
 
 -   Plot time series of a single commodity
 
--   Plot the time time series of all commodities in "chapter"
+-   Plot the time series of all commodities in "chapter"
 
 ```{r}
-# ggplot(...)
+
+comcode.plot <- function(code) {
+  #add year
+  imports$year <- substr(imports$PERREF, 1, 4)
+  Commodity <- as.data.table(Commodity)
+  #subset of "code" info
+  meta <- Commodity[
+    Commodity$Cn8Code == code |
+      Commodity$Hs2Code == code |
+      Commodity$Hs4Code == code |
+      Commodity$Hs6Code == code, ]
+
+  #extract related codes once
+  allcodes <- na.omit(unique(c(meta$Cn8Code, meta$Hs2Code, meta$Hs4Code, meta$Hs6Code)))
+  
+  #filter main dataset for all matching codes
+  df <- subset(imports, COMCODE %in% allcodes)
+
+  #hierarchy details
+  df$Cn8Code <- meta$Cn8Code[1]
+  df$Hs2Code <- meta$Hs2Code[1]
+  df$Hs4Code <- meta$Hs4Code[1]
+  df$Hs6Code <- meta$Hs6Code[1]
+  
+  df$Cn8Description <- meta$Cn8LongDescription[1]
+  df$Hs2Description <- meta$Hs2Description[1]
+  df$Hs4Description <- meta$Hs4Description[1]
+  df$Hs6Description <- meta$Hs6Description[1]
+  
+  ## plot year and net mass
+  ggplot(df, aes(x = year, y = as.numeric(NET_MASS), fill = factor(COMCODE))) +
+  geom_col(show.legend = TRUE) +
+  labs(title = paste0(
+   "Weight Distribution for ", code, "\n",
+   "Chapter: ", df$Hs2Description[1], " (", df$Hs2Code[1], ")\n",
+   "Category: ", df$Hs4Description[1], " (", df$Hs4Code[1], ")\n",
+   "Subcategory: ", df$Hs6Description[1], " (", df$Hs6Code[1], ")\n",
+   "COMCODE: ",  df$Cn8Description[1], " (", df$Cn8Code[1], ")\n"),
+    x = "Year",
+    y = "Weight",
+    fill = "Code") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+comcode.plot("01")
+comcode.plot("0103")
+comcode.plot("01039219")
+
 ```
 
+-   Hierarchichal classification of a given commodity code
+
 ```{r}
-# ggplot
+comcode.description <- function(code) {
+  Commodity <- as.data.table(Commodity)
+  meta <- Commodity[
+    Commodity$Cn8Code == code |
+      Commodity$Hs2Code == code |
+      Commodity$Hs4Code == code |
+      Commodity$Hs6Code == code,]
+  
+  desc <- list(
+    Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
+    Hs4 = paste(meta$Hs4Code[1], " — ", meta$Hs4Description[1]),
+    Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
+    Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1])
+  )
+  
+  # structured format
+  cat("\nHierarchical Description for Code:", code, "\n")
+  cat("---------------------------------------------\n")
+  cat("Chapter (Hs2):          ", desc$Hs2, "\n")
+  cat("Group (Hs4):            ", desc$Hs4, "\n")
+  cat("Subgroup (Hs6):         ", desc$Hs6, "\n")
+  cat("Commodity code (Cn8):   ", desc$Cn8, "\n")
+  cat("---------------------------------------------\n\n")
+}
+
+comcode.description("08")
+comcode.description("0803")
+comcode.description("08039010")
 ```
