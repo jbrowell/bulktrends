@@ -96,11 +96,11 @@ comcode.plot <- function(code) {
   labs(title = paste0(
    "Weight Distribution for ", code, "\n",
    "Chapter: ", df$Hs2Description[1], " (", df$Hs2Code[1], ")\n",
-   "Category: ", df$Hs4Description[1], " (", df$Hs4Code[1], ")\n",
-   "Subcategory: ", df$Hs6Description[1], " (", df$Hs6Code[1], ")\n",
-   "COMCODE: ",  df$Cn8Description[1], " (", df$Cn8Code[1], ")\n"),
+   "Heading: ", df$Hs4Description[1], " (", df$Hs4Code[1], ")\n",
+   "Subheading: ", df$Hs6Description[1], " (", df$Hs6Code[1], ")\n",
+   "Commodity Code: ",  df$Cn8Description[1], " (", df$Cn8Code[1], ")\n"),
     x = "Year",
-    y = "Weight",
+    y = "Weight (Kg)",
     fill = "Code") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 }
@@ -133,8 +133,8 @@ comcode.description <- function(code) {
   cat("\nHierarchical Description for Code:", code, "\n")
   cat("---------------------------------------------\n")
   cat("Chapter (Hs2):          ", desc$Hs2, "\n")
-  cat("Group (Hs4):            ", desc$Hs4, "\n")
-  cat("Subgroup (Hs6):         ", desc$Hs6, "\n")
+  cat("Heading (Hs4):            ", desc$Hs4, "\n")
+  cat("Subheading (Hs6):         ", desc$Hs6, "\n")
   cat("Commodity code (Cn8):   ", desc$Cn8, "\n")
   cat("---------------------------------------------\n\n")
 }
