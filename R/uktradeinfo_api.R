@@ -1,13 +1,17 @@
 #' Request data from UK Trades API
 #'
-#' Basic example. See https://www.uktradeinfo.com/api-documentation/
+#' @param endpoint  OData queryable endpoint appended to api URL. See details.
+#'
+#' @details
+#' For endpoint documentation visit https://www.uktradeinfo.com/api-documentation/.
+#' `endpoint` is appended to "https://api.uktradeinfo.com/".
+#'
+#' @return Result of API query.
 #'
 #' @export
 uktrades_request <- function(endpoint) {
 
   require(jsonlite)
-
-  # example <- jsonlite::fromJSON("https://api.uktradeinfo.com/Commodity?$filter=Hs6Code eq '010129'&$expand=Exports($filter=MonthId ge 201901 and MonthId le 201912 and startswith(Trader/PostCode, 'CB8'); $expand=Trader)")
 
   request <- paste0("https://api.uktradeinfo.com/",endpoint)
 
