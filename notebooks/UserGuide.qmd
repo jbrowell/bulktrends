@@ -12,6 +12,7 @@ Examples of how to use the `bulktrends` package. First, let's load all of the fu
 #| code-fold: true
 
 library(data.table)
+library(ggplot2)
 library(devtools)
 devtools::load_all("../")
 ```
@@ -22,7 +23,7 @@ Load a single bulk data file or all of the files in a directory (and subdirector
 
 ```{r}
 if (file.exists("../data/imports.rds")) {
-  readRDS("../data/imports.rds")
+  imports <- readRDS("../data/imports.rds")
 } else {
   imports <- read_uktradeinfo( path = "../data/imports/")
   saveRDS(imports, file = "../data/imports.rds")
@@ -43,7 +44,7 @@ for ( i in lookup_tables ) {
   file <- paste0("../data/",i,".rds")
   
   if( file.exists(file) ){
-    readRDS(file)
+    assign(i,readRDS(file))
   
     } else {
     assign(i, uktrades_request(endpoint = i)$value)
