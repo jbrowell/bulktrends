@@ -63,52 +63,45 @@ for ( i in lookup_tables ) {
 
 ```{r}
 
-comcode.plot <- function(code) {
-  #add year
-  imports$year <- substr(imports$PERREF, 1, 4)
-  Commodity <- as.data.table(Commodity)
-  #subset of "code" info
-  meta <- Commodity[
-    Commodity$Cn8Code == code |
-      Commodity$Hs2Code == code |
-      Commodity$Hs4Code == code |
-      Commodity$Hs6Code == code, ]
-
+comcode.plot <- function(code, lookuptable) {
+ 
+  # "code" row from lookup table to meta
+  lookuptable <- as.data.table(lookuptable)
+  meta <- lookuptable[Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code]
+  
   #extract related codes once
-  allcodes <- na.omit(unique(c(meta$Cn8Code, meta$Hs2Code, meta$Hs4Code, meta$Hs6Code)))
+  allcodes <- na.omit(unique(meta$Cn8Code))
   
-  #filter main dataset for all matching codes
-  df <- subset(imports, COMCODE %in% allcodes)
+  #filter main dataset for all matching codes and merge with meta
+  df <- imports[ COMCODE %in% allcodes ]
+  df <- merge(df, meta, by.x = "COMCODE", by.y = "Cn8Code", all.x=T)
+  
+  #add year to df
+  df[, year := substr(PERREF, 1, 4)]
 
-  #hierarchy details
-  df$Cn8Code <- meta$Cn8Code[1]
-  df$Hs2Code <- meta$Hs2Code[1]
-  df$Hs4Code <- meta$Hs4Code[1]
-  df$Hs6Code <- meta$Hs6Code[1]
-  
-  df$Cn8Description <- meta$Cn8LongDescription[1]
-  df$Hs2Description <- meta$Hs2Description[1]
-  df$Hs4Description <- meta$Hs4Description[1]
-  df$Hs6Description <- meta$Hs6Description[1]
+  #df[ , .(NET_MASS = sum(as.numeric(NET_MASS))), by = c("year","COMCODE") ]
   
   ## plot year and net mass
   ggplot(df, aes(x = year, y = as.numeric(NET_MASS), fill = factor(COMCODE))) +
   geom_col(show.legend = TRUE) +
-  labs(title = paste0(
-   "Weight Distribution for ", code, "\n",
-   "Chapter: ", df$Hs2Description[1], " (", df$Hs2Code[1], ")\n",
-   "Heading: ", df$Hs4Description[1], " (", df$Hs4Code[1], ")\n",
-   "Subheading: ", df$Hs6Description[1], " (", df$Hs6Code[1], ")\n",
-   "Commodity Code: ",  df$Cn8Description[1], " (", df$Cn8Code[1], ")\n"),
-    x = "Year",
-    y = "Weight (Kg)",
-    fill = "Code") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(title = paste0("Weight Distribution for ", code, "\n",
+                  "Chapter: ", df$Hs2Description[1], " (", df$Hs2Code[1], ")\n",
+                  "Heading: ", df$Hs4Description[1], " (", df$Hs4Code[1], ")\n",
+                  "Subheading: ", df$Hs6Description[1], " (", df$Hs6Code[1], ")\n",
+                  "Commodity Code: ",  df$Cn8LongDescription[1], " (", code, ")\n"),
+        x = "Year",
+        y = "Weight (Kg)",
+        fill = "Commodity Code") +
+  theme_minimal(base_size = 10) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(family= "Arial", face = "bold", size = 10),
+        legend.title = element_text(face = "bold"))
 }
 
-comcode.plot("01")
-comcode.plot("0103")
-comcode.plot("01039219")
+comcode.plot("01", lookuptable=Commodity)
+#comcode.plot("0103", lookuptable=Commodity)
+#comcode.plot("01039219", lookuptable=Commodity)
+
 
 ```
 
