@@ -128,8 +128,8 @@ comcode.description <- function(code) {
   cat("\nHierarchical Description for Code:", code, "\n")
   cat("---------------------------------------------\n")
   cat("Chapter (Hs2):          ", desc$Hs2, "\n")
-  cat("Heading (Hs4):            ", desc$Hs4, "\n")
-  cat("Subheading (Hs6):         ", desc$Hs6, "\n")
+  cat("Heading (Hs4):          ", desc$Hs4, "\n")
+  cat("Subheading (Hs6):       ", desc$Hs6, "\n")
   cat("Commodity code (Cn8):   ", desc$Cn8, "\n")
   cat("---------------------------------------------\n\n")
 }
