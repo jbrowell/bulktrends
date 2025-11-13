@@ -65,7 +65,7 @@ for ( i in lookup_tables ) {
 
 comcode.plot <- function(code, lookuptable) {
  
-  # "code" row from lookup table to meta
+  #"code" info to meta
   lookuptable <- as.data.table(lookuptable)
   meta <- lookuptable[Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code]
   
@@ -83,19 +83,26 @@ comcode.plot <- function(code, lookuptable) {
   
   ## plot year and net mass
   ggplot(df, aes(x = year, y = as.numeric(NET_MASS), fill = factor(COMCODE))) +
-  geom_col(show.legend = TRUE) +
-  labs(title = paste0("Weight Distribution for ", code, "\n",
-                  "Chapter: ", df$Hs2Description[1], " (", df$Hs2Code[1], ")\n",
-                  "Heading: ", df$Hs4Description[1], " (", df$Hs4Code[1], ")\n",
-                  "Subheading: ", df$Hs6Description[1], " (", df$Hs6Code[1], ")\n",
-                  "Commodity Code: ",  df$Cn8LongDescription[1], " (", code, ")\n"),
-        x = "Year",
-        y = "Weight (Kg)",
-        fill = "Commodity Code") +
-  theme_minimal(base_size = 10) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(family= "Arial", face = "bold", size = 10),
-        legend.title = element_text(face = "bold"))
+  geom_col() +
+  scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(df$COMCODE)))) +
+  labs(title = "Weight Distribution by Commodity Code",
+       subtitle = paste0(if (nchar(code) >= 2) paste0(df$Hs2Code[1], " - ",    df$Hs2Description[1], "\n") else "",
+                         if (nchar(code) >= 4) paste0(df$Hs4Code[1], " - ", df$Hs4Description[1], "\n") else "",
+                         if (nchar(code) >= 6) paste0(df$Hs6Code[1], " - ", df$Hs6Description[1], "\n") else "",
+                         if (nchar(code) == 8) paste0(df$COMCODE[1], " - ", df$Cn8LongDescription[1]) else ""),
+       x = "Year",
+       y = "Weight (Kg)",
+       fill = "Commodity Code") +
+  guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 4)) + 
+  theme_minimal(base_family = "Times New Roman") +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(face = "bold", size = 12, color = "#7f0000", lineheight = 1.1),
+        plot.subtitle = element_text(face = "bold", size = 11, color = "#34495E"),
+        legend.text = element_text(size = 9, family= "Times New Roman"),
+        legend.title = element_text(face = "bold", size = 11, color = "#34495E"))+
+    scale_y_continuous(labels = scales::comma)
 }
 
 comcode.plot("01", lookuptable=Commodity)
@@ -110,18 +117,12 @@ comcode.plot("01", lookuptable=Commodity)
 ```{r}
 comcode.description <- function(code) {
   Commodity <- as.data.table(Commodity)
-  meta <- Commodity[
-    Commodity$Cn8Code == code |
-      Commodity$Hs2Code == code |
-      Commodity$Hs4Code == code |
-      Commodity$Hs6Code == code,]
+  meta <- Commodity[Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code]
   
-  desc <- list(
-    Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
-    Hs4 = paste(meta$Hs4Code[1], " — ", meta$Hs4Description[1]),
-    Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
-    Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1])
-  )
+  desc <- list(Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
+               Hs4 = paste(meta$Hs4Code[1], " — ", meta$Hs4Description[1]),
+               Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
+               Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1]))
   
   # structured format
   cat("\nHierarchical Description for Code:", code, "\n")
@@ -133,7 +134,7 @@ comcode.description <- function(code) {
   cat("---------------------------------------------\n\n")
 }
 
-comcode.description("08")
-comcode.description("0803")
+#comcode.description("08")
+#comcode.description("0803")
 comcode.description("08039010")
 ```
