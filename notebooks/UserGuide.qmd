@@ -4,12 +4,13 @@ format: html
 editor: visual
 ---
 
-## bulktrends User Guide
+## *bulktrends User Guide*
 
-Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.
+*Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.*
 
 ```{r}
 #| code-fold: true
+#| warning: false
 
 library(data.table)
 library(ggplot2)
@@ -17,9 +18,9 @@ library(devtools)
 devtools::load_all("../")
 ```
 
-## Load UK Trade Info Bulk Data Files
+## *Load UK Trade Info Bulk Data Files*
 
-Load a single bulk data file or all of the files in a directory (and subdirectories).
+*Load a single bulk data file or all of the files in a directory (and subdirectories).*
 
 ```{r}
 if (file.exists("../data/imports.rds")) {
@@ -33,9 +34,9 @@ head(imports)
 
 ```
 
-## Request Data from UK Trade Data API
+## *Request Data from UK Trade Data API*
 
-Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.
+*Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.*
 
 ```{r}
 lookup_tables <- c("Commodity","Port")
@@ -55,64 +56,90 @@ for ( i in lookup_tables ) {
 
 ```
 
-## Quick Visualisation
+## *Quick Visualisation*
 
--   Plot time series of a single commodity
+-   *Plot time series of a single commodity*
 
--   Plot the time series of all commodities in "chapter"
+-   *Plot the time series of all commodities in "chapter"*
 
 ```{r}
 
-comcode.plot <- function(code, lookuptable) {
+comcode.plot <- function(import_data,
+                         code,
+                         lookuptable,
+                         max_unique_comcodes=10) {
  
   #"code" info to meta
   lookuptable <- as.data.table(lookuptable)
-  meta <- lookuptable[Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code]
+  meta <- lookuptable[Cn8Code == code | Hs2Code == code |
+                        Hs4Code == code | Hs6Code == code]
   
   #extract related codes once
   allcodes <- na.omit(unique(meta$Cn8Code))
   
   #filter main dataset for all matching codes and merge with meta
-  df <- imports[ COMCODE %in% allcodes ]
-  df <- merge(df, meta, by.x = "COMCODE", by.y = "Cn8Code", all.x=T)
+  import_data <- import_data[ COMCODE %in% allcodes ]
   
-  #add year to df
-  df[, year := substr(PERREF, 1, 4)]
+  #add month to import_data
+  import_data[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
 
-  #df[ , .(NET_MASS = sum(as.numeric(NET_MASS))), by = c("year","COMCODE") ]
+  #import_data[ , .(NET_MASS = sum(as.numeric(NET_MASS))), by = c("year","COMCODE") ]
+  
+  if ( import_data[,length(unique(COMCODE))] > max_unique_comcodes) {
+    topX <- import_data[,.(NET_MASS=sum(as.numeric(NET_MASS))),by=COMCODE][
+      order(NET_MASS,decreasing = T),COMCODE][1:max_unique_comcodes]
+    import_data[ ! COMCODE %in% topX, COMCODE := "Other"]
+    import_data <- import_data[,.(NET_MASS=sum(as.numeric(NET_MASS))),by=c("COMCODE","month")]
+  }
+  
+  import_data <- merge(import_data, meta,
+                       by.x = "COMCODE", by.y = "Cn8Code",
+                       all.x=T)
+
   
   ## plot year and net mass
-  ggplot(df, aes(x = year, y = as.numeric(NET_MASS), fill = factor(COMCODE))) +
-  geom_col() +
-  scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(df$COMCODE)))) +
-  labs(title = "Weight Distribution by Commodity Code",
-       subtitle = paste0(if (nchar(code) >= 2) paste0(df$Hs2Code[1], " - ",    df$Hs2Description[1], "\n") else "",
-                         if (nchar(code) >= 4) paste0(df$Hs4Code[1], " - ", df$Hs4Description[1], "\n") else "",
-                         if (nchar(code) >= 6) paste0(df$Hs6Code[1], " - ", df$Hs6Description[1], "\n") else "",
-                         if (nchar(code) == 8) paste0(df$COMCODE[1], " - ", df$Cn8LongDescription[1]) else ""),
+  ggplot(import_data, aes(x = month, y = as.numeric(NET_MASS), fill = factor(COMCODE))) +
+  # geom_col() +
+    geom_area() +
+  scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(import_data$COMCODE)))) +
+  labs(title = "Total Weught by Commodity Code",
+       subtitle = paste0(
+         if (nchar(code) >= 2) {
+           import_data[1,paste(Hs2Code, "-", Hs2Description,"\n")]
+           } else "",
+         if (nchar(code) >= 4) {
+           import_data[1,paste(Hs4Code, "-", Hs4Description,"\n")]
+           } else "",
+         if (nchar(code) >= 6) {
+           import_data[1,paste(Hs6Code, "-", Hs6Description,"\n")]
+           } else "",
+         if (nchar(code) == 8) {
+           import_data[1,paste(COMCODE, "-", Cn8LongDescription,"\n")]
+           } else ""),
        x = "Year",
-       y = "Weight (Kg)",
-       fill = "Commodity Code") +
-  guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 4)) + 
-  theme_minimal(base_family = "Times New Roman") +
+       y = "Weight [kg/month]",
+       fill = paste0("Commodity Code\n(Top ",max_unique_comcodes,")")) +
+  guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 2)) + 
+  theme_minimal(base_family = "serif") +
   theme(panel.grid.major.x = element_blank(),
         panel.grid.minor = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(face = "bold", size = 12, color = "#7f0000", lineheight = 1.1),
+        plot.title = element_text(face = "bold", size = 12,
+                                  color = "#7f0000", lineheight = 1.1),
         plot.subtitle = element_text(face = "bold", size = 11, color = "#34495E"),
-        legend.text = element_text(size = 9, family= "Times New Roman"),
+        legend.text = element_text(size = 9, family= "serif"),
         legend.title = element_text(face = "bold", size = 11, color = "#34495E"))+
     scale_y_continuous(labels = scales::comma)
 }
 
-comcode.plot("01", lookuptable=Commodity)
-#comcode.plot("0103", lookuptable=Commodity)
-#comcode.plot("01039219", lookuptable=Commodity)
+comcode.plot(imports, "03", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "0303", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "01039219", lookuptable=Commodity)
 
 
 ```
 
--   Hierarchichal classification of a given commodity code
+-   *Hierarchichal classification of a given commodity code*
 
 ```{r}
 comcode.description <- function(code) {
@@ -138,3 +165,4 @@ comcode.description <- function(code) {
 #comcode.description("0803")
 comcode.description("08039010")
 ```
+
