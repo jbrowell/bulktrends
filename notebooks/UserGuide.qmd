@@ -102,23 +102,23 @@ comcode.plot <- function(import_data,
   # geom_col() +
     geom_area() +
   scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(import_data$COMCODE)))) +
-  labs(title = "Total Weught by Commodity Code",
-       subtitle = paste0(
-         if (nchar(code) >= 2) {
-           import_data[1,paste(Hs2Code, "-", Hs2Description,"\n")]
+  labs(title = "Total Weight by Commodity Code",
+         subtitle = paste0(
+           if (nchar(code) >= 2) {
+             import_data[1,paste(Hs2Code, "-", stringr::str_wrap(Hs2Description, width = 90),"\n")]
            } else "",
-         if (nchar(code) >= 4) {
-           import_data[1,paste(Hs4Code, "-", Hs4Description,"\n")]
+           if (nchar(code) >= 4) {
+             import_data[1,paste(Hs4Code, "-", stringr::str_wrap(Hs4Description, width = 90),"\n")]
            } else "",
-         if (nchar(code) >= 6) {
-           import_data[1,paste(Hs6Code, "-", Hs6Description,"\n")]
+           if (nchar(code) >= 6) {
+             import_data[1,paste(Hs6Code, "-", stringr::str_wrap(Hs6Description, width = 90),"\n")]
            } else "",
-         if (nchar(code) == 8) {
-           import_data[1,paste(COMCODE, "-", Cn8LongDescription,"\n")]
+           if (nchar(code) == 8) {
+             import_data[1,paste(COMCODE, "-", stringr::str_wrap(Cn8LongDescription, width = 90),"\n")]
            } else ""),
-       x = "Year",
-       y = "Weight [kg/month]",
-       fill = paste0("Commodity Code\n(Top ",max_unique_comcodes,")")) +
+         x = "Year",
+         y = "Weight [kg/month]",
+         fill = paste0("Commodity Code\n(Top ",max_unique_comcodes,")")) +
   guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 2)) + 
   theme_minimal(base_family = "serif") +
   theme(panel.grid.major.x = element_blank(),
@@ -132,9 +132,9 @@ comcode.plot <- function(import_data,
     scale_y_continuous(labels = scales::comma)
 }
 
-comcode.plot(imports, "03", lookuptable=Commodity,max_unique_comcodes = 10)
-comcode.plot(imports, "0303", lookuptable=Commodity,max_unique_comcodes = 10)
-comcode.plot(imports, "01039219", lookuptable=Commodity)
+comcode.plot(imports, "06", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "0601", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "06011030", lookuptable=Commodity)
 
 
 ```
@@ -165,4 +165,3 @@ comcode.description <- function(code) {
 #comcode.description("0803")
 comcode.description("08039010")
 ```
-
