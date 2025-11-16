@@ -132,9 +132,21 @@ comcode.plot <- function(import_data,
     scale_y_continuous(labels = scales::comma)
 }
 
+#plants
 comcode.plot(imports, "06", lookuptable=Commodity,max_unique_comcodes = 10)
-comcode.plot(imports, "0601", lookuptable=Commodity,max_unique_comcodes = 10)
 comcode.plot(imports, "06011030", lookuptable=Commodity)
+comcode.plot(imports, "07", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "07019090", lookuptable=Commodity)
+comcode.plot(imports, "08", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "08013200", lookuptable=Commodity)
+comcode.plot(imports, "84", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "87", lookuptable=Commodity,max_unique_comcodes = 10)
+
+#animals
+comcode.plot(imports, "01", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "02", lookuptable=Commodity,max_unique_comcodes = 10)
+comcode.plot(imports, "16", lookuptable=Commodity,max_unique_comcodes = 10)
+
 
 
 ```
