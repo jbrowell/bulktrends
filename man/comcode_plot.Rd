@@ -9,14 +9,14 @@ levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.}
 comcode_plot(import_data, code, lookup_table, max_unique_comcodes = 10)
 }
 \arguments{
-\item{import_data}{A data.table containing trade data. Must include "COMCODE"}
+\item{import_data}{A `data.table` containing trade data. Must include "COMCODE".}
 
-\item{code}{A character string representing any HS2/HS4/HS6/CN8 code}
+\item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
-\item{lookup_table}{A data.table containing details of each code level}
+\item{lookup_table}{A `data.table` containing details of each code level.}
 }
 \value{
-a display of total weight per month per code
+A display of total weight per month per code.
 }
 \description{
 Visualisation of a given commodity code.

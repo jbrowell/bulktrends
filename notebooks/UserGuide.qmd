@@ -64,19 +64,12 @@ for ( i in lookup_tables ) {
 
 ```{r}
 
-
 #plants
 comcode_plot(imports, "06", lookup_table=Commodity,max_unique_comcodes = 10)
 comcode_plot(imports, "06029010", lookup_table=Commodity)
-comcode_plot(imports, "07", lookup_table=Commodity,max_unique_comcodes = 10)
-
 #animals
 comcode_plot(imports, "01", lookup_table=Commodity,max_unique_comcodes = 10)
 comcode_plot(imports, "02", lookup_table=Commodity,max_unique_comcodes = 10)
-
-
-
-
 
 ```
 
@@ -105,4 +98,6 @@ comcode.description <- function(code) {
 #comcode.description("08")
 #comcode.description("0803")
 comcode.description("08039010")
+
+comcode_description("08039010", Commodity)
 ```

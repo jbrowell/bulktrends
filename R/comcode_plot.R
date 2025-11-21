@@ -2,11 +2,12 @@
 
 #' This function displays the total weight per month for all 
 #' levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
-#' @param import_data A data.table containing trade data. Must include "COMCODE"
-#' @param code A character string representing any HS2/HS4/HS6/CN8 code
-#' @param lookup_table A data.table containing details of each code level
+#' 
+#' @param import_data A `data.table` containing trade data. Must include "COMCODE".
+#' @param code A character string representing any HS2/HS4/HS6/CN8 code.
+#' @param lookup_table A `data.table` containing details of each code level.
 #'
-#' @return a display of total weight per month per code
+#' @return A display of total weight per month per code.
 #' 
 #' @export
 comcode_plot <- function(import_data,
