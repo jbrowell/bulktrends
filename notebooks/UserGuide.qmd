@@ -65,39 +65,18 @@ for ( i in lookup_tables ) {
 ```{r}
 
 #plants
-comcode_plot(imports, "06", lookup_table=Commodity,max_unique_comcodes = 10)
+comcode_plot(imports, "06", lookup_table=Commodity, max_unique_comcodes = 10)
 comcode_plot(imports, "06029010", lookup_table=Commodity)
 #animals
-comcode_plot(imports, "01", lookup_table=Commodity,max_unique_comcodes = 10)
-comcode_plot(imports, "02", lookup_table=Commodity,max_unique_comcodes = 10)
+comcode_plot(imports, "01", lookup_table=Commodity, max_unique_comcodes = 10)
+comcode_plot(imports, "01012990", lookup_table=Commodity, max_unique_comcodes = 10)
 
 ```
 
 -   *Hierarchichal classification of a given commodity code*
 
 ```{r}
-comcode.description <- function(code) {
-  Commodity <- as.data.table(Commodity)
-  meta <- Commodity[Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code]
-  
-  desc <- list(Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
-               Hs4 = paste(meta$Hs4Code[1], " — ", meta$Hs4Description[1]),
-               Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
-               Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1]))
-  
-  # structured format
-  cat("\nHierarchical Description for Code:", code, "\n")
-  cat("---------------------------------------------\n")
-  cat("Chapter (Hs2):          ", desc$Hs2, "\n")
-  cat("Heading (Hs4):          ", desc$Hs4, "\n")
-  cat("Subheading (Hs6):       ", desc$Hs6, "\n")
-  cat("Commodity code (Cn8):   ", desc$Cn8, "\n")
-  cat("---------------------------------------------\n\n")
-}
 
-#comcode.description("08")
-#comcode.description("0803")
-comcode.description("08039010")
-
+comcode_description("0803", Commodity)
 comcode_description("08039010", Commodity)
 ```
