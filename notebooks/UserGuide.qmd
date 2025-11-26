@@ -100,7 +100,7 @@ monthly_volume_plot <- function(import_data,
   import_data <- import_data[ COMCODE %in% allcodes ]
   
   #add month to import_data
-  import_data[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
+  # import_data[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
   
   #generate volume
   import_data <- import_data[, .(volume = .N), by=c("COMCODE","month")]
@@ -179,8 +179,8 @@ monthly_volume_outliers <- function(import_data,
   import_data <- import_data[ COMCODE %in% allcodes ]
     
   #add month to import_data
-  import_data[, month := as.Date(paste0(PERREF,"01"),format="%Y%m%d")]
-  c
+  # import_data[, month := as.Date(paste0(PERREF,"01"),format="%Y%m%d")]
+  
   #generate volume
   import_data <- import_data[, .(volume = .N), by="month"]
     
