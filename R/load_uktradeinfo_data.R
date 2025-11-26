@@ -1,12 +1,12 @@
 #' Load bulk data form UK Trade Info
 #'
 #' Load a single bulk data file of all files in a directory (and its
-#' subdirectories) from UK Trade Info.
+#' sub-directories) from UK Trade Info.
 #'
 #' @param path Path to a file to read, or directory containing multiple files,
-#' subdirectories are recursed.
+#' files in sub-directories are read recursively.
 #'
-#' @return A `data.table` of trade data.
+#' @return A `data.table` of trade data with a POSIXct timestamp.
 #'
 #' @export
 read_uktradeinfo <- function(path) {
@@ -34,6 +34,8 @@ read_uktradeinfo <- function(path) {
                   FLOW=substr(V1,82,84),
                   REC_TYPE=substr(V1,85,85))]
 
+    BDS[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
+
     return(BDS)
 
   } else if(file_test("-d", path)) {
@@ -49,6 +51,7 @@ read_uktradeinfo <- function(path) {
       BDS_all <- rbind(BDS_all, read_uktradeinfo(f))
 
     }
+
 
     return(BDS_all)
 
