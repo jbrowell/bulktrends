@@ -99,9 +99,6 @@ monthly_volume_plot <- function(import_data,
   #filter main dataset for all matching codes and merge with meta
   import_data <- import_data[ COMCODE %in% allcodes ]
   
-  #add month to import_data
-  # import_data[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
-  
   #generate volume
   import_data <- import_data[, .(volume = .N), by=c("COMCODE","month")]
 
@@ -178,9 +175,6 @@ monthly_volume_outliers <- function(import_data,
   #filter main dataset for all matching codes and merge with meta
   import_data <- import_data[ COMCODE %in% allcodes ]
     
-  #add month to import_data
-  # import_data[, month := as.Date(paste0(PERREF,"01"),format="%Y%m%d")]
-  
   #generate volume
   import_data <- import_data[, .(volume = .N), by="month"]
     
