@@ -155,7 +155,7 @@ monthly_volume_plot <- function(import_data,
   
 monthly_volume_plot(imports, "01", Commodity, max_unique_comcodes=10)
 monthly_volume_plot(imports, "02012030", Commodity)
-monthly_volume_plot(imports, "08", Commodity)
+monthly_volume_plot(imports, "06", Commodity)
 
 
 
@@ -182,11 +182,11 @@ monthly_volume_outliers <- function(import_data,
   import_data[, month := as.Date(paste0(PERREF,"01"),format="%Y%m%d")]
   c
   #generate volume
-  import_data <- import_data[, .(volume = .N), by=c("COMCODE","month")]
+  import_data <- import_data[, .(volume = .N), by="month"]
     
-  import_data <- merge(import_data , meta,
-                       by.x = "COMCODE", by.y = "Cn8Code",
-                       all.x=T)
+  #import_data <- merge(import_data , meta,
+   #                    by.x = "COMCODE", by.y = "Cn8Code",
+  #                     all.x=T)
     
   #declare time series
   ts_imports <- ts(import_data$volume, 
@@ -265,7 +265,7 @@ monthly_volume_outliers <- function(import_data,
 }
     
 
-#monthly_volume_outliers(imports, "01", Commodity)
+monthly_volume_outliers(imports, "01", Commodity)
 monthly_volume_outliers(imports, "01012100", Commodity)
 #monthly_volume_outliers(imports, "01012990", Commodity)
 #monthly_volume_outliers(imports, "01061900", Commodity)
