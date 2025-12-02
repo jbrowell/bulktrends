@@ -158,9 +158,11 @@ monthly_volume_plot(imports, "06", Commodity)
 
 ```
 
--   *Detection of outliers in time series of a single commodity*
+-   *Anomaly Detection in time series of a given commodity code*
 
 ```{r}
+
+library(forecast)
 
 monthly_volume_outliers <- function(import_data,
                                     code,
@@ -172,41 +174,40 @@ monthly_volume_outliers <- function(import_data,
                        Hs4Code == code | Hs6Code == code]
   allcodes <- na.omit(unique(meta$Cn8Code))
     
-  #filter main dataset for all matching codes and merge with meta
+  #filter main dataset and generate volume for code
   import_data <- import_data[ COMCODE %in% allcodes ]
-    
-  #generate volume
   import_data <- import_data[, .(volume = .N), by="month"]
-    
-  #import_data <- merge(import_data , meta,
-   #                    by.x = "COMCODE", by.y = "Cn8Code",
-  #                     all.x=T)
-    
+  
   #declare time series
   ts_imports <- ts(import_data$volume, 
                    start = c(2016, 01), 
                    frequency = 12)
   
-  #AR model
-  model <- arima(ts_imports, 
-                 order = c(1,0,0), 
-                 xreg = fourier(ts_imports, K=1))
+  #ARX model using forecast::Arima
+  trend <- 1:length(ts_imports)
+  seas <- fourier(ts_imports, K=1)   #K=1 creates one pair (sin(2πt/12) and cos(2πt/12))
+  #X <- model.matrix(~trend + seas)
+  X <- cbind(trend, seas)
   
-  res <- data.table(month = as.Date(import_data$month), 
-                    fitted <- fitted(model),
-                    resid <- residuals(model))
+  model <- Arima(ts_imports, 
+                 order = c(1,0,0), 
+                 xreg = X)
+  
+  #convert ts data into data.table for ggplot
+  res <- data.table(month = import_data$month,
+                    fitted = as.numeric(fitted(model)),
+                    resid  = as.numeric(residuals(model)))
   
   #find outliers
-  threshold <- median(resid) + 3*mad(resid) #notsure
-  outlier <- abs(resid) > threshold
+  threshold <- median(res$resid) + 3*mad(res$resid)
+  outlier <- abs(res$resid) > threshold
   
   #plot with threshold
   a <- ggplot(res, aes(x = month, y = resid)) +
-       geom_col(fill = "grey", width=18) +
        geom_point(aes(colour = outlier), size = 1.2) +
                   scale_colour_manual(values = c("FALSE" = "#003865",
-                                             "TRUE" = "red")) +
-       labs(title = "Residual Outliers",
+                                                 "TRUE" = "red")) +
+       labs(title = paste0("Residual Outliers for " , code),
             x = "Year", 
             y = "Residuals")+
        theme_minimal(base_family = "serif")+
@@ -218,52 +219,49 @@ monthly_volume_outliers <- function(import_data,
   
   #plot fitted vs residuals 1
   b <- ggplot(res, aes(x = fitted, y = resid)) +
-    geom_point(size=1, colour="#003865") +
-    geom_hline(yintercept = 0, linetype = "dashed", colour = "darkgrey")+
-    labs(title = "Fitted vs Residuals",
-         x = "Fitted Values", 
-         y = "Residuals")+
-    theme_minimal(base_family = "serif")+
-    theme(#panel.grid.major.x = element_blank(),
-          #panel.grid.minor = element_blank(),
-          plot.title = element_text(face = "bold", size = 12,
+       geom_point(size=1, colour="#003865") +
+       geom_hline(yintercept = 0, linetype = "dashed", colour = "darkgrey")+
+       labs(title = paste0("Fitted values vs Residuals for " , code),
+            x = "Fitted Values", 
+            y = "Residuals")+
+       theme_minimal(base_family = "serif")+
+       theme(#panel.grid.major.x = element_blank(),
+             #panel.grid.minor = element_blank(),
+             plot.title = element_text(face = "bold", size = 12,
                                     colour = "#7D2239", lineheight = 1.1),
-          legend.title = element_text(face = "bold", size = 11, colour = "black"))
+             legend.title = element_text(face = "bold", size = 11, colour = "black"))
   
   #plot fitted vs residuals 2
   c <- ggplot(res, aes(x = fitted)) +
-    geom_line(aes(y = fitted), colour = "#6baed6", linewidth = 0.8) + 
-    geom_point(aes(y = resid), colour = "#003865", size = 1) +
-    theme_minimal(base_family = "serif") +
-    labs(
-      title = "Fitted vs Residuals",
-      x = "Fitted Values",
-      y = "Residuals") +
-    theme(#panel.grid.major.x = element_blank(),
-          #panel.grid.minor = element_blank(),
-          plot.title = element_text(face = "bold", size = 12,
-                                    colour = "#7D2239", lineheight = 1.1))
+       geom_line(aes(y = fitted), colour = "#6baed6", linewidth = 0.8) + 
+       geom_point(aes(y = resid), colour = "#003865", size = 1) +
+       theme_minimal(base_family = "serif") +
+       labs(title = paste0("Fitted values vs Residuals for " , code),
+            x = "Fitted Values",
+            y = "Residuals") +
+       theme(#panel.grid.major.x = element_blank(),
+             #panel.grid.minor = element_blank(),
+             plot.title = element_text(face = "bold", size = 12,
+                                       colour = "#7D2239", lineheight = 1.1))
   #plot residuals over time
   d <- ggplot(res, aes(x = month, y = resid)) +
-    geom_line(color = "darkgrey") +
-    geom_point(size = 1.2, color = "#003865") +
-    theme_minimal(base_family = "serif") +
-    labs(title = "Residuals Over Time",
-         x = "Year", y = "Residuals")+
-    theme(#panel.grid.major.x = element_blank(),
-          #panel.grid.minor = element_blank(),
-          plot.title = element_text(face = "bold", size = 12,
-                                    colour = "#7D2239", lineheight = 1.1))
+       geom_line(color = "darkgrey") +
+       geom_point(size = 1.2, color = "#003865") +
+       theme_minimal(base_family = "serif") +
+       labs(title = paste0("Residuals Over Time for ", code),
+            x = "Year", y = "Residuals")+
+       theme(#panel.grid.major.x = element_blank(),
+             #panel.grid.minor = element_blank(),
+             plot.title = element_text(face = "bold", size = 12,
+                                       colour = "#7D2239", lineheight = 1.1))
   
-  return(list(model=model, residuals= resid, plot=a, plot=b, plot=c,plot=d))
+  return(list(model=model, plot=a, plot=b, plot=c,plot=d))
 }
     
 
 monthly_volume_outliers(imports, "01", Commodity)
 monthly_volume_outliers(imports, "01012100", Commodity)
-#monthly_volume_outliers(imports, "01012990", Commodity)
-#monthly_volume_outliers(imports, "01061900", Commodity)
-#monthly_volume_outliers(imports, "01069000", Commodity)
-#monthly_volume_outliers(imports, "02012030", Commodity)
-#monthly_volume_outliers(imports, "02012030", Commodity)
+
+monthly_volume_outliers(imports, "02", Commodity)
+monthly_volume_outliers(imports, "02012030", Commodity)
 ```
