@@ -3,23 +3,35 @@
 \name{comcode_plot}
 \alias{comcode_plot}
 \title{Visualisation of a given commodity code.
-This function displays the total weight per month for all 
+This function displays the total weight per month for all
 levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.}
 \usage{
-comcode_plot(import_data, code, lookup_table, max_unique_comcodes = 10)
+comcode_plot(
+  import_data,
+  code,
+  comcode_lookup,
+  variable = "NET_MASS",
+  max_unique_comcodes = 10
+)
 }
 \arguments{
 \item{import_data}{A `data.table` containing trade data. Must include "COMCODE".}
 
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
-\item{lookup_table}{A `data.table` containing details of each code level.}
+\item{comcode_lookup}{A `data.table` containing details of each code level.
+May be obtained via `uktrades_request(endpoint = "Commodity")$value`.}
+
+\item{variable}{A character string representing the variable to be visualised
+- must be the name of a numeric column in `import_data` or "volume".  If
+"volume", this is computed as the number of rows in `import_data` my time period
+and commodity code.}
 }
 \value{
 A display of total weight per month per code.
 }
 \description{
 Visualisation of a given commodity code.
-This function displays the total weight per month for all 
+This function displays the total weight per month for all
 levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 }
