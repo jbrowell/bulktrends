@@ -4,11 +4,11 @@ format: html
 editor: visual
 ---
 
-## *bulktrends User Guide*
+## bulktrends User Guide
 
-*Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.*
+Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.
 
-```{r}
+```{r set-up}
 #| code-fold: true
 #| warning: false
 
@@ -18,27 +18,28 @@ library(devtools)
 devtools::load_all("../")
 ```
 
-## *Load UK Trade Info Bulk Data Files*
+## Load UK Trade Info Bulk Data Files
 
-*Load a single bulk data file or all of the files in a directory (and subdirectories).*
+Load a single bulk data file or all of the files in a directory (and subdirectories).
 
-```{r}
-if (file.exists("../data/imports.rds")) {
-  imports <- readRDS("../data/imports.rds")
-} else {
-  imports <- read_uktradeinfo( path = "../data/imports/")
-  saveRDS(imports, file = "../data/imports.rds")
+```{r load-trade-data}
+if ( !exists("imports") ){
+  if (file.exists("../data/imports.rds")) {
+    imports <- readRDS("../data/imports.rds")
+  } else {
+    imports <- read_uktradeinfo( path = "../data/imports/")
+    saveRDS(imports, file = "../data/imports.rds")
+  }
 }
-
 head(imports)
 
 ```
 
-## *Request Data from UK Trade Data API*
+## Request Data from UK Trade Data API
 
-*Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.*
+Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.
 
-```{r}
+```{r load-lookup-tables}
 lookup_tables <- c("Commodity","Port")
 for ( i in lookup_tables ) {
   
@@ -56,214 +57,37 @@ for ( i in lookup_tables ) {
 
 ```
 
-## *Quick Visualisation*
+## Quick Visualisation
 
--   *Plot time series of a single commodity*
+The `comcode_plot()` function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).
 
--   *Plot the time series of all commodities in "chapter"*
+Here are some examples:
 
-```{r}
+```{r plot-examples}
+comcode_plot(imports, "01", comcode_lookup=Commodity)
 
-#plants
-comcode_plot(imports, "06", lookup_table=Commodity, max_unique_comcodes = 10)
-comcode_plot(imports, "06029010", lookup_table=Commodity)
-#animals
-comcode_plot(imports, "01", lookup_table=Commodity, max_unique_comcodes = 10)
-comcode_plot(imports, "01012990", lookup_table=Commodity, max_unique_comcodes = 10)
+comcode_plot(imports, "0602", variable="STAT_VALUE", comcode_lookup=Commodity)
+
+comcode_plot(imports, "01", variable="volume",comcode_lookup = Commodity)
+
 
 ```
 
--   *Hierarchichal classification of a given commodity code*
+-   Hierarchichal classification of a given commodity code
 
-```{r}
+```{r comcode-descriptions}
 
 comcode_description("01012990", Commodity)
 comcode_description("08039010", Commodity)
 ```
 
--   *Plot monthly volume of imports (2016-2025)*
+-   Detection of outliers in time series of a single commodity
 
 ```{r}
 
-monthly_volume_plot <- function(import_data,
-                         code,
-                         lookup_table,
-                         max_unique_comcodes=10) {
-  
-  #"code" info to meta
-  lookup_table <- as.data.table(lookup_table)
-  meta <- lookup_table[Cn8Code == code | Hs2Code == code |
-                        Hs4Code == code | Hs6Code == code]
-  allcodes <- na.omit(unique(meta$Cn8Code))
-  
-  #filter main dataset for all matching codes and merge with meta
-  import_data <- import_data[ COMCODE %in% allcodes ]
-  
-  #generate volume
-  import_data <- import_data[, .(volume = .N), by=c("COMCODE","month")]
-
-  if ( import_data[,length(unique(COMCODE))] > max_unique_comcodes) {
-    topX <- import_data[,.(volume=sum(volume)),by=COMCODE][
-      order(volume,decreasing = T),COMCODE][1:max_unique_comcodes]
-    import_data[ ! COMCODE %in% topX, COMCODE := "Other"]
-    import_data <- import_data[,.(volume=sum(volume)),by=c("COMCODE","month")]
-  }
-  
-  import_data <- merge(import_data , meta,
-                     by.x = "COMCODE", by.y = "Cn8Code",
-                     all.x=T)
-  
-  ggplot(import_data, aes(x = month, y = volume, fill = factor(COMCODE))) +
-    # geom_col() +
-    geom_area() +
-    scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(import_data$COMCODE)))) +
-    labs(title = "Volume of Imports by Commodity Code",
-         subtitle = paste0(
-           if (nchar(code) >= 2) {
-             import_data[1,paste(Hs2Code, "-", stringr::str_wrap(Hs2Description, width = 85),"\n")]
-           } else "",
-           if (nchar(code) >= 4) {
-             import_data[1,paste(Hs4Code, "-", stringr::str_wrap(Hs4Description, width = 85),"\n")]
-           } else "",
-           if (nchar(code) >= 6) {
-             import_data[1,paste(Hs6Code, "-", stringr::str_wrap(Hs6Description, width = 85),"\n")]
-           } else "",
-           if (nchar(code) == 8) {
-             import_data[1,paste(COMCODE, "-", stringr::str_wrap(Cn8LongDescription, width = 85),"\n")]
-           } else ""),
-         x = "Year",
-         y = "Volume [count/month]",
-         fill = paste0("Commodity Code\n(Top ",max_unique_comcodes,")")) +
-    guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 2)) + 
-    theme_minimal(base_family = "serif") +
-    theme(panel.grid.major.x = element_blank(),
-          panel.grid.minor = element_blank(),
-          legend.position="top",
-          axis.text.x = element_text(angle = 45, hjust = 1),
-          plot.title = element_text(face = "bold", size = 12,
-                                    color = "#7D2239", lineheight = 1.1),
-          plot.subtitle = element_text(face = "bold", size = 11, color = "#003865"),
-          legend.text = element_text(size = 9, family= "serif"),
-          legend.title = element_text(face = "bold", size = 11, color = "#003865"))+
-    scale_y_continuous(labels = scales::comma)
-}
-  
-
-  
-monthly_volume_plot(imports, "01", Commodity, max_unique_comcodes=10)
-monthly_volume_plot(imports, "02012030", Commodity)
-monthly_volume_plot(imports, "06", Commodity)
-
-
-
-```
-
--   *Detection of outliers in time series of a single commodity*
-
-```{r}
-
-monthly_volume_outliers <- function(import_data,
-                                    code,
-                                    lookup_table) {
-    
-  #"code" info to meta
-  lookup_table <- as.data.table(lookup_table)
-  meta <- lookup_table[Cn8Code == code | Hs2Code == code |
-                       Hs4Code == code | Hs6Code == code]
-  allcodes <- na.omit(unique(meta$Cn8Code))
-    
-  #filter main dataset for all matching codes and merge with meta
-  import_data <- import_data[ COMCODE %in% allcodes ]
-    
-  #generate volume
-  import_data <- import_data[, .(volume = .N), by="month"]
-    
-  #import_data <- merge(import_data , meta,
-   #                    by.x = "COMCODE", by.y = "Cn8Code",
-  #                     all.x=T)
-    
-  #declare time series
-  ts_imports <- ts(import_data$volume, 
-                   start = c(2016, 01), 
-                   frequency = 12)
-  
-  #AR model
-  model <- arima(ts_imports, 
-                 order = c(1,0,0), 
-                 xreg = fourier(ts_imports, K=1))
-  
-  res <- data.table(month = as.Date(import_data$month), 
-                    fitted <- fitted(model),
-                    resid <- residuals(model))
-  
-  #find outliers
-  threshold <- median(resid) + 3*mad(resid) #notsure
-  outlier <- abs(resid) > threshold
-  
-  #plot with threshold
-  a <- ggplot(res, aes(x = month, y = resid)) +
-       geom_col(fill = "grey", width=18) +
-       geom_point(aes(colour = outlier), size = 1.2) +
-                  scale_colour_manual(values = c("FALSE" = "#003865",
-                                             "TRUE" = "red")) +
-       labs(title = "Residual Outliers",
-            x = "Year", 
-            y = "Residuals")+
-       theme_minimal(base_family = "serif")+
-       theme(#panel.grid.major.x = element_blank(),
-             #panel.grid.minor = element_blank(),
-             plot.title = element_text(face = "bold", size = 12,
-                                       colour = "#7D2239", lineheight = 1.1),
-             legend.title = element_text(face = "bold", size = 11, colour = "black"))
-  
-  #plot fitted vs residuals 1
-  b <- ggplot(res, aes(x = fitted, y = resid)) +
-    geom_point(size=1, colour="#003865") +
-    geom_hline(yintercept = 0, linetype = "dashed", colour = "darkgrey")+
-    labs(title = "Fitted vs Residuals",
-         x = "Fitted Values", 
-         y = "Residuals")+
-    theme_minimal(base_family = "serif")+
-    theme(#panel.grid.major.x = element_blank(),
-          #panel.grid.minor = element_blank(),
-          plot.title = element_text(face = "bold", size = 12,
-                                    colour = "#7D2239", lineheight = 1.1),
-          legend.title = element_text(face = "bold", size = 11, colour = "black"))
-  
-  #plot fitted vs residuals 2
-  c <- ggplot(res, aes(x = fitted)) +
-    geom_line(aes(y = fitted), colour = "#6baed6", linewidth = 0.8) + 
-    geom_point(aes(y = resid), colour = "#003865", size = 1) +
-    theme_minimal(base_family = "serif") +
-    labs(
-      title = "Fitted vs Residuals",
-      x = "Fitted Values",
-      y = "Residuals") +
-    theme(#panel.grid.major.x = element_blank(),
-          #panel.grid.minor = element_blank(),
-          plot.title = element_text(face = "bold", size = 12,
-                                    colour = "#7D2239", lineheight = 1.1))
-  #plot residuals over time
-  d <- ggplot(res, aes(x = month, y = resid)) +
-    geom_line(color = "darkgrey") +
-    geom_point(size = 1.2, color = "#003865") +
-    theme_minimal(base_family = "serif") +
-    labs(title = "Residuals Over Time",
-         x = "Year", y = "Residuals")+
-    theme(#panel.grid.major.x = element_blank(),
-          #panel.grid.minor = element_blank(),
-          plot.title = element_text(face = "bold", size = 12,
-                                    colour = "#7D2239", lineheight = 1.1))
-  
-  return(list(model=model, residuals= resid, plot=a, plot=b, plot=c,plot=d))
-}
-    
-
-monthly_volume_outliers(imports, "01", Commodity)
-monthly_volume_outliers(imports, "01012100", Commodity)
+# monthly_volume_outliers(imports, "01", Commodity)
+# monthly_volume_outliers(imports, "01012100", Commodity)
 #monthly_volume_outliers(imports, "01012990", Commodity)
 #monthly_volume_outliers(imports, "01061900", Commodity)
 #monthly_volume_outliers(imports, "01069000", Commodity)
-#monthly_volume_outliers(imports, "02012030", Commodity)
-#monthly_volume_outliers(imports, "02012030", Commodity)
 ```

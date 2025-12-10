@@ -34,6 +34,8 @@ read_uktradeinfo <- function(path) {
                   FLOW=substr(V1,82,84),
                   REC_TYPE=substr(V1,85,85))]
 
+    BDS[,NET_MASS:=as.numeric(NET_MASS)]
+    BDS[,STAT_VALUE:=as.numeric(STAT_VALUE)]
     BDS[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
 
     return(BDS)

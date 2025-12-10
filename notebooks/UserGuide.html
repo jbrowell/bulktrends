@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.32">
+<meta name="generator" content="quarto-1.8.24">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -61,14 +61,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="UserGuide_files/libs/clipboard/clipboard.min.js"></script>
 <script src="UserGuide_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="UserGuide_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="UserGuide_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="UserGuide_files/libs/quarto-html/popper.min.js"></script>
 <script src="UserGuide_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="UserGuide_files/libs/quarto-html/anchor.min.js"></script>
 <link href="UserGuide_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="UserGuide_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="UserGuide_files/libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="UserGuide_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="UserGuide_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="UserGuide_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="UserGuide_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -104,152 +105,140 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>(<span class="st">"../"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'data.table' was built under R version 4.1.3</code></pre>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: usethis</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'usethis' was built under R version 4.1.3</code></pre>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>(<span class="st">"../"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>i Loading bulktrends</code></pre>
-</div>
 </div>
 </section>
 <section id="load-uk-trade-info-bulk-data-files" class="level2">
 <h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
 <p>Load a single bulk data file or all of the files in a directory (and subdirectories).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_uktradeinfo</span>( <span class="at">path =</span> <span class="st">"../data/imports/Imports 2016/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> ( <span class="sc">!</span><span class="fu">exists</span>(<span class="st">"imports"</span>) ){</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file.exists</span>(<span class="st">"../data/imports.rds"</span>)) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    imports <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"../data/imports.rds"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>( <span class="at">path =</span> <span class="st">"../data/imports/"</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="st">"../data/imports.rds"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>         PERREF TYPE MONTHAC  COMCODE  SITC COD_SEQ COD_ALPHA PORT_SEQ
-      1: 201601    2  202507 01------ 00---     001        FR      000
-      2: 201601    2  202507 01------ 00---     003        NL      000
-      3: 201601    2  202507 01------ 00---     004        DE      000
-      4: 201601    2  202507 01------ 00---     005        IT      000
-      5: 201601    2  202507 01------ 00---     007        IE      000
-     ---                                                              
-2110602: 201612    4  202507          930       959        QV      496
-2110603: 201612    4  202507          960       959        QV      496
-2110604: 201612    4  202507          970       959        QV      496
-2110605: 201612    4  202507          980       959        QV      496
-2110606: 201612    4  202507          990       959        QV      496
-         PORT_CODE COO_SEQ COO_ALPHA MODE_OF_TRANSPORT   STAT_VALUE
-      1:       ZZZ                                     000000298531
-      2:       ZZZ                                     000000319270
-      3:       ZZZ                                     000000000555
-      4:       ZZZ                                     000000005033
-      5:       ZZZ                                     000001332312
-     ---                                                           
-2110602:       QVV     959        QV                   000000384603
-2110603:       QVV     959        QV                   000000000000
-2110604:       QVV     959        QV                   000000000000
-2110605:       QVV     959        QV                   000000000000
-2110606:       QVV     959        QV                   000096287000
-             NET_MASS    SUMM_UNIT SUPRESSION FLOW REC_TYPE
-      1: 000000002091 000000000022          0  imp        0
-      2: 000000020318 000000000000          0  imp        0
-      3: 000000000025 000000000000          0  imp        0
-      4: 000000000258 000000000000          0  imp        0
-      5: 000000406697 000000795057          0  imp        0
-     ---                                                   
-2110602:            .            .          0  imp        0
-2110603:            .            .          0  imp        0
-2110604:            .            .          0  imp        0
-2110605:            .            .          0  imp        0
-2110606:            .            .          0  imp        0</code></pre>
+<pre><code>   PERREF   TYPE MONTHAC  COMCODE   SITC COD_SEQ COD_ALPHA PORT_SEQ PORT_CODE
+   &lt;char&gt; &lt;char&gt;  &lt;char&gt;   &lt;char&gt; &lt;char&gt;  &lt;char&gt;    &lt;char&gt;   &lt;char&gt;    &lt;char&gt;
+1: 201601      2  202507 01------  00---     001        FR      000       ZZZ
+2: 201601      2  202507 01------  00---     003        NL      000       ZZZ
+3: 201601      2  202507 01------  00---     004        DE      000       ZZZ
+4: 201601      2  202507 01------  00---     005        IT      000       ZZZ
+5: 201601      2  202507 01------  00---     007        IE      000       ZZZ
+6: 201601      2  202507 01------  00---     008        DK      000       ZZZ
+   COO_SEQ COO_ALPHA MODE_OF_TRANSPORT STAT_VALUE NET_MASS    SUMM_UNIT
+    &lt;char&gt;    &lt;char&gt;            &lt;char&gt;      &lt;num&gt;    &lt;num&gt;       &lt;char&gt;
+1:                                         298531     2091 000000000022
+2:                                         319270    20318 000000000000
+3:                                            555       25 000000000000
+4:                                           5033      258 000000000000
+5:                                        1332312   406697 000000795057
+6:                                          37035     7805 000000000289
+   SUPRESSION   FLOW REC_TYPE      month
+       &lt;char&gt; &lt;char&gt;   &lt;char&gt;     &lt;POSc&gt;
+1:          0    imp        0 2016-01-01
+2:          0    imp        0 2016-01-01
+3:          0    imp        0 2016-01-01
+4:          0    imp        0 2016-01-01
+5:          0    imp        0 2016-01-01
+6:          0    imp        0 2016-01-01</code></pre>
 </div>
 </div>
 </section>
 <section id="request-data-from-uk-trade-data-api" class="level2">
 <h2 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h2>
-<p>Simple example…</p>
+<p>Download look-up tables, e.g.&nbsp;for commodity codes and ports, and save, or load if already available.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>commodities <span class="ot">&lt;-</span> <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> <span class="st">"Commodity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Loading required package: jsonlite</code></pre>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lookup_tables <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Commodity"</span>,<span class="st">"Port"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ( i <span class="cf">in</span> lookup_tables ) {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"../data/"</span>,i,<span class="st">".rds"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>( <span class="fu">file.exists</span>(file) ){</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">assign</span>(i,<span class="fu">readRDS</span>(file))</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">assign</span>(i, <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> i)<span class="sc">$</span>value)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveRDS</span>(<span class="fu">get</span>(i), <span class="at">file =</span> file)  </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'jsonlite' was built under R version 4.1.3</code></pre>
+</section>
+<section id="quick-visualisation" class="level2">
+<h2 class="anchored" data-anchor-id="quick-visualisation">Quick Visualisation</h2>
+<p>The <code>comcode_plot()</code> function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).</p>
+<p>Here are some examples:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="UserGuide_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(commodities<span class="sc">$</span>value,<span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"0602"</span>, <span class="at">variable=</span><span class="st">"STAT_VALUE"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="UserGuide_files/figure-html/unnamed-chunk-4-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">variable=</span><span class="st">"volume"</span>,<span class="at">comcode_lookup =</span> Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="UserGuide_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li>Hierarchichal classification of a given commodity code</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"01012990"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   CommodityId Cn8Code Hs2Code Hs4Code Hs6Code
-1            0      00    &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;
-2            1      01      01    &lt;NA&gt;    &lt;NA&gt;
-3            2      02      02    &lt;NA&gt;    &lt;NA&gt;
-4            3      03      03    &lt;NA&gt;    &lt;NA&gt;
-5            4      04      04    &lt;NA&gt;    &lt;NA&gt;
-6            5      05      05    &lt;NA&gt;    &lt;NA&gt;
-7            6      06      06    &lt;NA&gt;    &lt;NA&gt;
-8            7      07      07    &lt;NA&gt;    &lt;NA&gt;
-9            8      08      08    &lt;NA&gt;    &lt;NA&gt;
-10           9      09      09    &lt;NA&gt;    &lt;NA&gt;
-11          10      10      10    &lt;NA&gt;    &lt;NA&gt;
-12          11      11      11    &lt;NA&gt;    &lt;NA&gt;
-13          12      12      12    &lt;NA&gt;    &lt;NA&gt;
-14          13      13      13    &lt;NA&gt;    &lt;NA&gt;
-15          14      14      14    &lt;NA&gt;    &lt;NA&gt;
-16          15      15      15    &lt;NA&gt;    &lt;NA&gt;
-17          16      16      16    &lt;NA&gt;    &lt;NA&gt;
-18          17      17      17    &lt;NA&gt;    &lt;NA&gt;
-19          18      18      18    &lt;NA&gt;    &lt;NA&gt;
-20          19      19      19    &lt;NA&gt;    &lt;NA&gt;
-                                                                                                           Hs2Description
-1                                                                                                                    &lt;NA&gt;
-2                                                                                                            Live animals
-3                                                                                              Meat and edible meat offal
-4                                                          Fish and crustaceans, molluscs and other aquatic invertebrates
-5        Dairy produce; birds' eggs; natural honey; edible products of animal origin, not elsewhere specified or included
-6                                                           Products of animal origin not elsewhere specified or included
-7                              Live trees and other plants; bulbs, roots and the like; cut flowers and ornamental foliage
-8                                                                          Edible vegetables and certain roots and tubers
-9                                                                  Edible fruit and nuts; peel of citrus fruits or melons
-10                                                                                           Coffee, tea, mate and spices
-11                                                                                                                Cereals
-12                                                 Products of the milling industry; malt; starches; inulin; wheat gluten
-13 Oil seeds and oleaginous fruits; miscellaneous grains, seeds and fruit; industrial or medical plants; straw and fodder
-14                                                               Lacs; gums, resins and other vegetable saps and extracts
-15                                   Vegetable plaiting materials; vegetable products not elsewhere specified or included
-16         Animal or vegetable fats and oils and their cleavage products; prepared edible fats; animal or vegetable waxes
-17                                     Preparations of meat, fish or crustaceans, molluscs or other aquatic invertebrates
-18                                                                                         Sugars and sugar confectionery
-19                                                                                           Cocoa and cocoa preparations
-20                                                  Preparations of cereals, flour, starch or milk; pastrycooks' products
-   Hs4Description Hs6Description SitcCommodityCode Cn8LongDescription
-1            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-2            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-3            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-4            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-5            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-6            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-7            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-8            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-9            &lt;NA&gt;           &lt;NA&gt;                 0                  -
-10           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-11           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-12           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-13           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-14           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-15           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-16           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-17           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-18           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-19           &lt;NA&gt;           &lt;NA&gt;                 0                  -
-20           &lt;NA&gt;           &lt;NA&gt;                 0                  -</code></pre>
+<pre><code>
+Hierarchical Description for Code: 01012990 
+---------------------------------------------
+Chapter (Hs2):           01  —  Live animals 
+Heading (Hs4):           0101  —  Live horses, asses, mules and hinnies 
+Subheading (Hs6):        010129  —  Live horses (excl. pure-bred for breeding) 
+Commodity code (Cn8):    01012990  —  Live horses (excl. for slaughter, pure-bred for breeding) 
+---------------------------------------------</code></pre>
 </div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"08039010"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Hierarchical Description for Code: 08039010 
+---------------------------------------------
+Chapter (Hs2):           08  —  Edible fruit and nuts; peel of citrus fruits or melons 
+Heading (Hs4):           0803  —  Bananas, incl. plantains, fresh or dried 
+Subheading (Hs6):        080390  —  Fresh or dried bananas (excl. plantains) 
+Commodity code (Cn8):    08039010  —  Bananas, fresh (excl. plantains) 
+---------------------------------------------</code></pre>
+</div>
+</div>
+<ul>
+<li>Detection of outliers in time series of a single commodity</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01", Commodity)</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01012100", Commodity)</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01012990", Commodity)</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01061900", Commodity)</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01069000", Commodity)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 
@@ -306,13 +295,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
