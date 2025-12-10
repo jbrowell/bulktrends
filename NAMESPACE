@@ -2,6 +2,5 @@
 
 export(comcode_description)
 export(comcode_plot)
-export(hello)
 export(read_uktradeinfo)
 export(uktrades_request)

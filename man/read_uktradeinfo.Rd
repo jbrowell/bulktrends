@@ -8,12 +8,12 @@ read_uktradeinfo(path)
 }
 \arguments{
 \item{path}{Path to a file to read, or directory containing multiple files,
-subdirectories are recursed.}
+files in sub-directories are read recursively.}
 }
 \value{
-A `data.table` of trade data.
+A `data.table` of trade data with a POSIXct timestamp.
 }
 \description{
 Load a single bulk data file of all files in a directory (and its
-subdirectories) from UK Trade Info.
+sub-directories) from UK Trade Info.
 }
