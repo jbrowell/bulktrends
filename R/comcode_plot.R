@@ -1,65 +1,60 @@
 #' Visualisation of a given commodity code.
 
-#' This function displays the total weight per month for all 
+#' This function displays the total weight per month for all
 #' levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
-#' 
+#'
 #' @param import_data A `data.table` containing trade data. Must include "COMCODE".
 #' @param code A character string representing any HS2/HS4/HS6/CN8 code.
-#' @param variable A character string representing the variable to be visualised. If "volume" is supplied, 
-#' the function will compute it internally, otherwise it will use an existing column in `import_data`.
-#' @param lookup_table A `data.table` containing details of each code level.
+#' @param variable A character string representing the variable to be visualised
+#' - must be the name of a numeric column in `import_data` or "volume".  If
+#' "volume", this is computed as the number of rows in `import_data` my time period
+#' and commodity code.
+#' @param comcode_lookup A `data.table` containing details of each code level.
+#' May be obtained via `uktrades_request(endpoint = "Commodity")$value`.
 #'
 #' @return A display of total weight per month per code.
-#' 
+#'
 #' @export
 comcode_plot <- function(import_data,
                          code,
-                         variable,
-                         lookup_table,
+                         comcode_lookup,
+                         variable = "NET_MASS",
                          max_unique_comcodes=10) {
-  
+
   #"code" info to meta
-  lookup_table <- as.data.table(lookup_table)
-  meta <- lookup_table[Cn8Code == code | Hs2Code == code |
-                         Hs4Code == code | Hs6Code == code]
-  
+  comcode_lookup <- as.data.table(comcode_lookup)
+  meta <- comcode_lookup[Cn8Code == code | Hs2Code == code |
+                           Hs4Code == code | Hs6Code == code]
+
   #extract related codes once
   allcodes <- na.omit(unique(meta$Cn8Code))
-  
+
   #filter main dataset for all matching codes and merge with meta
   import_data <- import_data[ COMCODE %in% allcodes ]
-  
-  #generate volume if needed
+
+  #generate volume column if needed
   if (variable == "volume") {
-    import_data[, volume := .N, by="month"]
-    variable <- "volume"
-  } else {
-    variable <- variable
+    import_data[, volume := 1]
   }
-  
+
+  # Change comcode to "other" if unique options exceed limit
   if ( import_data[,length(unique(COMCODE))] > max_unique_comcodes) {
-    topX <- import_data[,.(variable=sum(as.numeric(variable))),by=COMCODE][
+    topX <- import_data[,.(variable=sum(get(variable))),by=COMCODE][
       order(variable,decreasing = T),COMCODE][1:max_unique_comcodes]
     import_data[ ! COMCODE %in% topX, COMCODE := "Other"]
-    
-    #import_data <- import_data[,.(variable=sum(as.numeric(variable))),by=c("COMCODE". ,"month")]
-    agg <- import_data[, .(variable = sum(as.numeric(variable))), 
-                       by=c("COMCODE","month")]
-  } 
-  else {
-    agg <- import_data
   }
-  
+
+  # Aggregate by month and comcode...
+  import_data <- import_data[, .(variable = sum(get(variable))),
+                             by=c("COMCODE","month")]
+
   #merge data and comcode descriptions
   import_data <- merge(import_data, meta,
                        by.x = "COMCODE", by.y = "Cn8Code",
                        all.x=T)
-  
-  #check columns
-  print(names(import_data))
-  
+
   #plot month and variable
-  ggplot(import_data, aes(x = month, y = as.numeric(.data[[variable]]), fill = factor(COMCODE))) +
+  p <- ggplot(import_data, aes(x = month, y = variable, fill = factor(COMCODE))) +
     geom_area() +
     scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(import_data$COMCODE)))) +
     labs(title = if (variable == "volume") {
@@ -68,6 +63,8 @@ comcode_plot <- function(import_data,
       "Total Weight by Commodity Code"
     } else if (variable == "STAT_VALUE") {
       "Total Value (incl. cost, insurance and freight) by Commodity Code"
+    } else {
+      paste0(variable," by Commodity Code")
     },
     subtitle = paste0(
       if (nchar(code) >= 2) {
@@ -89,9 +86,11 @@ comcode_plot <- function(import_data,
       "Weight [kg/month]"
     } else if (variable == "STAT_VALUE") {
       "Value [£/month]"
+    } else {
+      paste0(variable)
     },
     fill = paste0("Commodity Code\n(Top ",max_unique_comcodes,")")) +
-    guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 2)) + 
+    guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 2)) +
     theme_minimal(base_family = "serif") +
     theme(panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
@@ -103,4 +102,6 @@ comcode_plot <- function(import_data,
           legend.text = element_text(size = 9, family= "serif"),
           legend.title = element_text(face = "bold", size = 11, color = "#003865"))+
     scale_y_continuous(labels = scales::comma)
+
+  return(p)
 }

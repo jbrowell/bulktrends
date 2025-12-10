@@ -4,11 +4,11 @@ format: html
 editor: visual
 ---
 
-## *bulktrends User Guide*
+## bulktrends User Guide
 
-*Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.*
+Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.
 
-```{r}
+```{r set-up}
 #| code-fold: true
 #| warning: false
 
@@ -18,27 +18,28 @@ library(devtools)
 devtools::load_all("../")
 ```
 
-## *Load UK Trade Info Bulk Data Files*
+## Load UK Trade Info Bulk Data Files
 
-*Load a single bulk data file or all of the files in a directory (and subdirectories).*
+Load a single bulk data file or all of the files in a directory (and subdirectories).
 
-```{r}
-if (file.exists("../data/imports.rds")) {
-  imports <- readRDS("../data/imports.rds")
-} else {
-  imports <- read_uktradeinfo( path = "../data/imports/")
-  saveRDS(imports, file = "../data/imports.rds")
+```{r load-trade-data}
+if ( !exists("imports") ){
+  if (file.exists("../data/imports.rds")) {
+    imports <- readRDS("../data/imports.rds")
+  } else {
+    imports <- read_uktradeinfo( path = "../data/imports/")
+    saveRDS(imports, file = "../data/imports.rds")
+  }
 }
-
 head(imports)
 
 ```
 
-## *Request Data from UK Trade Data API*
+## Request Data from UK Trade Data API
 
-*Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.*
+Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.
 
-```{r}
+```{r load-lookup-tables}
 lookup_tables <- c("Commodity","Port")
 for ( i in lookup_tables ) {
   
@@ -56,38 +57,36 @@ for ( i in lookup_tables ) {
 
 ```
 
-## *Quick Visualisation*
+## Quick Visualisation
 
--   *Plot time series of a single commodity*
+The `comcode_plot()` function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).
 
--   *Plot the time series of all commodities in "chapter"*
+Here are some examples:
 
-```{r}
+```{r plot-examples}
+comcode_plot(imports, "01", comcode_lookup=Commodity)
 
-# Volume of single commodity
-comcode_plot(imports, "01012990", variable="volume", lookup_table=Commodity, max_unique_comcodes = 10)
+comcode_plot(imports, "0602", variable="STAT_VALUE", comcode_lookup=Commodity)
 
-# Volume, weight and value of "chapter"
-comcode_plot(imports, "01", variable="volume", lookup_table=Commodity, max_unique_comcodes = 10)
-comcode_plot(imports, "01", variable="NET_MASS", lookup_table=Commodity, max_unique_comcodes = 10)
-comcode_plot(imports, "01", variable="STAT_VALUE", lookup_table=Commodity, max_unique_comcodes = 10)
+comcode_plot(imports, "01", variable="volume",comcode_lookup = Commodity)
+
 
 ```
 
--   *Hierarchichal classification of a given commodity code*
+-   Hierarchichal classification of a given commodity code
 
-```{r}
+```{r comcode-descriptions}
 
 comcode_description("01012990", Commodity)
 comcode_description("08039010", Commodity)
 ```
 
--   *Detection of outliers in time series of a single commodity*
+-   Detection of outliers in time series of a single commodity
 
 ```{r}
 
-monthly_volume_outliers(imports, "01", Commodity)
-monthly_volume_outliers(imports, "01012100", Commodity)
+# monthly_volume_outliers(imports, "01", Commodity)
+# monthly_volume_outliers(imports, "01012100", Commodity)
 #monthly_volume_outliers(imports, "01012990", Commodity)
 #monthly_volume_outliers(imports, "01061900", Commodity)
 #monthly_volume_outliers(imports, "01069000", Commodity)
