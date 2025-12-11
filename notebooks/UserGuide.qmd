@@ -16,6 +16,7 @@ library(data.table)
 library(ggplot2)
 library(forecast)
 library(devtools)
+library(tsoutliers)
 devtools::load_all("../")
 ```
 
@@ -38,8 +39,8 @@ head(imports)
 
 ### Things to be aware of
 
-- Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data
-- "Low value Trade EU", port code QVV only report chapter of COMCODE and do not include NET_WEIGHT
+-   Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data
+-   "Low value Trade EU", port code QVV only report chapter of COMCODE and do not include NET_WEIGHT
 
 ## Request Data from UK Trade Data API
 

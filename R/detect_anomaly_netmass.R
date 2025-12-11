@@ -9,13 +9,14 @@ for (i in chapters){
 #create time series
 ts_data <- extract_netmass_ts(imports, i)
 
-#detect anomaly
-detect_anomaly <- tso(y = ts_data, 
+#detect anomaly using tsouliers::tso
+detect_anomaly <- tso(y = ts_data/1000000, 
                       types = c("AO", "LS", "TC", "IO"), 
                       tsmethod = "arima",
-                      args.tsmethod = list(order = c(1,0,0)),
-                                           xreg=cbind(1:length(ts_data), 
-                                                      fourier(ts_data, K=1)))
+                      args.tsmethod = list(order = c(1,0,0)))
+                       #                    xreg=cbind(1:length(ts_data), 
+                          #                            fourier(ts_data, K=1)))
+
 
 #visualise results
 plot.tsoutliers(detect_anomaly)
@@ -36,7 +37,6 @@ result_list[[i]] <- data.table(code = i, outliers = count_outlier)
 
 #list of all outliers in all chapters
 rbindlist(result_list)
-
 
 
 

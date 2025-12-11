@@ -1,3 +1,5 @@
+#' Utility helper functions
+#' 
 #' Extract of monthly time series of "NET_MASS" for a given commodity code
 #'
 #' This function extracts the monthly sum "NET_MASS" from import_data for
