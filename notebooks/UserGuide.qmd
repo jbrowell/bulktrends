@@ -16,7 +16,6 @@ library(data.table)
 library(ggplot2)
 library(forecast)
 library(devtools)
-library(tsoutliers)
 devtools::load_all("../")
 ```
 

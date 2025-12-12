@@ -1,4 +1,7 @@
 
+#' Utility helper functions
+#'
+
 # Large scale anomaly detection (Work in progress)
 
 chapters <- unique(substr(imports$COMCODE, 1,2))
@@ -10,11 +13,11 @@ for (i in chapters){
 ts_data <- extract_netmass_ts(imports, i)
 
 #detect anomaly using tsouliers::tso
-detect_anomaly <- tso(y = ts_data/1000000, 
-                      types = c("AO", "LS", "TC", "IO"), 
+detect_anomaly <- tso(y = ts_data/1000000,
+                      types = c("AO", "LS", "TC", "IO"),
                       tsmethod = "arima",
                       args.tsmethod = list(order = c(1,0,0)))
-                       #                    xreg=cbind(1:length(ts_data), 
+                       #                    xreg=cbind(1:length(ts_data),
                           #                            fourier(ts_data, K=1)))
 
 
