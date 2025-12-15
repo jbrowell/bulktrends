@@ -6,7 +6,7 @@ NULL
 chapters <- unique(substr(imports$COMCODE, 1,2))
 all_outliers <- list()
 
-for (i in chapters[01:10]){
+for (i in chapters){
 #create time series
 ts_data <- extract_netmass_ts(imports, i)
 
@@ -14,7 +14,7 @@ ts_data <- extract_netmass_ts(imports, i)
 detect_anomaly <- tso(y = log(ts_data),
                       types = c("AO", "LS", "TC", "IO"),
                       tsmethod = "auto.arima",
-                      xreg = identify_best_model(ts_data))
+                      xreg = select_best_model(ts_data))
 
 #visualise results
 plot.tsoutliers(detect_anomaly)
@@ -30,4 +30,7 @@ all_outliers[[i]] <- outliers_dt
 
 # Combine all results into a single data.table
 all_outliers_dt <- rbindlist(all_outliers, use.names = TRUE, fill = TRUE)
+
+all_outliers_dt[Chapters=="11",]
+
 
