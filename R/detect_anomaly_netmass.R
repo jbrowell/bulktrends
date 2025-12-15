@@ -10,6 +10,7 @@ for (i in chapters[01:10]){
 #create time series
 ts_data <- extract_netmass_ts(imports, i)
 
+#detect outliers using function identify_best_model() in xreg
 detect_anomaly <- tso(y = log(ts_data),
                       types = c("AO", "LS", "TC", "IO"),
                       tsmethod = "auto.arima",
@@ -19,9 +20,9 @@ detect_anomaly <- tso(y = log(ts_data),
 plot.tsoutliers(detect_anomaly)
 title(main = paste("Outliers for", i), col.main = "darkblue", cex.main = 1, line = 2.5)
 
-#check and store number of outliers
+#store outliers data produced
 outliers_dt <- as.data.table(detect_anomaly$outliers)
-outliers_dt[, Chapters := i]  # add simcode column
+outliers_dt[, Chapters := i]
 all_outliers[[i]] <- outliers_dt
 
 #flag "volatile" chapters?
@@ -30,12 +31,3 @@ all_outliers[[i]] <- outliers_dt
 # Combine all results into a single data.table
 all_outliers_dt <- rbindlist(all_outliers, use.names = TRUE, fill = TRUE)
 
-
-
-
-# tso objects ------------------------------------------------
-# detect_anomaly$yadj        # adjusted series (without outliers)
-# detect_anomaly$effects     # estimated effect of each outlier
-# detect_anomaly$fit         # arima() results
-# detect_anomaly$outliers    # data table of detected outliers
-# -------------------------------------------------------------
