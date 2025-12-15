@@ -88,20 +88,22 @@ comcode_description("01012990", Commodity)
 comcode_description("08039010", Commodity)
 ```
 
--   Detection of outliers in time series of a single commodity
+-   Anomaly detection in time series of a given commodity
 
 ```{r}
 
+#Example of anomaly detection for an individual code (loop for all codes can be found in script)
 
-# monthly_volume_outliers(imports, "01", Commodity)
-# monthly_volume_outliers(imports, "02", Commodity)
-# monthly_volume_outliers(imports, "01012100", Commodity)
+ts_data <- extract_netmass_ts(imports, "78")
 
+identify_best_model(ts_data)
 
-# monthly_volume_outliers(imports, "01", Commodity)
-# monthly_volume_outliers(imports, "01012100", Commodity)
-#monthly_volume_outliers(imports, "01012990", Commodity)
-#monthly_volume_outliers(imports, "01061900", Commodity)
-#monthly_volume_outliers(imports, "01069000", Commodity)
+detect_anomaly <- tso(y = log(ts_data),
+                      types = c("AO", "LS", "TC", "IO"),
+                      tsmethod = "auto.arima",
+                      xreg = select_best_model(ts_data))
 
+print(detect_anomaly)
+
+plot.tsoutliers(detect_anomaly)
 ```
