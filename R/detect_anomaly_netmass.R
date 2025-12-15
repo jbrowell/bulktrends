@@ -22,15 +22,16 @@ title(main = paste("Outliers for", i), col.main = "darkblue", cex.main = 1, line
 
 #store outliers data produced
 outliers_dt <- as.data.table(detect_anomaly$outliers)
-outliers_dt[, Chapters := i]
+outliers_dt[, chapters := i]
 all_outliers[[i]] <- outliers_dt
 
 #flag "volatile" chapters?
 }
 
 # Combine all results into a single data.table
-all_outliers_dt <- rbindlist(all_outliers, use.names = TRUE, fill = TRUE)
+all_outliers_dt <- rbindlist(all_outliers, fill = TRUE)
 
-all_outliers_dt[Chapters=="11",]
+
+all_outliers_dt[Chapters=="03",]
 
 
