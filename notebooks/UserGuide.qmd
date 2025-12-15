@@ -15,6 +15,7 @@ Examples of how to use the `bulktrends` package. First, let's load all of the fu
 library(data.table)
 library(ggplot2)
 library(forecast)
+library(tsoutliers)
 library(devtools)
 devtools::load_all("../")
 ```
