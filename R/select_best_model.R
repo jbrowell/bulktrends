@@ -9,7 +9,7 @@
 #' @return A model matrix of the trend and seasonal regressors of the selected model.
 #'
 #' @export
-select_best_model <- function (data){
+select_best_model <- function (data, metric){
 
   trend = 1:length(data)
   month = rep(1:12, length.out = length(data))
@@ -18,7 +18,7 @@ select_best_model <- function (data){
                    ~ trend + sin(2*pi*month/12) + cos(2*pi*month/12),
                    ~ trend + sin(4*pi*month/12) + cos(4*pi*month/12))
   model<- list()
-  aicc_values <- rep(Inf, length(formulas))
+  metric_values <- rep(Inf, length(formulas))
 
   for (i in seq_along(formulas)) {
     X <- model.matrix(formulas[[i]], data = data.frame(trend, month))
@@ -34,9 +34,9 @@ select_best_model <- function (data){
       next}
 
     model[[i]] <- model
-    aicc_values[i] <- model$aicc
+    metric_values[i] <- model[[metric]]
   }
-  print(aicc_values)
-  best_aic <- which.min(aicc_values)
-  return(model.matrix(formulas[[best_aic]], data = data))
+  print(metric_values)
+  best_metric <- which.min(metric_values)
+  return(model.matrix(formulas[[best_metric]], data = data))
 }
