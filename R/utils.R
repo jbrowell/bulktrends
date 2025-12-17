@@ -21,9 +21,8 @@ extract_netmass_ts <- function (import_data,
 
   missing_months <- all_months[!all_months %in% import_data$month]
   if(length(missing_months) > 0) {
-    message("Missing months detected: ", paste(missing_months))}
-  else {
-    message("All months present")}
+    warning("Missing months detected for code ",code,": ", paste(missing_months))
+  }
 
   import_data[, NET_MASS := as.numeric(NET_MASS)]
   import_data <-  import_data[, .(NET_MASS = sum(NET_MASS, na.rm = T)), by=month]

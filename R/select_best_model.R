@@ -26,17 +26,19 @@ select_best_model <- function (data, metric){
     model <- try(auto.arima(data,
                             xreg = X,
                             max.p = 5,
+                            max.d = 1,
                             max.q = 5,
                             seasonal = FALSE), silent=T)
 
     if ("try-error" %in% class(model)){
       cat("Model", i, "failed\n")
-      next}
+      next
+    }
 
     model[[i]] <- model
     metric_values[i] <- model[[metric]]
   }
-  print(metric_values)
+  # print(metric_values)
   best_metric <- which.min(metric_values)
   return(model.matrix(formulas[[best_metric]], data = data))
 }
