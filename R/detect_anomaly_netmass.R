@@ -8,16 +8,17 @@ for (i in chapters){
   ts_data <- extract_netmass_ts(imports, i)
 
   #detect outliers using function identify_best_model() in xreg
-  detect_anomaly <- tso(y = log(ts_data),
+  detect_anomaly <- tso(y = ts_data,#log(ts_data),
                         cval=5,
                         types = c("AO", "LS", "TC", "IO"),
                         tsmethod = "auto.arima",
                         xreg = select_best_model(ts_data, metric = "aic"))
 
   #visualise results
-  plot.tsoutliers(detect_anomaly,
-                  main = paste("Outliers for", i),
-                  col.main = "darkblue", cex.main = 1, line = 2.5)
+  if (nrow(detect_anomaly$outliers)>0){
+    plot.tsoutliers(detect_anomaly)
+    title(main = paste("Outliers for", i),col.main = "darkblue", cex.main = 1, line = 2.5)
+  }
 
   #store outliers data produced
   outliers_dt <- as.data.table(detect_anomaly$outliers)
