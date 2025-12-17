@@ -27,8 +27,6 @@ extract_netmass_ts <- function (import_data,
   import_data[, NET_MASS := as.numeric(NET_MASS)]
   import_data <-  import_data[, .(NET_MASS = sum(NET_MASS, na.rm = T)), by=month]
 
-  cat("NA after sum: ", sum(is.na(import_data$NET_MASS)), "\n")
-
   first_month <- import_data[, min(month)]
   ts_data <- ts(import_data$NET_MASS, start = c(year(first_month), month(first_month)), frequency = 12)
 

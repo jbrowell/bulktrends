@@ -11,8 +11,12 @@
 #' @export
 select_best_model <- function (data, metric){
 
-  trend = 1:length(data)
-  month = rep(1:12, length.out = length(data))
+  # CHECK if data will have gaps. If so, this would be incorrect
+  # time(ts_data)
+  trend = (time(ts_data) - 2016) * 12 #1:length(data)
+  month = ((time(ts_data) - min(time(ts_data)))*12) %% 12 + 1 #rep(1:12, length.out = length(data))
+  # <><><><><><>
+
   formulas <- list(~ trend,
                    ~ sin(2*pi*month/12) + cos(2*pi*month/12),
                    ~ trend + sin(2*pi*month/12) + cos(2*pi*month/12),
@@ -40,5 +44,8 @@ select_best_model <- function (data, metric){
   }
   # print(metric_values)
   best_metric <- which.min(metric_values)
-  return(model.matrix(formulas[[best_metric]], data = data))
+  return(
+    list(xreg = model.matrix(formulas[[best_metric]], data = data),
+         formula = paste0(formulas[[best_metric]],collapse = ""))
+    )
 }
