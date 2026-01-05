@@ -2,11 +2,15 @@
 #' Extract suitable model matrix for a given commodity code
 #'
 #' This function evaluates a set of formulas with trend and seasonal terms
-#' as exogenous variables and selects the ARIMA model with the lowest AICc.
+#' as exogenous variables and selects the ARIMA model with the lowest value
+#'of the selected metric.
 #'
 #' @param data A time series object containing the dependent variable.
+#' @param metric A character string specifying the criteria for model
+#' selection. Examples are "aic","aicc" or "bic".
 #'
-#' @return A model matrix of the trend and seasonal regressors of the selected model.
+#' @return A model matrix of the trend and seasonal regressors of the selected
+#' model and the related model formula.
 #'
 #' @export
 select_best_model <- function (data, metric){
@@ -32,7 +36,7 @@ select_best_model <- function (data, metric){
                             max.p = 5,
                             max.d = 1,
                             max.q = 5,
-                            seasonal = FALSE), silent=T)
+                            seasonal = F), silent=T)
 
     if ("try-error" %in% class(model)){
       cat("Model", i, "failed\n")

@@ -7,7 +7,7 @@ for (i in chapters){
   #create time series
   ts_data <- extract_netmass_ts(imports, i)
 
-  #detect outliers using function identify_best_model() in xreg
+  #detect outliers using function select_best_model()
   selected_model <- select_best_model(ts_data, metric = "aic")
   detect_anomaly <- tso(y = ts_data,#log(ts_data),
                         cval=5,
@@ -33,10 +33,10 @@ for (i in chapters){
   #flag "volatile" chapters?
 }
 
-# Combine all results into a single data.table
+#combine all results into a single data.table
 all_outliers_dt <- rbindlist(all_outliers, fill = TRUE)
 
 
-all_outliers_dt[Chapters=="03",]
+all_outliers_dt[chapter=="02",]
 
 
