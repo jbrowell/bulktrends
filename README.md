@@ -43,13 +43,10 @@ The following instructions aim to get the package running using the appropriate 
 *For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
 3. Place all .txt files in `data/imports/` directory.
 4. Follow the Userguide to load and save the datasets. 
-*The userguide contains a function called read_uktradeinfo which (i) reads  all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically save the combined dataset as an .rds file in the same directory for faster loading in future sessions. The .rds file allows faster data loading compared to re-reading multiple raw text files each time. the saved dataset w
+*The userguide contains a function called read_uktradeinfo which (i) reads  all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically save the combined dataset as an .rds file in the same directory for faster loading in future sessions. The .rds file allows faster data loading compared to re-reading multiple raw text files each time.
 5. Follow the examples in the userguide to perform any analysis required.
 
 
-%### Storing data
-
-%Store data in the `data/` directory.
 
 ## Contributing and Development Guide
 
@@ -57,7 +54,12 @@ Contributions to this repository are welcome.
 
 ### General Guidelines
 
+All work should be done on a separate new branch.
+
 ### Organisation of R code
+
+* All reusable functions should be placed in the `R/` directory,
+* Utility or helper functions should be placed in `R/utils.R` or a similar file.
 
 ### Documentation with Roxygen
 
