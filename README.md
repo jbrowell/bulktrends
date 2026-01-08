@@ -55,7 +55,7 @@ The following instructions aim to get the package running using the appropriate 
 
 Contributions to this repository are welcome.
 
-###General Guidelines
+### General Guidelines
 
 ### Organisation of R code
 
@@ -73,7 +73,7 @@ Minimum required roxygen tags:
 
 Example: ?
 
-### Updating the Userguide (Required)
+### Updating the Userguide
 
 The userguide must be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used.
 
@@ -82,7 +82,7 @@ The userguide must be updated whenever a new function is added or an existing fu
 
 The following resources are recommended for anyone contributing to this repository:
 
-* [R Packages](https://r-pkgs.org/) for guidance on package structure
+* [R Packages](https://r-pkgs.org/) for guidance on package structure.
 * [Tidyverse style guide](https://style.tidyverse.org/) coding style for readable and consistent R code.
 * [Advanced R](https://adv-r.hadley.nz/) for advanced and complex R programming concepts.
 
