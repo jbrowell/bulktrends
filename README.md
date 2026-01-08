@@ -7,7 +7,7 @@ Functions and scripts designed for key datasets to monitor, forecast and hindcas
 
 ## Datasets
 
-### Open import data
+### Open data: Imports
 
 The project uses publicly available import files that will need to be downloaded, unzipped and stored in the relevant folders to work.
 
@@ -22,10 +22,10 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
 #### Key variables included:
 
-*PERREF: Reference period (YYYYMM)
-*COMCODE - Commodity code
-*NET_MASS - Net mass (kg)
-*STAT_VALUE - Statistical Value (£)
+* PERREF: Reference period (YYYYMM)
+* COMCODE - Commodity code
+* NET_MASS - Net mass (kg)
+* STAT_VALUE - Statistical Value (£)
 
 ### Commodity lookup table
 
