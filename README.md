@@ -51,15 +51,43 @@ The following instructions aim to get the package running using the appropriate 
 
 %Store data in the `data/` directory.
 
-## Contributing to this repository
+## Contributing and Development Guide
 
-Reference texts:
+Contributions to this repository are welcome. This sections provides the
 
+### Useful References for Contributors
+
+The following resources are recommended for anyone contributing to this repository:
+
+- **R Packages** – guidance on package structure  
+  https://r-pkgs.org/
 * [R Packages](https://r-pkgs.org/) for package structure
 * Try to follow the [tidyverse style guide](https://style.tidyverse.org/)
 * [Advanced R](https://adv-r.hadley.nz/) for complex issues
 
-### roxygen2
 
+### Documentation with Roxygen
+
+All functions **must** be documented using **roxygen2**.
 We use the package [roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html), which provides a framework for adjacent code and documentation so when you modify your code, it's easy to remember that you need to update the documentation. See link for more.
+
+Minimum required roxygen tags:
+- `@title`
+- `@description`
+- `@param`
+- `@return`
+- `@export`
+
+Example: ?
+
+### Updating the Userguide (Required)
+
+The userguide must be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used.
+
+
+
+
+
+
+
 
