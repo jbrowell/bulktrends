@@ -35,7 +35,7 @@ This table contains the description of each full commodity code and their hierar
 
 The `notebooks\` directory contains 'UserGuide.qmd' which demonstrates how each function of the package can be used. It can be accessed using the following link: 
 
-## User instructions:
+## User instructions
 
 The following instructions aim to get the package running using the appropriate dataset and functions.
 
