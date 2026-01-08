@@ -63,8 +63,8 @@ All work should be done on a separate new branch.
 
 ### Documentation with Roxygen
 
-All functions **must** be documented using **roxygen2**.
-We use the package [roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html), which provides a framework for adjacent code and documentation so when you modify your code, it's easy to remember that you need to update the documentation. See link for more.
+All functions **must** be documented using the package **[roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html)**.
+It provides a framework for adjacent code and documentation so when you modify your code, it's easy to remember that you need to update the documentation. See link for more.
 
 Minimum required roxygen tags:
 - `@title`
@@ -93,8 +93,8 @@ The following resources are recommended for anyone contributing to this reposito
 
 The following people have contributed to the development of this repository:
 
-* Jethro Browell (@jbrowell)
-* Janeeta Maunthrooa (@janeetam)
+* Jethro Browell (`@jbrowell`)
+* Janeeta Maunthrooa (`@janeetam`)
 
 
 
