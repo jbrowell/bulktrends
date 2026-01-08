@@ -91,8 +91,8 @@ The following resources are recommended for anyone contributing to this reposito
 
 The following people have contributed to the development of this repository:
 
-Jethro Browell (@jbrowell)
-Janeeta Maunthrooa (@janeetam)
+* Jethro Browell (@jbrowell)
+* Janeeta Maunthrooa (@janeetam)
 
 
 
