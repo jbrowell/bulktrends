@@ -53,18 +53,11 @@ The following instructions aim to get the package running using the appropriate 
 
 ## Contributing and Development Guide
 
-Contributions to this repository are welcome. This sections provides the
+Contributions to this repository are welcome.
 
-### Useful References for Contributors
+###General Guidelines
 
-The following resources are recommended for anyone contributing to this repository:
-
-- **R Packages** – guidance on package structure  
-  https://r-pkgs.org/
-* [R Packages](https://r-pkgs.org/) for package structure
-* Try to follow the [tidyverse style guide](https://style.tidyverse.org/)
-* [Advanced R](https://adv-r.hadley.nz/) for complex issues
-
+### Organisation of R code
 
 ### Documentation with Roxygen
 
@@ -85,7 +78,21 @@ Example: ?
 The userguide must be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used.
 
 
+### Useful References for Contributors
 
+The following resources are recommended for anyone contributing to this repository:
+
+* [R Packages](https://r-pkgs.org/) for guidance on package structure
+* [Tidyverse style guide](https://style.tidyverse.org/) coding style for readable and consistent R code.
+* [Advanced R](https://adv-r.hadley.nz/) for advanced and complex R programming concepts.
+
+
+### Current Contributors
+
+The following people have contributed to the development of this repository:
+
+Jethro Browell (@jbrowell)
+Janeeta Maunthrooa (@janeetam)
 
 
 
