@@ -17,8 +17,12 @@ select_best_model <- function (data, metric){
 
   # CHECK if data will have gaps. If so, this would be incorrect
   # time(ts_data)
-  trend = (time(ts_data) - 2016) * 12 #1:length(data)
-  month = ((time(ts_data) - min(time(ts_data)))*12) %% 12 + 1 #rep(1:12, length.out = length(data))
+  #trend = (time(ts_data) - 2016) * 12
+  trend <- as.numeric(time(ts_data) - time(ts_data)[1]) * 12
+
+  #month = ((time(ts_data) - min(time(ts_data)))*12) %% 12 + 1
+  #rep(1:12, length.out = length(ts_data))
+  month = cycle(ts_data)
   # <><><><><><>
 
   formulas <- list(~ trend,

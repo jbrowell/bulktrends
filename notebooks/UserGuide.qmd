@@ -94,14 +94,15 @@ comcode_description("08039010", Commodity)
 
 #Example of anomaly detection for an individual code (loop for all codes can be found in script)
 
-ts_data <- extract_netmass_ts(imports, "78")
+ts_data <- extract_netmass_ts(imports, "19")
 
-identify_best_model(ts_data)
+selected_model <- select_best_model(ts_data, metric="aic")
 
-detect_anomaly <- tso(y = log(ts_data),
+detect_anomaly <- tso(y = ts_data,
+                      cval=5,
                       types = c("AO", "LS", "TC", "IO"),
                       tsmethod = "auto.arima",
-                      xreg = select_best_model(ts_data))
+                      xreg = selected_model$xreg)
 
 print(detect_anomaly)
 
