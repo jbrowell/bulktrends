@@ -3,9 +3,9 @@ Type: Package
 Title: An R Package for the Analysis of UK Trade Data
 Version: 0.0.1
 Authors@R: c(
-    person("Jethro", "Brwowell", email = "jethro.browell@glasgow.ac.uk", role = c("aut", "cre")),
-    person("Janeeta", "Brwowell", , ""Janeeta Maunthrooa" <Janeeta.Maunthrooa@glasgow.ac.uk>", role = c("aut")))
-Description: Thie package contains functions tailored to UK Trade Data as provided by the UK Government. It speeds up common tasks such as loading and plotting, analysis including outlier/intervention detection, and forecasting.
+    person("Jethro", "Browell", email = "jethro.browell@glasgow.ac.uk", role = c("aut", "cre")),
+    person("Janeeta", "Maunthrooa", email = "Janeeta.Maunthrooa@glasgow.ac.uk", role = c("aut")))
+Description: This package contains functions tailored to UK Trade Data as provided by the UK Government. It speeds up common tasks such as loading and plotting, analysis including outlier/intervention detection, and forecasting.
 License: BSD 3 Clause
 Encoding: UTF-8
 LazyData: true
