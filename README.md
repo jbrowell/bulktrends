@@ -41,9 +41,10 @@ The lookup table can be accessed via an API (Application Programming Interface),
 * Commodity code and their sub groups (CN8/HS2/HS4/HS6)
 * Code description for each sub code.
 
- **Note**:
+ **Note**: \\
 The imports dataset and lookup table are used together throughout the project. 
-The imports data provides the time series values, while the lookup table enables aggregation, filtering, and reference across commodity codes and related hierarchies.
+The imports data provides the time series values, while the lookup table enables aggregation, filtering, and reference across commodity codes and related hierarchies. 
+`CN8code` in the lookup table corresponds directly to the `COMCODE` variable in the imports dataset and can be used to merge the two datasets to map the sub codes (HS2/HS4/HS6).
 
 
 ## Userguide
