@@ -34,21 +34,11 @@ Two lookup tables are used in this project. Both are retrieved in the same step 
 
 #### A. Commodity
 
-This table provides descriptions and hierarchical classification of traded goods. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series. 
-
-##### Key content:
-
-* Commodity code and their sub codes (CN8/HS2/HS4/HS6).
-* Product description for each code.
+This table provides descriptions and hierarchical classification of traded goods. It contains the product description of every commodity code (CN8) and its sub-codes (HS2/HS4/HS6). The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series. 
 
 #### B. Port Location
 
-This table provides information about the geographical location of imports.
-
-##### Key content:
-
-* `PortCodeAlpha` - Port codes
-* `PortName` - Names of port locations
+This table provides information about the geographical location of imports. It contains every port code and their respective names.
 
 ##### Access:
 
