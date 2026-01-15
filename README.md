@@ -50,7 +50,7 @@ The imports data provides the time series values, while the lookup tables provid
 
 ## Userguide
 
-The `notebooks\` directory contains 'UserGuide.qmd' which demonstrates how each function of the package can be used. It can be accessed using the following link: 
+The `notebooks/` directory contains 'UserGuide.qmd' which demonstrates how each function of the package can be used. It can be accessed using the following [link](/notebooks/UserGuide.html).
 
 ## User instructions
 
