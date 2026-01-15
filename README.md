@@ -9,14 +9,14 @@ Functions and scripts designed for key datasets to monitor, forecast and hindcas
 
 ### 1. Imports
 
-The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data are typically provided as monthly raw .txt files, each containing detailed information on UK import activity that can be used for time series and commodity level analysis. Refer to the user instructions section below for guidelines on downloading, storing and loading the data into R.
+The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data are typically provided as monthly raw .txt files, each containing detailed information on UK import activity that can be used for time series analysis. Refer to the user instructions section below for guidelines on downloading, storing and loading the data into R.
 
 #### Access:
 
 The monthly UK import data used in this project are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the official UK government platform for trade statistics. See the following resources:
 
 * [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly .txt files representing UK import transactions for a given period.
-* [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) to understand the contents and format of data files.
+* [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
 
 
 #### Key Features:
@@ -27,8 +27,6 @@ The monthly UK import data used in this project are published by [UK Trade Info]
 * `STAT_VALUE` - Statistical Value (£)
 
 ### 2. Lookup Tables
-
-Two lookup tables are used in this project. Both are retrieved in the same step (via an API function) but serve different purposes.
 
 #### A. Commodity
 
