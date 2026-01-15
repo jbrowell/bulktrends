@@ -38,11 +38,11 @@ This table provides information about the freight location of products as collec
 
 #### Access:
 
-Both lookup tables can be accessed via an API (Application Programming Interface), which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest versions of both lookup tables in a structured format ready for use in R. Refer to the UserGuide for an example of how to load and use these tables.
+Both lookup tables can be accessed via an API (Application Programming Interface) function, which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest versions of both lookup tables in a structured format ready for use in R. Refer to the UserGuide for an example of how to load these tables.
 
  **Note on datasets**:
 The imports dataset and lookup tables are used together throughout the project. 
-The imports data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
+The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
 
 ## Userguide
 
