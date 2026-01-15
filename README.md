@@ -56,8 +56,8 @@ The following instructions aim to get the package running using the appropriate 
 
 1. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
 3. Place all extracted .txt files in `data/imports/` directory of the cloned repository.
-4. Follow the UserGuide to load and save the datasets. The UserGuide contains a function called `read_uktradeinfo()` which (i) reads all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically save the combined dataset as an .rds file in the same directory for faster loading in future sessions. The .rds file allows faster data loading compared to re-reading multiple raw text files each time.
-5. Follow the examples in the UserGuide to perform any analysis required.
+4. Follow the UserGuide to load and save the datasets. The UserGuide contains a function called `read_uktradeinfo()` which (i) reads all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically saves the combined dataset as an .rds file in the same directory for faster loading in future sessions as opposed o re-reading multiple raw text files each time.
+5. Follow the examples in the UserGuide to visualise the data.
 
  **Note**: If the data is stored outside of the repository, i.e., in an external local directory, ensure to provide the full path to this directory when calling the `read_uktradeinfo()` in the UserGuide. Regardless of where the data is stored, the same loading and processing steps are used.
 
