@@ -40,7 +40,7 @@ This table provides descriptions and hierarchical classification of traded goods
 
 This table provides information about the geographical location of imports. It contains every port code and their respective names.
 
-##### Access:
+#### Access:
 
 Both lookup tables can be accessed via an API (Application Programming Interface), which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest versions of both lookup tables in a structured format ready for use in R. Refer to the UserGuide for an example of how to load and use these tables.
 
