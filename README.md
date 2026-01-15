@@ -32,19 +32,16 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
 Two lookup tables are used in this project. Both are retrieved in the same step (via an API function) but serve different purposes.
 
-#### Commodity
+#### A. Commodity
 
-This table provides descriptions and hierarchical classification of traded goods.
-
-metadata to interpret each full commodity code and their sub groups. this includes mappings between different hierarchy levels and their respective description. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series.
+This table provides descriptions and hierarchical classification of traded goods. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series. 
 
 ##### Key content:
 
 * Commodity code and their sub codes (CN8/HS2/HS4/HS6).
 * Product description for each code.
 
-
-#### Port Location
+#### B. Port Location
 
 This table provides information about the geographical location of imports.
 
@@ -60,7 +57,7 @@ Both lookup tables can be accessed via an API (Application Programming Interface
  **Note**:
 The imports dataset and lookup tables are used together throughout the project. 
 The imports data provides the time series values, while the lookup tables enable aggregation, filtering, and referencing across commodity codes and related hierarchies. 
-`CN8code` in the commodity lookup table corresponds directly to the `COMCODE` variable in the imports dataset and they can be used to merge the two datasets to derive the sub codes (HS2/HS4/HS6) and their descriptions. Similarly, `PortCodeAlpha` in the port lookup table matches PORT_CODE in the imports dataset.
+`CN8code` in the commodity lookup table corresponds directly to the `COMCODE` variable in the imports dataset and they can be used to merge the two datasets to derive the sub codes (HS2/HS4/HS6) and their descriptions. Similarly, `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
 
 
 ## Userguide
