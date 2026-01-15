@@ -7,13 +7,13 @@ Functions and scripts designed for key datasets to monitor, forecast and hindcas
 
 ## Datasets
 
-### Open data: Imports
+### 1. Imports
 
-The project uses publicly available import files that will need to be downloaded, unzipped and stored in the relevant folders to work.
+The project uses publicly available UK import files that will need to be downloaded, unzipped and stored in the relevant folders to work.
 
 #### Access:
 
-The datasets can be accessed using the links below:
+The files can be accessed using the links below:
 
 Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
@@ -27,9 +27,16 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 * NET_MASS - Net mass (kg)
 * STAT_VALUE - Statistical Value (£)
 
-### Commodity lookup table
+### 2. Lookup Table
 
-This table contains the description of each full commodity code and their hierarchies. It can be accessed using the uktradeinfo_api function.
+The lookup table provides metadata to interpret each full commodity code and their sub groups. this includes mappings between different hierarchy levels and their respective description. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series. It can be accessed using the uktradeinfo_api function.
+
+#### Typical fields
+
+* Commodity code and their sub groups (CN8/HS2/HS4/HS6)
+* Code description for each sub code.
+
+The imports dataset and lookup table are used together throughout the project. The imports data provides the time series values, while the lookup table enables aggregation, filtering, and referebce across commodity codes and related hierarchies.
 
 ## Userguide
 
@@ -45,7 +52,6 @@ The following instructions aim to get the package running using the appropriate 
 4. Follow the Userguide to load and save the datasets. 
 *The userguide contains a function called read_uktradeinfo which (i) reads  all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically save the combined dataset as an .rds file in the same directory for faster loading in future sessions. The .rds file allows faster data loading compared to re-reading multiple raw text files each time.
 5. Follow the examples in the userguide to perform any analysis required.
-
 
 
 ## Contributing and Development Guide
