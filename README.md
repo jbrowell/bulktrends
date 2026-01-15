@@ -36,7 +36,7 @@ The lookup table provides metadata to interpret each full commodity code and the
 * Commodity code and their sub groups (CN8/HS2/HS4/HS6)
 * Code description for each sub code.
 
- **Note** 
+ **Note**:
 The imports dataset and lookup table are used together throughout the project. 
 The imports data provides the time series values, while the lookup table enables aggregation, filtering, and reference across commodity codes and related hierarchies.
 
@@ -74,15 +74,6 @@ All work should be done on a separate new branch.
 
 All functions **must** be documented using the package **[roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html)**.
 It provides a framework for adjacent code and documentation so when you modify your code, it's easy to remember that you need to update the documentation. See link for more.
-
-Minimum required roxygen tags:
-- `@title`
-- `@description`
-- `@param`
-- `@return`
-- `@export`
-
-Example: ?
 
 ### Updating the Userguide
 
