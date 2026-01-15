@@ -1,9 +1,9 @@
 # bulktrends
-An `R` package for anlaysing and forecasting UK HM Revenue & Customs trade data.
+An `R` package for analysing and forecasting UK HM Revenue & Customs trade data.
 
 ## Aims
 
-Functions and scripts designed for key datasets to monitor, forecast and hindcast the effects of BTOM on SPS (sanitary and phytosanitary) imports.  To include intervals of uncertainty, and identification of outlier events in the time series. Outputs of central interest include a comparative application of a range of time series methods on the big trade flow datasets that are routinely used in DEFRA Animal and Plant Health Agency (APHA) Enforcement and Appeals (E&A), from the traditional to novel tools.  Robust diagnostics to indicate which method(s) may be optimal in this case.
+The functions and scripts of this package are designed to monitor, forecast and hindcast UK import flows using large-scale trade datasets to support evidence-based monitoring and analysis of UK trade patterns with a focus on methodological robustness. The central interest is to assess the effects of the UK's Border Target Operating Model ([BTOM](https://www.gov.uk/government/publications/the-border-target-operating-model-august-2023) on Sanitary and Phytosanitary (SPS) import dynamics over time. The key objectives include producing robust forecasts with measures of uncertainty, identifying and analysing outlier events and anomalies in the time series, comparing traditional and more novel time series techniques when applied large trade datasets routinely used in DEFRA Animal and Plant Health Agency (APHA) Enforcement and Appeals (E&A) and providing robust diagnostic tools to identify the optimal methods to be used in this case. 
 
 ## Datasets
 
@@ -73,7 +73,7 @@ All work should be done on a separate new branch.
 ### Documentation with Roxygen
 
 All functions **must** be documented using the package **[roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html)**.
-It provides a framework for adjacent code and documentation system for R. Documentation is written in special comments above each function and is automatically converted into help files. This ensures that code and documentation stay in sync and makes it easier to maintain and extend the package. See link for more.
+It provides a framework for adjacent code and documentation system for R. Documentation is written in special comments above each function and is automatically converted into help files. This ensures that code and documentation stay in sync and makes it easier to maintain and extend the package. See link for further information.
 
 ### Updating the Userguide
 
