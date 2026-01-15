@@ -46,9 +46,7 @@ Both lookup tables can be accessed via an API (Application Programming Interface
 
  **Note on datasets**:
 The imports dataset and lookup tables are used together throughout the project. 
-The imports data provides the time series values, while the lookup tables provide information that enable aggregation, filtering, and referencing across commodity codes and related hierarchies. 
-`CN8code` in the commodity lookup table corresponds directly to the `COMCODE` variable in the imports dataset and they can be used to merge the two datasets to derive the sub-codes (HS2/HS4/HS6) and their descriptions. Similarly, `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
-
+The imports data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
 
 ## Userguide
 
