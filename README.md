@@ -29,14 +29,17 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
 ### 2. Lookup Table
 
-The lookup table provides metadata to interpret each full commodity code and their sub groups. this includes mappings between different hierarchy levels and their respective description. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series. It can be accessed using the uktradeinfo_api function.
+The lookup table provides metadata to interpret each full commodity code and their sub groups. this includes mappings between different hierarchy levels and their respective description. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series. It can be accessed using the uktradeinfo_api function. Refer to the Userguide for usage example.
 
 #### Typical fields
 
 * Commodity code and their sub groups (CN8/HS2/HS4/HS6)
 * Code description for each sub code.
 
-The imports dataset and lookup table are used together throughout the project. The imports data provides the time series values, while the lookup table enables aggregation, filtering, and referebce across commodity codes and related hierarchies.
+ **Note** 
+The imports dataset and lookup table are used together throughout the project. 
+The imports data provides the time series values, while the lookup table enables aggregation, filtering, and reference across commodity codes and related hierarchies.
+
 
 ## Userguide
 
