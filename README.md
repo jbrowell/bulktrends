@@ -20,31 +20,47 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 * [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm))
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/)
 
-#### Key variables included:
+#### Key content:
 
-* `PERREF`: Reference period (YYYYMM)
+* `PERREF` - Reference period (YYYYMM)
 * `COMCODE` - Commodity code
 * `NET_MASS` - Net mass (kg)
 * `STAT_VALUE` - Statistical Value (£)
+* `PORT_CODE` - 
 
-### 2. Lookup Table
+### 2. Lookup Tables
 
-The lookup table provides metadata to interpret each full commodity code and their sub groups. this includes mappings between different hierarchy levels and their respective description. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series.
+Two lookup tables are used in this project. Both are retrieved in the same step (via an API function) but serve different purposes.
 
-#### Access:
+#### Commodity
 
-The lookup table can be accessed via an API (Application Programming Interface), which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest version of the lookup table in a structured format that can be loaded directly into R. Refer to the UserGuide for an example showing how to load the data using this function.
+This table provides descriptions and hierarchical classification of traded goods.
+
+metadata to interpret each full commodity code and their sub groups. this includes mappings between different hierarchy levels and their respective description. The table is used to aggregate data across hierarchies, label plots and outputs and improve interpretability of time series.
+
+##### Key content:
+
+* Commodity code and their sub codes (CN8/HS2/HS4/HS6).
+* Product description for each code.
 
 
-#### Typical fields:
+#### Port Location
 
-* Commodity code and their sub groups (CN8/HS2/HS4/HS6)
-* Code description for each sub code.
+This table provides information about the geographical location of imports.
+
+##### Key content:
+
+* `PortCodeAlpha` - Port codes
+* `PortName` - Names of port locations
+
+##### Access:
+
+Both lookup tables can be accessed via an API (Application Programming Interface), which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest versions of both lookup tables in a structured format ready for use in R. Refer to the UserGuide for an example of how to load and use these tables.
 
  **Note**:
-The imports dataset and lookup table are used together throughout the project. 
-The imports data provides the time series values, while the lookup table enables aggregation, filtering, and reference across commodity codes and related hierarchies. 
-`CN8code` in the lookup table corresponds directly to the `COMCODE` variable in the imports dataset and they can be used to merge the two datasets to derive the sub codes (HS2/HS4/HS6) and their descriptions.
+The imports dataset and lookup tables are used together throughout the project. 
+The imports data provides the time series values, while the lookup tables enable aggregation, filtering, and referencing across commodity codes and related hierarchies. 
+`CN8code` in the commodity lookup table corresponds directly to the `COMCODE` variable in the imports dataset and they can be used to merge the two datasets to derive the sub codes (HS2/HS4/HS6) and their descriptions. Similarly, `PortCodeAlpha` in the port lookup table matches PORT_CODE in the imports dataset.
 
 
 ## Userguide
