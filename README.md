@@ -19,7 +19,7 @@ The monthly UK import data used in this project are published by [UK Trade Info]
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) to understand the contents and format of data files.
 
 
-#### Key content:
+#### Key Features:
 
 * `PERREF` -  Period Reference (YYYYMM)
 * `COMCODE` - Commodity code
@@ -50,20 +50,18 @@ The imports data provides the time series values, while the lookup tables provid
 
 The `notebooks/` directory contains 'UserGuide.qmd' which demonstrates how each function of the package can be used. It can be accessed directly in R or using the following [link](/notebooks/UserGuide.html).
 
-## User instructions
+## User Instructions
 
 The following instructions aim to get the package running using the appropriate data files and functions.
 
 1. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
 3. Place all extracted .txt files in `data/imports/` directory of the cloned repository.
-4. Follow the UserGuide to load and save the datasets. The UserGuide contains a function called `read_uktradeinfo()` which (i) reads all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically saves the combined dataset as an .rds file in the same directory for faster loading in future sessions as opposed o re-reading multiple raw text files each time.
+4. Follow the UserGuide to load and save the datasets. The UserGuide contains a function called `read_uktradeinfo()` which (i) reads all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically saves the combined dataset as an .rds file in the same directory for faster loading in future sessions as opposed to re-reading multiple raw text files each time.
 5. Follow the examples in the UserGuide to visualise the data.
 
- **Note**: If the data is stored outside of the repository, i.e., in an external local directory, ensure to provide the full path to this directory when calling the `read_uktradeinfo()` in the UserGuide. Regardless of where the data is stored, the same loading and processing steps are used.
+ **Note**: If the data is stored outside of the cloned repository, i.e., in an external local directory, ensure to provide the full path to this directory when calling the `read_uktradeinfo()` in the UserGuide. Regardless of where the data is stored, the same loading and processing steps are used.
 
 ## Contributing and Development Guide
-
-Contributions to this repository are welcome.
 
 ### General Guidelines
 
