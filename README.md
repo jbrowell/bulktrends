@@ -22,11 +22,10 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
 #### Key content:
 
-* `PERREF` - Reference period (YYYYMM)
+* `PERREF` -  Period Reference (YYYYMM)
 * `COMCODE` - Commodity code
 * `NET_MASS` - Net mass (kg)
 * `STAT_VALUE` - Statistical Value (£)
-* `PORT_CODE` - 
 
 ### 2. Lookup Tables
 
@@ -38,7 +37,7 @@ This table provides descriptions and hierarchical classification of traded goods
 
 #### B. Port Location
 
-This table provides information about the geographical location of imports. It contains every port code and their respective names.
+This table provides information about the freight location of products as collected on customs declarations. It contains port location codes and their respective names.
 
 #### Access:
 
@@ -50,18 +49,18 @@ The imports data provides the time series values, while the lookup tables provid
 
 ## Userguide
 
-The `notebooks/` directory contains 'UserGuide.qmd' which demonstrates how each function of the package can be used. It can be accessed using the following [link](/notebooks/UserGuide.html).
+The `notebooks/` directory contains 'UserGuide.qmd' which demonstrates how each function of the package can be used. It can be accessed directly in R or using the following [link](/notebooks/UserGuide.html).
 
 ## User instructions
 
 The following instructions aim to get the package running using the appropriate dataset and functions.
 
 1. Download and unzip the bulk import data files for the required time period.
-*For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
+* For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
 3. Place all .txt files in `data/imports/` directory.
-4. Follow the Userguide to load and save the datasets. 
-*The userguide contains a function called read_uktradeinfo which (i) reads  all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically save the combined dataset as an .rds file in the same directory for faster loading in future sessions. The .rds file allows faster data loading compared to re-reading multiple raw text files each time.
-5. Follow the examples in the userguide to perform any analysis required.
+4. Follow the UserGuide to load and save the datasets. 
+* The UserGuide contains a function called read_uktradeinfo which (i) reads  all .txt files from the directory, (ii) combines them into a single dataset and, (iii) automatically save the combined dataset as an .rds file in the same directory for faster loading in future sessions. The .rds file allows faster data loading compared to re-reading multiple raw text files each time.
+5. Follow the examples in the UserGuide to perform any analysis required.
 
 
 ## Contributing and Development Guide
@@ -80,12 +79,11 @@ All work should be done on a separate new branch.
 ### Documentation with Roxygen
 
 All functions **must** be documented using the package **[roxygen2](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html)**.
-It provides a framework for adjacent code and documentation so when you modify your code, it's easy to remember that you need to update the documentation. See link for more.
+It provides a framework for adjacent code and documentation system for R. Documentation is written in special comments above each function and is automatically converted into help files. This ensures that code and documentation stay in sync and makes it easier to maintain and extend the package. See link for more.
 
 ### Updating the Userguide
 
-The userguide must be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used.
-
+The UserGuide must be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used.
 
 ### Useful References for Contributors
 
