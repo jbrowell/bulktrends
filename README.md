@@ -22,10 +22,10 @@ Monthly trade data from [UK Trade Info](https://www.uktradeinfo.com/trade-data/)
 
 #### Key variables included:
 
-* PERREF: Reference period (YYYYMM)
-* COMCODE - Commodity code
-* NET_MASS - Net mass (kg)
-* STAT_VALUE - Statistical Value (£)
+* `PERREF`: Reference period (YYYYMM)
+* `COMCODE` - Commodity code
+* `NET_MASS` - Net mass (kg)
+* `STAT_VALUE` - Statistical Value (£)
 
 ### 2. Lookup Table
 
@@ -33,7 +33,7 @@ The lookup table provides metadata to interpret each full commodity code and the
 
 #### Access:
 
-The lookup table can be accessed via an API (Application Programming Interface), which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest version of the lookup table in a structured format that can be loaded directly into R. Refer to the Userguide for an example showing how to load the data using this function.
+The lookup table can be accessed via an API (Application Programming Interface), which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktradeinfo_api()` function which returns the latest version of the lookup table in a structured format that can be loaded directly into R. Refer to the UserGuide for an example showing how to load the data using this function.
 
 
 #### Typical fields:
@@ -41,10 +41,10 @@ The lookup table can be accessed via an API (Application Programming Interface),
 * Commodity code and their sub groups (CN8/HS2/HS4/HS6)
 * Code description for each sub code.
 
- **Note**: \\
+ **Note**:
 The imports dataset and lookup table are used together throughout the project. 
 The imports data provides the time series values, while the lookup table enables aggregation, filtering, and reference across commodity codes and related hierarchies. 
-`CN8code` in the lookup table corresponds directly to the `COMCODE` variable in the imports dataset and can be used to merge the two datasets to map the sub codes (HS2/HS4/HS6).
+`CN8code` in the lookup table corresponds directly to the `COMCODE` variable in the imports dataset and they can be used to merge the two datasets to derive the sub codes (HS2/HS4/HS6) and their descriptions.
 
 
 ## Userguide
