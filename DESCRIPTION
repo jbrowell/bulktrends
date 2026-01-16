@@ -1,7 +1,7 @@
 Package: bulktrends
 Type: Package
 Title: An R Package for the Analysis of UK Trade Data
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person("Jethro", "Browell", email = "jethro.browell@glasgow.ac.uk", role = c("aut", "cre")),
     person("Janeeta", "Maunthrooa", email = "Janeeta.Maunthrooa@glasgow.ac.uk", role = c("aut")))

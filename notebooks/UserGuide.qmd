@@ -76,10 +76,10 @@ for ( i in lookup_tables ) {
 #| eval: false
 Commodity <- uktrades_request(endpoint = "Commodity")$value
 ```
+
 ```{r}
 head(Commodity)
 ```
-
 
 ## Quick Visualisation
 
@@ -111,7 +111,7 @@ comcode_description("08039010", Commodity)
 
 #Example of anomaly detection for an individual code (loop for all codes can be found in script)
 
-ts_data <- extract_netmass_ts(imports, "19")
+ts_data <- extract_ts(imports, "19", quantity="NET_MASS")
 
 selected_model <- select_best_model(ts_data, metric="aic")
 
