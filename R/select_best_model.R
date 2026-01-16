@@ -1,7 +1,7 @@
 #'
 #' Extract suitable model matrix for a given commodity code
 #'
-#' This function evaluates a set of formulas with trend and seasonal terms
+#' This function evaluates a set of formulas with linear_trend and seasonal terms
 #' as exogenous variables and selects the ARIMA model with the lowest value
 #'of the selected metric.
 #'
@@ -9,51 +9,56 @@
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
 #'
-#' @return A model matrix of the trend and seasonal regressors of the selected
+#' @returns A model matrix of the linear_trend and seasonal regressors of the selected
 #' model and the related model formula.
 #'
 #' @export
-select_best_model <- function (data, metric){
+select_best_model <- function (
+    data,
+    metric = "aic",
+    formulas = list(~ -1,
+                    ~ 1,
+                    ~ linear_trend,
+                    ~ sin(2*pi*month/12) + cos(2*pi*month/12),
+                    ~ linear_trend + sin(2*pi*month/12) + cos(2*pi*month/12))
+){
 
-  # CHECK if data will have gaps. If so, this would be incorrect
-  # time(ts_data)
-  #trend = (time(ts_data) - 2016) * 12
-  trend <- as.numeric(time(ts_data) - time(ts_data)[1]) * 12
-
-  #month = ((time(ts_data) - min(time(ts_data)))*12) %% 12 + 1
-  #rep(1:12, length.out = length(ts_data))
+  linear_trend <- time(ts_data)
   month = cycle(ts_data)
-  # <><><><><><>
 
-  formulas <- list(~ trend,
-                   ~ sin(2*pi*month/12) + cos(2*pi*month/12),
-                   ~ trend + sin(2*pi*month/12) + cos(2*pi*month/12),
-                   ~ trend + sin(4*pi*month/12) + cos(4*pi*month/12))
-  model<- list()
+  model <- list()
   metric_values <- rep(Inf, length(formulas))
 
   for (i in seq_along(formulas)) {
-    X <- model.matrix(formulas[[i]], data = data.frame(trend, month))
-    #print(X)
-    model <- try(auto.arima(data,
-                            xreg = X,
-                            max.p = 5,
-                            max.d = 1,
-                            max.q = 5,
-                            seasonal = F), silent=T)
 
-    if ("try-error" %in% class(model)){
-      cat("Model", i, "failed\n")
-      next
+    if( !formulas[[i]]==formula(~-1) ) {
+      X <- model.matrix(formulas[[i]], data = data.frame(linear_trend, month))
     }
 
-    model[[i]] <- model
-    metric_values[i] <- model[[metric]]
+    model_fit <- try(
+      forecast::auto.arima(
+        scale(data),
+        xreg = if(!formulas[[i]]==formula(~-1)){X}else{NULL},
+        max.p = 5,
+        max.d = 1,
+        max.q = 5,
+        seasonal = F,
+        allowmean = F),
+      silent=T)
+
+    if ("try-error" %in% class(model_fit)){
+      warning("Model failed: ", formulas[[i]])
+      next
+    } else {
+      model[[i]] <- model_fit
+      metric_values[i] <- model_fit[[metric]]
+    }
   }
-  # print(metric_values)
+
   best_metric <- which.min(metric_values)
-  return(
-    list(xreg = model.matrix(formulas[[best_metric]], data = data),
-         formula = paste0(formulas[[best_metric]],collapse = ""))
-    )
+  return( list(
+    xreg = if( formulas[[best_metric]]==formula(~-1) ){NULL}else{
+      model.matrix(formulas[[best_metric]], data = data)},
+    formula = paste0(formulas[[best_metric]],collapse = ""))
+  )
 }

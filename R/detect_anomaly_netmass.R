@@ -1,55 +1,64 @@
-# Large scale anomaly detection (Work in progress)
+#' Large scale anomaly detection
+#'
+#' This function loops over a list of commodity codes, selects a regression model,
+#' and detects anomalies.
+#'
+#' @param import_data A `data.table` containing trade data. Must include columns "COMCODE", "month" and `quantity`.
+#' @param codes A vector of HS2/HS4/HS6/CN8 codes
+#' @param quantity Quantity to be analysed, e.g. "NET_MASS" or "STAT_VALUE".
+#' @param model_selection_metric Selection criteria passed to `select_best_model()`
+#' @param cavl See `?tso`
+#' @param types See `?tso`
+#' @param ... Additional arguments passed to `tso()`
+#'
+#' @returns A table of detected outliers.
+#'
+#' @export
+detect_anomalies <- function(
+    import_data,
+    codes,
+    quantity = "NET_MASS",
+    model_selection_metric = "aic",
+    cval=5,
+    types = c("AO", "LS", "TC", "IO"),
+    ...
+){
 
-HS2 <- unique(substr(imports$COMCODE, 1,2))
-HS4 <- unique(substr(imports$COMCODE, 1,4))
-HS6 <- unique(substr(imports$COMCODE, 1,6))
-CN8 <- unique(imports$COMCODE)
+  all_outliers <- list()
 
-all_outliers <- list()
+  for (i in seq_along(codes)){
+    #create time series
+    ts_data <- extract_ts(import_data, code = codes[i], quantity = quantity)
 
-#detect_anomaly_netmass <- function(codes){
+    selected_model <- select_best_model(ts_data,
+                                        metric = model_selection_metric)
 
-for (i in HS2){
-  #create time series
-  ts_data <- extract_netmass_ts(imports, i)
+    detect_anomaly <- try(tso(y = scale(ts_data),
+                              cval = cval,
+                              types = types,
+                              xreg = selected_model$xreg,
+                              ...),
+                          silent=T)
 
-  #detect outliers using function select_best_model()
-  selected_model <- select_best_model(ts_data, metric = "aic")
-  detect_anomaly <- try(tso(y = ts_data,#log(ts_data),
-                        cval=5,
-                        types = c("AO", "LS", "TC", "IO"),
-                        tsmethod = "auto.arima",
-                        xreg = selected_model$xreg), silent=T)
+    if ("try-error" %in% class(detect_anomaly)){
+      warning("Anomaly detectino failed for code: ", codes[i])
+      next
+    }
 
-  if ("try-error" %in% class(detect_anomaly)){
-    cat("code", i, "failed\n")
-    next
+    if (nrow(detect_anomaly$outliers)>0){
+
+      #store outliers data produced
+      outliers_dt <- as.data.table(detect_anomaly$outliers)
+      outliers_dt[, code := codes[i]]
+      outliers_dt[, model_formula := selected_model$formula]
+      all_outliers[[i]] <- outliers_dt
+    } else {
+      all_outliers[[i]] <- data.table(code = codes[i],
+                                      model_formula = selected_model$formula)
+    }
+
   }
 
-  #visualise results
-  if (nrow(detect_anomaly$outliers)>0){
-    plot.tsoutliers(detect_anomaly)
-    title(main = paste("Outliers for", i),col.main = "darkblue", cex.main = 1, line = 2.5)
+  return(rbindlist(all_outliers, fill = TRUE))
 
-
-    #store outliers data produced
-    outliers_dt <- as.data.table(detect_anomaly$outliers)
-    outliers_dt[, HS2 := i]
-    outliers_dt[, model_formula := selected_model$formula]
-    all_outliers[[i]] <- outliers_dt
-  } else {
-    all_outliers[[i]] <- data.table(HS2 = i,
-                                    model_formula = selected_model$formula)
-  }
-  #flag "volatile" chapters?
 }
-  rbindlist(all_outliers, fill = TRUE)
-#}
-
-#combine all results into a single data.table
-all_outliers_dt <- rbindlist(all_outliers, fill = TRUE)
-
-
-all_outliers_dt[chapter=="02",]
-
-#detect_anomaly_netmass(codes = HS2)

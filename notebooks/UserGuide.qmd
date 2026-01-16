@@ -63,12 +63,12 @@ for ( i in lookup_tables ) {
   
   if( file.exists(file) ){
     assign(i,readRDS(file))
-  
-    } else {
+    
+  } else {
     assign(i, uktrades_request(endpoint = i)$value)
     saveRDS(get(i), file = file)  
     
-    }
+  }
 }
 ```
 
@@ -105,23 +105,35 @@ comcode_description("01012990", Commodity)
 comcode_description("08039010", Commodity)
 ```
 
--   Anomaly detection in time series of a given commodity
+## Anomaly detection
+
+For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types ("AO" additive outliers, "LS" level shifts, "TC" temporary changes, "IO" innovative outliers and "SLS" seasonal level shifts).
 
 ```{r}
+#| warning: false
 
-#Example of anomaly detection for an individual code (loop for all codes can be found in script)
+ts_data <- extract_ts(imports, "01", quantity="NET_MASS")
 
-ts_data <- extract_ts(imports, "19", quantity="NET_MASS")
+selected_model <- select_best_model(ts_data)
 
-selected_model <- select_best_model(ts_data, metric="aic")
-
-detect_anomaly <- tso(y = ts_data,
+detect_anomaly <- tso(y = scale(ts_data),
                       cval=5,
                       types = c("AO", "LS", "TC", "IO"),
-                      tsmethod = "auto.arima",
                       xreg = selected_model$xreg)
 
 print(detect_anomaly)
-
 plot.tsoutliers(detect_anomaly)
+
+```
+
+This procedure is performed for a list of commodity codes...
+
+```{r}
+#| warning: false
+hs2_codes <- unique(substr(imports$COMCODE, 1,2))
+
+hs2_anomalies <- detect_anomalies(import_data = imports,
+                                  codes = hs2_codes[1:5])
+
+print(hs2_anomalies)
 ```
