@@ -1,14 +1,16 @@
 Package: bulktrends
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: An R Package for the Analysis of UK Trade Data
+Version: 0.0.1
+Authors@R: c(
+    person("Jethro", "Browell", email = "jethro.browell@glasgow.ac.uk", role = c("aut", "cre")),
+    person("Janeeta", "Maunthrooa", email = "Janeeta.Maunthrooa@glasgow.ac.uk", role = c("aut")))
+Description: This package contains functions tailored to UK Trade Data as provided by the UK Government. It speeds up common tasks such as loading and plotting, analysis including outlier/intervention detection, and forecasting.
+License: BSD 3 Clause
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 Depends:
-    data.table (>= 1.14.0)
+    R (>= 3.5.0),
+    data.table (>= 1.14.0),
+    ggplot2 (>= 3.5.1)
