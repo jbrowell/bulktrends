@@ -75,6 +75,7 @@ The following instructions aim to clone and run package running using the approp
 2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
 3. Place all extracted `.txt` files in `data/imports/` directory of the cloned repository. The contents of the `data/` directory are not tracked by git.
 4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
+5. Develop. Ensure contributions are documented and included in the user guide - see instructions below.
 
 ### General Guidelines
 
@@ -95,7 +96,7 @@ It provides a framework for adjacent code and documentation system for R. Docume
 
 ### Updating the Userguide
 
-The UserGuide should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used.
+The UserGuide should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remeber to render a new version of the html.
 
 ### Current Contributors
 
