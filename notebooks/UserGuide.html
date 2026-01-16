@@ -99,7 +99,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.1). First, let’s load the package and add the path to where we are storing data.</p>
+<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.2). First, let’s load the package and add the path to where we are storing data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bulktrends)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">"../data/"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -141,6 +141,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 6:          0    imp        0 2016-01-01</code></pre>
 </div>
 </div>
+<section id="things-to-be-aware-of" class="level3">
+<h3 class="anchored" data-anchor-id="things-to-be-aware-of">Things to be aware of</h3>
+<ul>
+<li>Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data</li>
+<li>“Low value Trade EU”, port code QVV only report chapter of COMCODE and do not include NET_WEIGHT</li>
+</ul>
+</section>
 </section>
 <section id="request-data-from-uk-trade-data-api" class="level2">
 <h2 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h2>
@@ -232,15 +239,66 @@ Commodity code (Cn8):    08039010  —  Bananas, fresh (excl. plantains)
 ---------------------------------------------</code></pre>
 </div>
 </div>
-<ul>
-<li>Detection of outliers in time series of a single commodity</li>
-</ul>
+</section>
+<section id="anomaly-detection" class="level2">
+<h2 class="anchored" data-anchor-id="anomaly-detection">Anomaly detection</h2>
+<p>For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types (“AO” additive outliers, “LS” level shifts, “TC” temporary changes, “IO” innovative outliers and “SLS” seasonal level shifts).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01", Commodity)</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01012100", Commodity)</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01012990", Commodity)</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01061900", Commodity)</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01069000", Commodity)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> <span class="fu">extract_ts</span>(imports, <span class="st">"01"</span>, <span class="at">quantity=</span><span class="st">"NET_MASS"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>selected_model <span class="ot">&lt;-</span> <span class="fu">select_best_model</span>(ts_data)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>detect_anomaly <span class="ot">&lt;-</span> <span class="fu">tso</span>(<span class="at">y =</span> <span class="fu">scale</span>(ts_data),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">cval=</span><span class="dv">5</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">xreg =</span> selected_model<span class="sc">$</span>xreg)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(detect_anomaly)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Series: scale(ts_data) 
+Regression with ARIMA(0,0,0) errors 
+
+Coefficients:
+         TC39
+      -4.3082
+s.e.   0.5867
+
+sigma^2 = 0.6808:  log likelihood = -140.57
+AIC=285.13   AICc=285.24   BIC=290.62
+
+Outliers:
+  type ind    time coefhat  tstat
+1   TC  39 2019:03  -4.308 -7.343</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.tsoutliers</span>(detect_anomaly)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="UserGuide_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This procedure is performed for a list of commodity codes…</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>hs2_codes <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">substr</span>(imports<span class="sc">$</span>COMCODE, <span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>hs2_anomalies <span class="ot">&lt;-</span> <span class="fu">detect_anomalies</span>(<span class="at">import_data =</span> imports,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">codes =</span> hs2_codes[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>])</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(hs2_anomalies)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     type   ind    time   coefhat     tstat   code
+   &lt;fctr&gt; &lt;int&gt;  &lt;char&gt;     &lt;num&gt;     &lt;num&gt; &lt;char&gt;
+1:     TC    39 2019:03 -4.308152 -7.343494     01
+2:     TC    61 2021:01 -3.765697 -8.872810     02
+3:   &lt;NA&gt;    NA    &lt;NA&gt;        NA        NA     03
+                                                     model_formula
+                                                            &lt;char&gt;
+1:                                                             ~-1
+2:                                                             ~-1
+3: ~linear_trend + sin(2 * pi * month/12) + cos(2 * pi * month/12)</code></pre>
+</div>
 </div>
 </section>
 
