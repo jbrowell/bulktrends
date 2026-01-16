@@ -1,5 +1,5 @@
 #' Utility helper functions
-NULL
+#'
 #' Extract of monthly time series of "NET_MASS" for a given commodity code
 #'
 #' This function extracts the monthly sum "NET_MASS" from import_data for
@@ -31,4 +31,27 @@ extract_netmass_ts <- function (import_data,
   ts_data <- ts(import_data$NET_MASS, start = c(year(first_month), month(first_month)), frequency = 12)
 
   return(ts_data)
+}
+
+
+#' View User Guide
+#'
+#' A function that opens the `bulktrends` user guide in system browser.
+#'
+#' @param path Optional. Path to specific instance of `UserGuide.html`. If `NULL`, it will be retrieved from the current installation of `bulktrends`.
+#'
+open_userguide <- function(path=NULL) {
+
+  if( is.null(path) ) {
+    path <- try(
+      system.file("notebooks", "UserGuide.html", package = "bulktrends")
+    )
+  }
+
+  if( file.exists(path) ){
+    browseURL(path)
+  } else {
+    stop("Couldn't find UserGuide.html")
+  }
+
 }

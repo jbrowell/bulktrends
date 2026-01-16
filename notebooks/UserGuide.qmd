@@ -1,40 +1,48 @@
 ---
-title: "UserGuide"
+title: "User Guide: `bulktrends`"
 format: html
 editor: visual
 ---
 
-## bulktrends User Guide
+```{r install-package}
+#| include: false
+devtools::install("../", upgrade = FALSE)
+```
 
-Examples of how to use the `bulktrends` package. First, let's load all of the functions contained within the package.
+Examples of how to use the `bulktrends` package (version `r packageVersion("bulktrends")`). First, let's load the package and add the path to where we are storing data.
 
 ```{r set-up}
-#| code-fold: true
 #| warning: false
-
-library(data.table)
-library(ggplot2)
-library(forecast)
-library(tsoutliers)
-library(devtools)
-devtools::load_all("../")
+#| message: false
+library(bulktrends)
+data_directory <- "../data/"
 ```
 
 ## Load UK Trade Info Bulk Data Files
 
-Load a single bulk data file or all of the files in a directory (and subdirectories).
+Load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an `.RDS` for quicker loading in the future.
 
 ```{r load-trade-data}
+#| include: false
 if ( !exists("imports") ){
-  if (file.exists("../data/imports.rds")) {
-    imports <- readRDS("../data/imports.rds")
+  if (file.exists(paste0(data_directory,"imports.rds"))) {
+    imports <- readRDS(paste0(data_directory,"imports.rds"))
   } else {
-    imports <- read_uktradeinfo( path = "../data/imports/")
-    saveRDS(imports, file = "../data/imports.rds")
+    imports <- read_uktradeinfo( path = paste0(data_directory,"imports/"))
+    saveRDS(imports, file = paste0(data_directory,"imports.rds"))
   }
 }
-head(imports)
+```
 
+```{r}
+#| eval: false
+imports <- read_uktradeinfo( path = paste0(data_directory,"imports/"))
+saveRDS(imports, file = paste0(data_directory,"imports.rds"))
+# imports <- readRDS(paste0(data_directory,"imports.rds"))
+```
+
+```{r}
+head(imports)
 ```
 
 ### Things to be aware of
@@ -47,10 +55,11 @@ head(imports)
 Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.
 
 ```{r load-lookup-tables}
+#| include: false
 lookup_tables <- c("Commodity","Port")
 for ( i in lookup_tables ) {
   
-  file <- paste0("../data/",i,".rds")
+  file <- paste0(data_directory,i,".rds")
   
   if( file.exists(file) ){
     assign(i,readRDS(file))
@@ -61,8 +70,16 @@ for ( i in lookup_tables ) {
     
     }
 }
-
 ```
+
+```{r}
+#| eval: false
+Commodity <- uktrades_request(endpoint = "Commodity")$value
+```
+```{r}
+head(Commodity)
+```
+
 
 ## Quick Visualisation
 
@@ -80,7 +97,7 @@ comcode_plot(imports, "01", variable="volume",comcode_lookup = Commodity)
 
 ```
 
--   Hierarchichal classification of a given commodity code
+-   Hierarchical classification of a given commodity code
 
 ```{r comcode-descriptions}
 
