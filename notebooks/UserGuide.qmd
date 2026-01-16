@@ -4,26 +4,26 @@ format: html
 editor: visual
 ---
 
-Examples of how to use the `bulktrends` package. First, let's load the package and add the path to where we are storing data.
-
-```{r dev-setup}
+```{r install-package}
 #| include: false
-devtools::load_all("../")
+devtools::install("../", upgrade = FALSE)
 ```
 
+Examples of how to use the `bulktrends` package (version `r packageVersion("bulktrends")`). First, let's load the package and add the path to where we are storing data.
+
 ```{r set-up}
-#| code-fold: false
 #| warning: false
 #| message: false
-library(devtools)
+library(bulktrends)
 data_directory <- "../data/"
 ```
 
 ## Load UK Trade Info Bulk Data Files
 
-Load a single bulk data file or all of the files in a directory (and subdirectories).
+Load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an `.RDS` for quicker loading in the future.
 
 ```{r load-trade-data}
+#| include: false
 if ( !exists("imports") ){
   if (file.exists(paste0(data_directory,"imports.rds"))) {
     imports <- readRDS(paste0(data_directory,"imports.rds"))
@@ -32,8 +32,17 @@ if ( !exists("imports") ){
     saveRDS(imports, file = paste0(data_directory,"imports.rds"))
   }
 }
-head(imports)
+```
 
+```{r}
+#| eval: false
+imports <- read_uktradeinfo( path = paste0(data_directory,"imports/"))
+saveRDS(imports, file = paste0(data_directory,"imports.rds"))
+# imports <- readRDS(paste0(data_directory,"imports.rds"))
+```
+
+```{r}
+head(imports)
 ```
 
 ## Request Data from UK Trade Data API
@@ -41,6 +50,7 @@ head(imports)
 Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.
 
 ```{r load-lookup-tables}
+#| include: false
 lookup_tables <- c("Commodity","Port")
 for ( i in lookup_tables ) {
   
@@ -55,8 +65,16 @@ for ( i in lookup_tables ) {
     
     }
 }
-
 ```
+
+```{r}
+#| eval: false
+Commodity <- uktrades_request(endpoint = "Commodity")$value
+```
+```{r}
+head(Commodity)
+```
+
 
 ## Quick Visualisation
 

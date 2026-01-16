@@ -99,24 +99,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Examples of how to use the <code>bulktrends</code> package. First, let’s load the package and add the path to where we are storing data.</p>
+<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.1). First, let’s load the package and add the path to where we are storing data.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bulktrends)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">"../data/"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="load-uk-trade-info-bulk-data-files" class="level2">
 <h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
-<p>Load a single bulk data file or all of the files in a directory (and subdirectories).</p>
+<p>Load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an <code>.RDS</code> for quicker loading in the future.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> ( <span class="sc">!</span><span class="fu">exists</span>(<span class="st">"imports"</span>) ){</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">file.exists</span>(<span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))) {</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    imports <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>( <span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports/"</span>))</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>( <span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports/"</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># imports &lt;- readRDS(paste0(data_directory,"imports.rds"))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   PERREF   TYPE MONTHAC  COMCODE   SITC COD_SEQ COD_ALPHA PORT_SEQ PORT_CODE
    &lt;char&gt; &lt;char&gt;  &lt;char&gt;   &lt;char&gt; &lt;char&gt;  &lt;char&gt;    &lt;char&gt;   &lt;char&gt;    &lt;char&gt;
@@ -149,20 +146,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h2>
 <p>Download look-up tables, e.g.&nbsp;for commodity codes and ports, and save, or load if already available.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>lookup_tables <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Commodity"</span>,<span class="st">"Port"</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ( i <span class="cf">in</span> lookup_tables ) {</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(data_directory,i,<span class="st">".rds"</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>( <span class="fu">file.exists</span>(file) ){</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">assign</span>(i,<span class="fu">readRDS</span>(file))</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">assign</span>(i, <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> i)<span class="sc">$</span>value)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveRDS</span>(<span class="fu">get</span>(i), <span class="at">file =</span> file)  </span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Commodity <span class="ot">&lt;-</span> <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> <span class="st">"Commodity"</span>)<span class="sc">$</span>value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  CommodityId Cn8Code Hs2Code Hs4Code Hs6Code
+1           0      00    &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;
+2           1      01      01    &lt;NA&gt;    &lt;NA&gt;
+3           2      02      02    &lt;NA&gt;    &lt;NA&gt;
+4           3      03      03    &lt;NA&gt;    &lt;NA&gt;
+5           4      04      04    &lt;NA&gt;    &lt;NA&gt;
+6           5      05      05    &lt;NA&gt;    &lt;NA&gt;
+                                                                                                    Hs2Description
+1                                                                                                             &lt;NA&gt;
+2                                                                                                     Live animals
+3                                                                                       Meat and edible meat offal
+4                                                   Fish and crustaceans, molluscs and other aquatic invertebrates
+5 Dairy produce; birds' eggs; natural honey; edible products of animal origin, not elsewhere specified or included
+6                                                    Products of animal origin not elsewhere specified or included
+  Hs4Description Hs6Description SitcCommodityCode Cn8LongDescription
+1           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+2           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+3           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+4           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+5           &lt;NA&gt;           &lt;NA&gt;                 0                  -
+6           &lt;NA&gt;           &lt;NA&gt;                 0                  -</code></pre>
+</div>
 </div>
 </section>
 <section id="quick-visualisation" class="level2">
@@ -170,7 +180,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The <code>comcode_plot()</code> function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).</p>
 <p>Here are some examples:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -178,7 +188,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"0602"</span>, <span class="at">variable=</span><span class="st">"STAT_VALUE"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"0602"</span>, <span class="at">variable=</span><span class="st">"STAT_VALUE"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -186,7 +196,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">variable=</span><span class="st">"volume"</span>,<span class="at">comcode_lookup =</span> Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">variable=</span><span class="st">"volume"</span>,<span class="at">comcode_lookup =</span> Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -199,7 +209,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Hierarchical classification of a given commodity code</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"01012990"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"01012990"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Hierarchical Description for Code: 01012990 
@@ -210,7 +220,7 @@ Subheading (Hs6):        010129  —  Live horses (excl. pure-bred for breeding)
 Commodity code (Cn8):    01012990  —  Live horses (excl. for slaughter, pure-bred for breeding) 
 ---------------------------------------------</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"08039010"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"08039010"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Hierarchical Description for Code: 08039010 
@@ -226,11 +236,11 @@ Commodity code (Cn8):    08039010  —  Bananas, fresh (excl. plantains)
 <li>Detection of outliers in time series of a single commodity</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01", Commodity)</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01012100", Commodity)</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01012990", Commodity)</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01061900", Commodity)</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01069000", Commodity)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01", Commodity)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># monthly_volume_outliers(imports, "01012100", Commodity)</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01012990", Commodity)</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01061900", Commodity)</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#monthly_volume_outliers(imports, "01069000", Commodity)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 
