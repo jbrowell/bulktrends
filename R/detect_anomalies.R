@@ -7,8 +7,7 @@
 #' @param codes A vector of HS2/HS4/HS6/CN8 codes
 #' @param quantity Quantity to be analysed, e.g. "NET_MASS" or "STAT_VALUE".
 #' @param model_selection_metric Selection criteria passed to `select_best_model()`
-#' @param cavl See `?tso`
-#' @param types See `?tso`
+#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`
 #' @param ... Additional arguments passed to `tso()`
 #'
 #' @returns A table of detected outliers.
@@ -19,8 +18,7 @@ detect_anomalies <- function(
     codes,
     quantity = "NET_MASS",
     model_selection_metric = "aic",
-    cval=5,
-    types = c("AO", "LS", "TC", "IO"),
+    scale_ts = TRUE,
     ...
 ){
 
@@ -31,11 +29,10 @@ detect_anomalies <- function(
     ts_data <- extract_ts(import_data, code = codes[i], quantity = quantity)
 
     selected_model <- select_best_model(ts_data,
-                                        metric = model_selection_metric)
+                                        metric = model_selection_metric,
+                                        scale_ts = scale_ts)
 
-    detect_anomaly <- try(tso(y = scale(ts_data),
-                              cval = cval,
-                              types = types,
+    detect_anomaly <- try(tso(y = if(scale_ts){scale(ts_data)}else{ts_data},
                               xreg = selected_model$xreg,
                               ...),
                           silent=T)

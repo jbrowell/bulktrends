@@ -6,6 +6,7 @@ editor: visual
 
 ```{r install-package}
 #| include: false
+#| eval: false
 devtools::install("../", upgrade = FALSE)
 ```
 
@@ -36,7 +37,7 @@ if ( !exists("imports") ){
 
 ```{r}
 #| eval: false
-imports <- read_uktradeinfo( path = paste0(data_directory,"imports/"))
+imports <- read_uktradeinfo(path = paste0(data_directory,"imports/"))
 saveRDS(imports, file = paste0(data_directory,"imports.rds"))
 # imports <- readRDS(paste0(data_directory,"imports.rds"))
 ```
@@ -133,7 +134,9 @@ This procedure is performed for a list of commodity codes...
 hs2_codes <- unique(substr(imports$COMCODE, 1,2))
 
 hs2_anomalies <- detect_anomalies(import_data = imports,
-                                  codes = hs2_codes[1:3])
+                                  codes = hs2_codes[1:3],
+                                  cval=5,
+                                  types = c("AO", "LS", "TC", "IO"))
 
 print(hs2_anomalies)
 ```

@@ -8,7 +8,8 @@ select_best_model(
   data,
   metric = "aic",
   formulas = list(~-1, ~1, ~linear_trend, ~sin(2 * pi * month/12) + cos(2 * pi *
-    month/12), ~linear_trend + sin(2 * pi * month/12) + cos(2 * pi * month/12))
+    month/12), ~linear_trend + sin(2 * pi * month/12) + cos(2 * pi * month/12)),
+  scale_ts = TRUE
 )
 }
 \arguments{
@@ -16,6 +17,10 @@ select_best_model(
 
 \item{metric}{A character string specifying the criteria for model
 selection. Examples are "aic","aicc" or "bic".}
+
+\item{formulas}{A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.}
+
+\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`}
 }
 \value{
 A model matrix of the linear_trend and seasonal regressors of the selected
