@@ -7,8 +7,8 @@
 open_userguide(path = NULL)
 }
 \arguments{
-\item{path}{Optional. Path to specific instance of UserGuide.html. If NULL, it will be retrieved from the current installation of bulktrends.}
+\item{path}{Optional. Path to specific instance of `UserGuide.html`. If `NULL`, it will be retrieved from the current installation of `bulktrends`.}
 }
 \description{
-A function that opens the bulktrends user guide in system browser.
+A function that opens the `bulktrends` user guide in system browser.
 }

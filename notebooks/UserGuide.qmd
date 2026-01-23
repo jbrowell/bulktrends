@@ -6,6 +6,7 @@ editor: visual
 
 ```{r install-package}
 #| include: false
+#| eval: false
 devtools::install("../", upgrade = FALSE)
 ```
 
@@ -36,7 +37,7 @@ if ( !exists("imports") ){
 
 ```{r}
 #| eval: false
-imports <- read_uktradeinfo( path = paste0(data_directory,"imports/"))
+imports <- read_uktradeinfo(path = paste0(data_directory,"imports/"))
 saveRDS(imports, file = paste0(data_directory,"imports.rds"))
 # imports <- readRDS(paste0(data_directory,"imports.rds"))
 ```
@@ -44,6 +45,11 @@ saveRDS(imports, file = paste0(data_directory,"imports.rds"))
 ```{r}
 head(imports)
 ```
+
+### Things to be aware of
+
+-   Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data
+-   "Low value Trade EU", port code QVV only report chapter of COMCODE and do not include NET_WEIGHT
 
 ## Request Data from UK Trade Data API
 
@@ -58,12 +64,12 @@ for ( i in lookup_tables ) {
   
   if( file.exists(file) ){
     assign(i,readRDS(file))
-  
-    } else {
+    
+  } else {
     assign(i, uktrades_request(endpoint = i)$value)
     saveRDS(get(i), file = file)  
     
-    }
+  }
 }
 ```
 
@@ -71,10 +77,10 @@ for ( i in lookup_tables ) {
 #| eval: false
 Commodity <- uktrades_request(endpoint = "Commodity")$value
 ```
+
 ```{r}
 head(Commodity)
 ```
-
 
 ## Quick Visualisation
 
@@ -100,13 +106,37 @@ comcode_description("01012990", Commodity)
 comcode_description("08039010", Commodity)
 ```
 
--   Detection of outliers in time series of a single commodity
+## Anomaly detection
+
+For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types ("AO" additive outliers, "LS" level shifts, "TC" temporary changes, "IO" innovative outliers and "SLS" seasonal level shifts).
 
 ```{r}
+#| warning: false
 
-# monthly_volume_outliers(imports, "01", Commodity)
-# monthly_volume_outliers(imports, "01012100", Commodity)
-#monthly_volume_outliers(imports, "01012990", Commodity)
-#monthly_volume_outliers(imports, "01061900", Commodity)
-#monthly_volume_outliers(imports, "01069000", Commodity)
+ts_data <- extract_ts(imports, "01", quantity="NET_MASS")
+
+selected_model <- select_best_model(ts_data)
+
+detect_anomaly <- tso(y = scale(ts_data),
+                      cval=5,
+                      types = c("AO", "LS", "TC", "IO"),
+                      xreg = selected_model$xreg)
+
+print(detect_anomaly)
+plot.tsoutliers(detect_anomaly)
+
+```
+
+This procedure is performed for a list of commodity codes...
+
+```{r}
+#| warning: false
+hs2_codes <- unique(substr(imports$COMCODE, 1,2))
+
+hs2_anomalies <- detect_anomalies(import_data = imports,
+                                  codes = hs2_codes[1:3],
+                                  cval=5,
+                                  types = c("AO", "LS", "TC", "IO"))
+
+print(hs2_anomalies)
 ```
