@@ -16,7 +16,7 @@ The project uses publicly available import files that will need to be downloaded
 
 Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics. See the following resources:
 
-* [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly .txt files representing UK import transactions for a given period.
+* [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly `.txt` files representing UK import transactions for a given period.
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
 
 #### Key Features:
@@ -73,7 +73,7 @@ open_userguide()
 The following instructions aim to clone and run the package using the appropriate data files and functions.
 
 1. Clone this git repository using your preferred method
-2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
+2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 `.txt` files, one for each month.
 3. Place all extracted `.txt` files in `data/imports/` directory of the cloned repository. The contents of the `data/` directory are not tracked by git.
 4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
 5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
