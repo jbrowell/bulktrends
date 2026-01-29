@@ -52,7 +52,7 @@ Both lookup tables can be accessed via an API function, which allows the data to
 
 1. The imports dataset and lookup tables are used together throughout the project. The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
 
-2. There is a change in data collection procedure for UK imports from EU from January 2022 following the UK’s exit from the EU (see [report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for further information). This is reflected as a break in the time series for `volume`, reducing comparability for this variable before and after 2022.
+2. There is a change in data collection procedure for UK imports from EU from January 2022 following the UK’s exit from the EU (see [report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information). This is reflected as a break in the time series for `volume`, reducing comparability for this variable before and after 2022.
 
 ## Installation and User Guide
 
