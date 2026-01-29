@@ -69,13 +69,13 @@ open_userguide()
 
 ### Set-up
 
-The following instructions aim to clone and run package running using the appropriate data files and functions.
+The following instructions aim to clone and run the package using the appropriate data files and functions.
 
 1. Clone this git repository using your preferred method
 2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
 3. Place all extracted `.txt` files in `data/imports/` directory of the cloned repository. The contents of the `data/` directory are not tracked by git.
 4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
-5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features demonstrated in the user guide (see further instructions below).
+5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
 
 ### General Guidelines
 
@@ -96,7 +96,7 @@ It provides a framework for adjacent code and documentation system for R. Docume
 
 ### Updating the Userguide
 
-The user guide (`notebooks/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remeber to render a new version of the html!
+The user guide (`notebooks/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
 
 ### Current Contributors
 
