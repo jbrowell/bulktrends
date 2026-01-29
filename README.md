@@ -65,7 +65,7 @@ library(bulktrends)
 open_userguide()
 ```
 
-## Instruction for contirbutors
+## Instruction for contributors
 
 ### Set-up
 
