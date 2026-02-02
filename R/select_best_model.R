@@ -9,7 +9,7 @@
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
 #' @param formulas A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`
+#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #'
 #' @returns A model matrix of the linear_trend and seasonal regressors of the selected
 #' model and the related model formula.
@@ -23,7 +23,7 @@ select_best_model <- function (
                     ~ linear_trend,
                     ~ sin(2*pi*month/12) + cos(2*pi*month/12),
                     ~ linear_trend + sin(2*pi*month/12) + cos(2*pi*month/12)),
-    scale_ts = TRUE
+    scale_ts = FALSE
 ){
 
   linear_trend <- time(data)

@@ -99,7 +99,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.2). First, let’s load the package and add the path to where we are storing data.</p>
+<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.3). First, let’s load the package and add the path to where we are storing data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bulktrends)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">"../data/"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -108,7 +108,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
 <p>Load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an <code>.RDS</code> for quicker loading in the future.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>(<span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports"</span>))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>(<span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports/"</span>))</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># imports &lt;- readRDS(paste0(data_directory,"imports.rds"))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -259,16 +259,16 @@ Commodity code (Cn8):    08039010  —  Bananas, fresh (excl. plantains)
 Regression with ARIMA(0,0,0) errors 
 
 Coefficients:
-         TC39
-      -4.3082
-s.e.   0.5867
+      (Intercept)     TC39
+           0.1313  -4.5314
+s.e.       0.0776   0.5943
 
-sigma^2 = 0.6808:  log likelihood = -140.57
-AIC=285.13   AICc=285.24   BIC=290.62
+sigma^2 = 0.6701:  log likelihood = -139.15
+AIC=284.3   AICc=284.52   BIC=292.54
 
 Outliers:
   type ind    time coefhat  tstat
-1   TC  39 2019:03  -4.308 -7.343</code></pre>
+1   TC  39 2019:03  -4.531 -7.625</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.tsoutliers</span>(detect_anomaly)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
@@ -285,16 +285,22 @@ Outliers:
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>hs2_anomalies <span class="ot">&lt;-</span> <span class="fu">detect_anomalies</span>(<span class="at">import_data =</span> imports,</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">codes =</span> hs2_codes[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>],</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">cval=</span><span class="dv">5</span>,</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>))</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(hs2_anomalies)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">scale=</span>T,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">cval=</span><span class="dv">5</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(hs2_anomalies)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     type   ind    time   coefhat     tstat   code model_formula
-   &lt;fctr&gt; &lt;int&gt;  &lt;char&gt;     &lt;num&gt;     &lt;num&gt; &lt;char&gt;        &lt;char&gt;
-1:     TC    39 2019:03 -4.308152 -7.343494     01           ~-1
-2:     TC    61 2021:01 -3.765697 -8.872810     02           ~-1
-3:   &lt;NA&gt;    NA    &lt;NA&gt;        NA        NA     03           ~-1</code></pre>
+<pre><code>     type   ind    time   coefhat     tstat   code
+   &lt;fctr&gt; &lt;int&gt;  &lt;char&gt;     &lt;num&gt;     &lt;num&gt; &lt;char&gt;
+1:     TC    39 2019:03 -4.308152 -7.343494     01
+2:     TC    61 2021:01 -3.765697 -8.872810     02
+3:   &lt;NA&gt;    NA    &lt;NA&gt;        NA        NA     03
+                                                     model_formula
+                                                            &lt;char&gt;
+1:                                                             ~-1
+2:                                                             ~-1
+3: ~linear_trend + sin(2 * pi * month/12) + cos(2 * pi * month/12)</code></pre>
 </div>
 </div>
 </section>

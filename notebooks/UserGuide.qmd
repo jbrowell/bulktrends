@@ -135,6 +135,7 @@ hs2_codes <- unique(substr(imports$COMCODE, 1,2))
 
 hs2_anomalies <- detect_anomalies(import_data = imports,
                                   codes = hs2_codes[1:3],
+                                  scale=T,
                                   cval=5,
                                   types = c("AO", "LS", "TC", "IO"))
 
