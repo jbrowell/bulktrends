@@ -48,9 +48,9 @@ head(imports)
 
 ### Things to be aware of
 
--   Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data. (see \[report\](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information on the data).
+-   Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data (see [methodology and quality report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information on the data).
 
--   "Low value Trade EU", port code QVV only report chapter of COMCODE and do not include NET_WEIGHT.
+- Low value Trade EU: Imports via port code QVV only report chapter of `COMCODE` and do not include `NET_WEIGHT`.
 
 ## Request Data from UK Trade Data API
 
