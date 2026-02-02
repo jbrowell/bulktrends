@@ -26,8 +26,8 @@ select_best_model <- function (
     scale_ts = TRUE
 ){
 
-  linear_trend <- time(ts_data)
-  month = cycle(ts_data)
+  linear_trend <- time(data)
+  month = cycle(data)
 
   model <- list()
   metric_values <- rep(Inf, length(formulas))
@@ -40,7 +40,7 @@ select_best_model <- function (
 
     model_fit <- try(
       forecast::auto.arima(
-        if(scale_ts){scale(ts_data)}else{ts_data},
+        if(scale_ts){scale(data)}else{data},
         xreg = if(!formulas[[i]]==formula(~-1)){X}else{NULL},
         max.p = 5,
         max.d = 1,
