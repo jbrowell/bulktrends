@@ -1,5 +1,8 @@
 # bulktrends
-An `R` package for analysing and forecasting UK HM Revenue & Customs trade data.
+
+An `R` package for analysing and forecasting UK HM Revenue & Customs trade data. For example usage, see [the user guide](https://jbrowell.github.io/bulktrends/).
+
+:warning: This package is under development! Expect features and performance to change, including breaking changes, until the first stable release.
 
 ## Aims
 
@@ -10,7 +13,7 @@ The functions and scripts of this package are designed to monitor, forecast and 
 ### 1. HMRC Monthly Imports
 
 
-The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the user instructions section below for guidelines on downloading, storing and loading the data into R.
+The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the sections below for guidelines on downloading, storing and loading the data into R.
 
 ##### Access:
 
@@ -60,10 +63,9 @@ This package can be installed by running
 ```r
 devtools::install_github("jbrowell/bulktrends")
 ```
-and comes with a HTML user guide that demonstrates how each function of the package can be used. To open the user guide in your system browser, run the command
+and is accompanied by a user guide that demonstrates how each function of the package can be used. The user guide is available on-line at [jbrowell.github.io/bulktrends/](https://jbrowell.github.io/bulktrends/), or to open the user guide from your local installation (e.g. if you are not connected to the internet), run the command
 ```r
-library(bulktrends)
-open_userguide()
+bulktrends::open_userguide()
 ```
 
 ## Instruction for contributors
@@ -97,11 +99,11 @@ It provides a framework for adjacent code and documentation system for R. Docume
 
 ### Updating the Userguide
 
-The user guide (`notebooks/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
+The user guide (`docs/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
 
 ### Current Contributors
 
 The following people have contributed to the development of this repository:
 
-* Jethro Browell (`@jbrowell`)
-* Janeeta Maunthrooa (`@janeetam`)
+* Jethro Browell (`@jbrowell`), University of Glasgow, ([email](mailto:jethro.browell@glasgow.ac.uk))
+* Janeeta Maunthrooa (`@janeetam`), University of Glasgow

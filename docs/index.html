@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.24">
+<meta name="generator" content="quarto-1.7.32">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -61,15 +61,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="UserGuide_files/libs/clipboard/clipboard.min.js"></script>
 <script src="UserGuide_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="UserGuide_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="UserGuide_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="UserGuide_files/libs/quarto-html/popper.min.js"></script>
 <script src="UserGuide_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="UserGuide_files/libs/quarto-html/anchor.min.js"></script>
 <link href="UserGuide_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="UserGuide_files/libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="UserGuide_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="UserGuide_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="UserGuide_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="UserGuide_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="UserGuide_files/libs/bootstrap/bootstrap-81267100e462c21b3d6c0d5bf76a3417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -99,21 +98,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.3). First, let’s load the package and add the path to where we are storing data.</p>
+<p>Examples of how to use the <code>bulktrends</code> package (version 0.0.3). It can be installed from it’s <a href="https://github.com/jbrowell/bulktrends/">GitHub repository</a> using</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bulktrends)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">"../data/"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"jbrowell/bulktrends"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, let’s load the package and add the path to where we are storing data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bulktrends)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">"../data/"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="load-uk-trade-info-bulk-data-files" class="level2">
 <h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
-<p>Load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an <code>.RDS</code> for quicker loading in the future.</p>
+<p>So far, this package has been developed to work with HMRC Monthly Import data. For more details, see the package <a href="https://github.com/jbrowell/bulktrends/">README</a>. We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an <code>.rds</code> for quicker loading in the future.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>(<span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports/"</span>))</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># imports &lt;- readRDS(paste0(data_directory,"imports.rds"))</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>(<span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports/"</span>))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="fu">paste0</span>(data_directory,<span class="st">"imports.rds"</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># imports &lt;- readRDS(paste0(data_directory,"imports.rds"))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   PERREF   TYPE MONTHAC  COMCODE   SITC COD_SEQ COD_ALPHA PORT_SEQ PORT_CODE
    &lt;char&gt; &lt;char&gt;  &lt;char&gt;   &lt;char&gt; &lt;char&gt;  &lt;char&gt;    &lt;char&gt;   &lt;char&gt;    &lt;char&gt;
@@ -145,7 +148,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="things-to-be-aware-of">Things to be aware of</h3>
 <ul>
 <li><p>Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data (see <a href="https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources">methodology and quality report</a> for more information on the data).</p></li>
-<li><p>Low value Trade EU: Imports via port code QVV only report chapter of <code>COMCODE</code> and do not include <code>NET_WEIGHT</code>.</p></li>
+<li><p>Low value Trade EU: Imports via port code QVV only report chapter of <code>COMCODE</code> and do not include <code>NET_MASS</code>.</p></li>
 </ul>
 </section>
 </section>
@@ -153,10 +156,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h2>
 <p>Download look-up tables, e.g.&nbsp;for commodity codes and ports, and save, or load if already available.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Commodity <span class="ot">&lt;-</span> <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> <span class="st">"Commodity"</span>)<span class="sc">$</span>value</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Commodity <span class="ot">&lt;-</span> <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> <span class="st">"Commodity"</span>)<span class="sc">$</span>value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Commodity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  CommodityId Cn8Code Hs2Code Hs4Code Hs6Code
 1           0      00    &lt;NA&gt;    &lt;NA&gt;    &lt;NA&gt;
@@ -187,7 +190,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The <code>comcode_plot()</code> function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).</p>
 <p>Here are some examples:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -195,7 +198,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"0602"</span>, <span class="at">variable=</span><span class="st">"STAT_VALUE"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"0602"</span>, <span class="at">variable=</span><span class="st">"STAT_VALUE"</span>, <span class="at">comcode_lookup=</span>Commodity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -203,7 +206,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">variable=</span><span class="st">"volume"</span>,<span class="at">comcode_lookup =</span> Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports, <span class="st">"01"</span>, <span class="at">variable=</span><span class="st">"volume"</span>,<span class="at">comcode_lookup =</span> Commodity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -216,7 +219,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Hierarchical classification of a given commodity code</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"01012990"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"01012990"</span>, Commodity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Hierarchical Description for Code: 01012990 
@@ -227,7 +230,7 @@ Subheading (Hs6):        010129  —  Live horses (excl. pure-bred for breeding)
 Commodity code (Cn8):    01012990  —  Live horses (excl. for slaughter, pure-bred for breeding) 
 ---------------------------------------------</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"08039010"</span>, Commodity)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_description</span>(<span class="st">"08039010"</span>, Commodity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Hierarchical Description for Code: 08039010 
@@ -244,16 +247,16 @@ Commodity code (Cn8):    08039010  —  Bananas, fresh (excl. plantains)
 <h2 class="anchored" data-anchor-id="anomaly-detection">Anomaly detection</h2>
 <p>For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types (“AO” additive outliers, “LS” level shifts, “TC” temporary changes, “IO” innovative outliers and “SLS” seasonal level shifts).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> <span class="fu">extract_ts</span>(imports, <span class="st">"01"</span>, <span class="at">quantity=</span><span class="st">"NET_MASS"</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>selected_model <span class="ot">&lt;-</span> <span class="fu">select_best_model</span>(ts_data)</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>detect_anomaly <span class="ot">&lt;-</span> <span class="fu">tso</span>(<span class="at">y =</span> <span class="fu">scale</span>(ts_data),</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">cval=</span><span class="dv">5</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>),</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">xreg =</span> selected_model<span class="sc">$</span>xreg)</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(detect_anomaly)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> <span class="fu">extract_ts</span>(imports, <span class="st">"01"</span>, <span class="at">quantity=</span><span class="st">"NET_MASS"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>selected_model <span class="ot">&lt;-</span> <span class="fu">select_best_model</span>(ts_data)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>detect_anomaly <span class="ot">&lt;-</span> <span class="fu">tso</span>(<span class="at">y =</span> <span class="fu">scale</span>(ts_data),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">cval=</span><span class="dv">5</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">xreg =</span> selected_model<span class="sc">$</span>xreg)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(detect_anomaly)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Series: scale(ts_data) 
 Regression with ARIMA(0,0,0) errors 
@@ -270,7 +273,7 @@ Outliers:
   type ind    time coefhat  tstat
 1   TC  39 2019:03  -4.531 -7.625</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.tsoutliers</span>(detect_anomaly)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.tsoutliers</span>(detect_anomaly)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -281,15 +284,15 @@ Outliers:
 </div>
 <p>This procedure is performed for a list of commodity codes…</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>hs2_codes <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">substr</span>(imports<span class="sc">$</span>COMCODE, <span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>hs2_anomalies <span class="ot">&lt;-</span> <span class="fu">detect_anomalies</span>(<span class="at">import_data =</span> imports,</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">codes =</span> hs2_codes[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>],</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">scale=</span>T,</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">cval=</span><span class="dv">5</span>,</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>))</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(hs2_anomalies)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>hs2_codes <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">substr</span>(imports<span class="sc">$</span>COMCODE, <span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>hs2_anomalies <span class="ot">&lt;-</span> <span class="fu">detect_anomalies</span>(<span class="at">import_data =</span> imports,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">codes =</span> hs2_codes[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>],</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">scale=</span>T,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">cval=</span><span class="dv">5</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">types =</span> <span class="fu">c</span>(<span class="st">"AO"</span>, <span class="st">"LS"</span>, <span class="st">"TC"</span>, <span class="st">"IO"</span>))</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(hs2_anomalies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     type   ind    time   coefhat     tstat   code
    &lt;fctr&gt; &lt;int&gt;  &lt;char&gt;     &lt;num&gt;     &lt;num&gt; &lt;char&gt;
@@ -358,14 +361,13 @@ Outliers:
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-      const outerScaffold = trigger.parentElement.cloneNode(true);
-      const codeEl = outerScaffold.querySelector('code');
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
         }
-      }
-      return codeEl.innerText;
+        return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy

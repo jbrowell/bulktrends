@@ -44,7 +44,7 @@ open_userguide <- function(path=NULL) {
 
   if( is.null(path) ) {
     path <- try(
-      system.file("notebooks", "UserGuide.html", package = "bulktrends")
+      system.file("docs", "index.html", package = "bulktrends")
     )
   }
 
