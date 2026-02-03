@@ -2,6 +2,8 @@
 
 An `R` package for analysing and forecasting UK HM Revenue & Customs trade data. For example usage, see [the user guide](https://jbrowell.github.io/bulktrends/).
 
+:warning: This package is under development! Expect features and performance to change, including breaking changes, until the first stable release.
+
 ## Aims
 
 The functions and scripts of this package are designed to monitor, forecast and hindcast UK import flows using large-scale trade datasets to support evidence-based monitoring and analysis of UK trade patterns. The central interest is to assess the effects of the UK's Border Target Operating Model ([BTOM](https://www.gov.uk/government/publications/the-border-target-operating-model-august-2023)) on Sanitary and Phytosanitary (SPS) import dynamics over time. The key objectives include producing robust forecasts with measures of uncertainty, identifying and analysing outlier events and anomalies in the time series, comparing traditional and more novel time series techniques when applied large trade datasets routinely used in DEFRA Animal and Plant Health Agency (APHA) Enforcement and Appeals (E&A) and providing robust diagnostic tools to identify the optimal methods to be used in this case. 
