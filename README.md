@@ -13,7 +13,7 @@ The functions and scripts of this package are designed to monitor, forecast and 
 ### 1. HMRC Monthly Imports
 
 
-The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the sections below for guidelines on downloading, storing and loading the data into R.
+The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the sections below for guidelines on downloading, storing and loading the data in `R`.
 
 ##### Access:
 
@@ -24,7 +24,7 @@ Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), 
 
 #### Key Features:
 
-* `PERREF` -  Period Reference (YYYYMM)
+* `PEEF` -  Period eference (YYYYMM)
 * `COMCODE` - Commodity code
 * `NET_MASS` - Net mass (kg)
 * `STAT_VALUE` - Statistical Value (£)
@@ -33,7 +33,7 @@ Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), 
 
 Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) should be stored in a dedicated directory and unzipped. The function `read_uktradeinfo(path)` will load a single file or all `.txt` files in the given directory and its subdirectories.
 
-This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.RDS` object for quicker loading.
+This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.DS` object for quicker loading.
 
 ### 2. Lookup Tables
 
@@ -49,7 +49,7 @@ This table provides information about the freight location of products as collec
 
 ##### Access:
 
-Both lookup tables can be accessed via an API function, which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktrades_request()` function which returns the latest versions of both lookup tables in a structured format ready for use in R. Refer to the UserGuide for an example of how to load these tables.
+Both lookup tables can be accessed via an API function, which allows the data to be retrieved directly from the source website without manual downloading. In this project, this is handled by the `uktrades_request()` function which returns the latest versions of both lookup tables in a structured format ready for use in `R`. Refer to the UserGuide for an example of how to load these tables.
 
 ##### Notes:
 
@@ -89,13 +89,13 @@ All development work should be done on a dedicated branch for each new feature. 
 The following resources are recommended for anyone contributing to this repository:
 
 * [R Packages](https://r-pkgs.org/) for guidance on package structure.
-* [Tidyverse style guide](https://style.tidyverse.org/) coding style for readable and consistent R code.
-* [Advanced R](https://adv-r.hadley.nz/) for advanced and complex R programming concepts.
+* [Tidyverse style guide](https://style.tidyverse.org/) coding style for readable and consistent `R` code.
+* [Advanced R](https://adv-r.hadley.nz/) for advanced and complex `R` programming concepts.
 
 ### Documentation with Roxygen
 
 All functions **must** be documented using the package [`roxygen2`](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html).
-It provides a framework for adjacent code and documentation system for R. Documentation is written in special comments above each function and is automatically converted into help files. This ensures that code and documentation stay in sync and makes it easier to maintain and extend the package. See link for further information.
+It provides a framework for adjacent code and documentation system for `R`. Documentation is written in special comments above each function and is automatically converted into help files. This ensures that code and documentation stay in sync and makes it easier to maintain and extend the package. See link for further information.
 
 ### Updating the Userguide
 
