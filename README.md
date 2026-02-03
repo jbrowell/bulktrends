@@ -60,7 +60,7 @@ This package can be installed by running
 ```r
 devtools::install_github("jbrowell/bulktrends")
 ```
-and is accompanied by a user guide that demonstrates how each function of the package can be used. To open the user guide from your local installation (e.g. if you are not connected to the internet), run the command
+and is accompanied by a user guide that demonstrates how each function of the package can be used. The user guide is available on-line at [jbrowell.github.io/bulktrends/](https://jbrowell.github.io/bulktrends/), or to open the user guide from your local installation (e.g. if you are not connected to the internet), run the command
 ```r
 bulktrends::open_userguide()
 ```
@@ -96,11 +96,11 @@ It provides a framework for adjacent code and documentation system for R. Docume
 
 ### Updating the Userguide
 
-The user guide (`notebooks/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
+The user guide (`docs/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
 
 ### Current Contributors
 
 The following people have contributed to the development of this repository:
 
-* Jethro Browell (`@jbrowell`)
-* Janeeta Maunthrooa (`@janeetam`)
+* Jethro Browell (`@jbrowell`), University of Glasgow, ([email](mailto:jethro.browell@glasgow.ac.uk))
+* Janeeta Maunthrooa (`@janeetam`), University of Glasgow
