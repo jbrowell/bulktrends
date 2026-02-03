@@ -13,7 +13,7 @@ The functions and scripts of this package are designed to monitor, forecast and 
 ### 1. HMRC Monthly Imports
 
 
-The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the user instructions section below for guidelines on downloading, storing and loading the data into R.
+The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the sections below for guidelines on downloading, storing and loading the data into R.
 
 ##### Access:
 
