@@ -60,10 +60,9 @@ This package can be installed by running
 ```r
 devtools::install_github("jbrowell/bulktrends")
 ```
-and comes with a HTML user guide that demonstrates how each function of the package can be used. To open the user guide in your system browser, run the command
+and is accompanied by a user guide that demonstrates how each function of the package can be used. To open the user guide from your local installation (e.g. if you are not connected to the internet), run the command
 ```r
-library(bulktrends)
-open_userguide()
+bulktrends::open_userguide()
 ```
 
 ## Instruction for contributors
