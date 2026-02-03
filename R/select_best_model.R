@@ -9,7 +9,7 @@
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
 #' @param formulas A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`
+#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #'
 #' @returns A model matrix of the linear_trend and seasonal regressors of the selected
 #' model and the related model formula.
@@ -23,11 +23,11 @@ select_best_model <- function (
                     ~ linear_trend,
                     ~ sin(2*pi*month/12) + cos(2*pi*month/12),
                     ~ linear_trend + sin(2*pi*month/12) + cos(2*pi*month/12)),
-    scale_ts = TRUE
+    scale_ts = FALSE
 ){
 
-  linear_trend <- time(ts_data)
-  month = cycle(ts_data)
+  linear_trend <- time(data)
+  month = cycle(data)
 
   model <- list()
   metric_values <- rep(Inf, length(formulas))
@@ -40,7 +40,7 @@ select_best_model <- function (
 
     model_fit <- try(
       forecast::auto.arima(
-        if(scale_ts){scale(ts_data)}else{ts_data},
+        if(scale_ts){scale(data)}else{data},
         xreg = if(!formulas[[i]]==formula(~-1)){X}else{NULL},
         max.p = 5,
         max.d = 1,

@@ -16,7 +16,7 @@ The project uses publicly available import files that will need to be downloaded
 
 Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics. See the following resources:
 
-* [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly .txt files representing UK import transactions for a given period.
+* [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly `.txt` files representing UK import transactions for a given period.
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
 
 #### Key Features:
@@ -50,8 +50,9 @@ Both lookup tables can be accessed via an API function, which allows the data to
 
 ##### Notes:
 
-The imports dataset and lookup tables are used together throughout the project. 
-The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
+1. The imports dataset and lookup tables are used together throughout the project. The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
+
+2. There is a change in data collection procedure for UK imports from EU from January 2022 following the UK’s exit from the EU (see [report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information). This is reflected as a break in the time series for `volume`, reducing comparability for this variable before and after 2022.
 
 ## Installation and User Guide
 
@@ -65,17 +66,17 @@ library(bulktrends)
 open_userguide()
 ```
 
-## Instruction for contirbutors
+## Instruction for contributors
 
 ### Set-up
 
-The following instructions aim to clone and run package running using the appropriate data files and functions.
+The following instructions aim to clone and run the package using the appropriate data files and functions.
 
 1. Clone this git repository using your preferred method
-2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 .txt files, one for each month.
+2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 `.txt` files, one for each month.
 3. Place all extracted `.txt` files in `data/imports/` directory of the cloned repository. The contents of the `data/` directory are not tracked by git.
 4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
-5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features demonstrated in the user guide (see further instructions below).
+5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
 
 ### General Guidelines
 
@@ -96,7 +97,7 @@ It provides a framework for adjacent code and documentation system for R. Docume
 
 ### Updating the Userguide
 
-The user guide (`notebooks/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remeber to render a new version of the html!
+The user guide (`notebooks/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
 
 ### Current Contributors
 

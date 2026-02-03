@@ -7,7 +7,7 @@
 #' @param codes A vector of HS2/HS4/HS6/CN8 codes
 #' @param quantity Quantity to be analysed, e.g. "NET_MASS" or "STAT_VALUE".
 #' @param model_selection_metric Selection criteria passed to `select_best_model()`
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`
+#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param ... Additional arguments passed to `tso()`
 #'
 #' @returns A table of detected outliers.
@@ -18,7 +18,7 @@ detect_anomalies <- function(
     codes,
     quantity = "NET_MASS",
     model_selection_metric = "aic",
-    scale_ts = TRUE,
+    scale_ts = FALSE,
     ...
 ){
 
@@ -28,7 +28,7 @@ detect_anomalies <- function(
     #create time series
     ts_data <- extract_ts(import_data, code = codes[i], quantity = quantity)
 
-    selected_model <- select_best_model(ts_data,
+    selected_model <- select_best_model(data = ts_data,
                                         metric = model_selection_metric,
                                         scale_ts = scale_ts)
 
@@ -45,10 +45,10 @@ detect_anomalies <- function(
     if (nrow(detect_anomaly$outliers)>0){
 
       #store outliers data produced
-      outliers_dt <- as.data.table(detect_anomaly$outliers)
-      outliers_dt[, code := codes[i]]
-      outliers_dt[, model_formula := selected_model$formula]
-      all_outliers[[i]] <- outliers_dt
+      new_outliers <- as.data.table(detect_anomaly$outliers)
+      new_outliers[, code := codes[i]]
+      new_outliers[, model_formula := selected_model$formula]
+      all_outliers[[i]] <- new_outliers
     } else {
       all_outliers[[i]] <- data.table(code = codes[i],
                                       model_formula = selected_model$formula)
