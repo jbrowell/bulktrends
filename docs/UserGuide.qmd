@@ -16,7 +16,7 @@ Examples of how to use the `bulktrends` package (version `r packageVersion("bulk
 #| eval: false
 devtools::install_github("jbrowell/bulktrends")
 ```
-Next, let's load the package and add the path to where we are storing data.
+Next, let's load the package and set the path to where we are storing data.
 ```{r set-up}
 #| warning: false
 #| message: false
