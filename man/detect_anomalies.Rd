@@ -9,7 +9,7 @@ detect_anomalies(
   codes,
   quantity = "NET_MASS",
   model_selection_metric = "aic",
-  scale_ts = TRUE,
+  scale_ts = FALSE,
   ...
 )
 }
@@ -22,7 +22,7 @@ detect_anomalies(
 
 \item{model_selection_metric}{Selection criteria passed to `select_best_model()`}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`}
+\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 
 \item{...}{Additional arguments passed to `tso()`}
 }

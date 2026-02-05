@@ -2,7 +2,7 @@
 % Please edit documentation in R/comcode_description.R
 \name{comcode_description}
 \alias{comcode_description}
-\title{Hierarchichal classification of a given commodity code}
+\title{Hierarchical classification of a given commodity code}
 \usage{
 comcode_description(code, lookup_table)
 }
