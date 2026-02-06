@@ -76,7 +76,7 @@ The following instructions aim to clone and run the package using the appropriat
 
 1. Clone this git repository using your preferred method
 2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 `.txt` files, one for each month.
-3. Place all extracted `.txt` files in `data/imports/` directory of the cloned repository. The contents of the `data/` directory are not tracked by git.
+3. Place all extracted `.txt` files in `data/Rbuildignore/imports/` directory of the cloned repository. The contents of the `data/Rbuildignore/` directory are not tracked by git or included when building/installing the package.
 4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
 5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
 
@@ -107,3 +107,7 @@ The following people have contributed to the development of this repository:
 
 * Jethro Browell (`@jbrowell`), University of Glasgow, ([email](mailto:jethro.browell@glasgow.ac.uk))
 * Janeeta Maunthrooa (`@janeetam`), University of Glasgow
+
+This work has been supported by:
+
+* The UK Engineering and Physical Sciences Research Council ([EP/Z534985/1](https://gtr.ukri.org/projects?ref=EP%2FZ534985%2F1))
