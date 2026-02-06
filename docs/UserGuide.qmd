@@ -21,7 +21,7 @@ Next, let's load the package and set the path to where we are storing data.
 ```{r set-up}
 #| eval: false
 library(bulktrends)
-data_directory <- "my_data/"
+data_directory <- "path/to/my_data/"
 ```
 ```{r set-up-hidden}
 #| warning: false
@@ -121,7 +121,9 @@ comcode_description("08039010", Commodity)
 
 ## Filter by commodity groups
 
-`bluktrends` includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called `comcode_groups` is included in `bluktrends` and loaded along with the package.
+`bluktrends` includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called `comcode_groups` is included in `bluktrends` and loaded along with the package. Warning: `comcode_groups` does not include any suppressed codes, e.g. "01------", take care when using.
+
+
 
 ```{r}
 head(imports[COMCODE %in% comcode_groups$animal_SPS])

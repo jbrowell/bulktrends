@@ -2231,7 +2231,7 @@ vertical-align: -.125em;
 <p>Next, let’s load the package and set the path to where we are storing data.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bulktrends)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">&quot;my_data/&quot;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data_directory <span class="ot">&lt;-</span> <span class="st">&quot;path/to/my_data/&quot;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="load-uk-trade-info-bulk-data-files" class="level2">
 <h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
@@ -2371,7 +2371,7 @@ Commodity code (Cn8):    08039010  —  Bananas, fresh (excl. plantains)
 </section>
 <section id="filter-by-commodity-groups" class="level2">
 <h2 class="anchored" data-anchor-id="filter-by-commodity-groups">Filter by commodity groups</h2>
-<p><code>bluktrends</code> includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called <code>comcode_groups</code> is included in <code>bluktrends</code> and loaded along with the package.</p>
+<p><code>bluktrends</code> includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called <code>comcode_groups</code> is included in <code>bluktrends</code> and loaded along with the package. Warning: <code>comcode_groups</code> does not include any suppressed codes, e.g. “01——”, take care when using.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports[COMCODE <span class="sc">%in%</span> comcode_groups<span class="sc">$</span>animal_SPS])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
