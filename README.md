@@ -24,7 +24,7 @@ Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), 
 
 #### Key Features:
 
-* `PEEF` -  Period eference (YYYYMM)
+* `PERREF` -  Period Reference (YYYYMM)
 * `COMCODE` - Commodity code
 * `NET_MASS` - Net mass (kg)
 * `STAT_VALUE` - Statistical Value (£)

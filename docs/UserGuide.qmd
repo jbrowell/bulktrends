@@ -121,7 +121,7 @@ comcode_description("08039010", Commodity)
 
 ## Filter by commodity groups
 
-`bluktrends` includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called `comcode_groups` is included in `bluktrends` and loaded along with the package. Warning: `comcode_groups` does not include any suppressed codes, e.g. "01------", take care when using.
+`bulktrends` includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called `comcode_groups` is included in `bulktrends` and loaded along with the package. Warning: `comcode_groups` does not include any suppressed codes, e.g. "01------", take care when using.
 
 
 
