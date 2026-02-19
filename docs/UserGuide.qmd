@@ -138,7 +138,7 @@ For a given commodity and quantity, a series of helper functions extract an aggr
 
 ts_data <- extract_ts(imports, "01", quantity="NET_MASS")
 
-selected_model <- select_best_model(ts_data)
+selected_model <- select_best_model(ts_data, scale_ts = T)
 
 detect_anomaly <- tso(y = scale(ts_data),
                       cval=5,
