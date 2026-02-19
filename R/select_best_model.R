@@ -17,17 +17,28 @@
 #' @export
 select_best_model <- function (
     data,
+    seasonal_frequency = NULL,
     metric = "aic",
     formulas = list(~ -1,
                     ~ 1,
                     ~ linear_trend,
-                    ~ sin(2*pi*month/12) + cos(2*pi*month/12),
-                    ~ linear_trend + sin(2*pi*month/12) + cos(2*pi*month/12)),
+                    ~ seasonal_sin + seasonal_cos,
+                    ~ linear_trend + seasonal_sin + seasonal_cos),
+                    #  ~ sin(2*pi*month/12) + cos(2*pi*month/12),
+                    #  ~ linear_trend + sin(2*pi*month/12) + cos(2*pi*month/12)),
     scale_ts = FALSE
 ){
 
-  linear_trend <- time(data)
-  month = cycle(data)
+  #linear_trend <- time(data)
+  #month = cycle(data)
+
+  t <- seq_along(data)
+  linear_trend <- t / frequency(data)
+
+  if (!is.null(seasonal_frequency)) {
+    seasonal_sin <- sin(2*pi*t/seasonal_frequency)
+    seasonal_cos <- cos(2*pi*t/seasonal_frequency) }
+  else {seasonal_frequency <- frequency(data)}
 
   model <- list()
   metric_values <- rep(Inf, length(formulas))
@@ -35,7 +46,7 @@ select_best_model <- function (
   for (i in seq_along(formulas)) {
 
     if( !formulas[[i]]==formula(~-1) ) {
-      X <- model.matrix(formulas[[i]], data = data.frame(linear_trend, month))
+      X <- model.matrix(formulas[[i]], data = data.frame(linear_trend, t))
     }
 
     model_fit <- try(
