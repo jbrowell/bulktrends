@@ -54,6 +54,7 @@ saveRDS(imports, file = paste0(data_directory,"imports.rds"))
 # imports <- readRDS(paste0(data_directory,"imports.rds"))
 ```
 
+
 ```{r}
 head(imports)
 ```
@@ -117,6 +118,8 @@ comcode_plot(imports, "01", variable="volume",comcode_lookup = Commodity)
 
 comcode_description("01012990", Commodity)
 comcode_description("08039010", Commodity)
+comcode_description("16041428", Commodity)
+
 ```
 
 ## Filter by commodity groups
@@ -163,4 +166,10 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
                                   types = c("AO", "LS", "TC", "IO"))
 
 print(hs2_anomalies)
+```
+
+```{r}
+
+imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/animals/"))
+
 ```
