@@ -6,9 +6,9 @@ read_ipaffs <- function(path) {
 
     BDS <- data.table::fread(path, colClasses = "character")
 
-    col_names <- list(date    = c("DeclarationDate", "DateOfArrivalAtBIP", "DateOfArrival", "Declaration", "ArrivalAtBip"),
+    col_names <- list(date    = c("DeclarationDate", "DateofDeclaration", "DateOfArrivalAtBIP", "DateOfArrival", "Declaration", "ArrivalAtBip"),
                       COMCODE = c("CommodityCode", "Commodities", "Commodity"),
-                      weight  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg"))
+                      weight  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg", "NetWeight(Kg)"))
 
     for (i in names(col_names)) {
 
