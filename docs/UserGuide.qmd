@@ -169,7 +169,20 @@ print(hs2_anomalies)
 ```
 
 ```{r}
+#loading daily data with - read_ipaffs() (to be discussed)
 
-imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/animals/"))
+imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/non-animals/201"))
+head(imports_ipaffs)
+```
+
+```{r}
+#example of updated functions for monthly and daily data
+ts_data <- extract_ts(imports, "month", "35", quantity = "NET_MASS")
+head(ts_data)
+
+ts_data <- extract_ts(imports_ipaffs, "date", "03", quantity = "weight")
+head(ts_data)
+
+select_best_model(ts_data, seasonal_frequency = 366, scale_ts = T)
 
 ```

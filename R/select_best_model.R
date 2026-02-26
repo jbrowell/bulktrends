@@ -39,7 +39,7 @@ select_best_model <- function (
   if(seasonal_frequency==12){t <- as.numeric(format(data$month,"%m"))}
   else if(seasonal_frequency==366){t <- as.numeric(format(data$date,"%j"))}
   else if(seasonal_frequency==7){t <- as.numeric(format(data$date,"%u"))}
-  else { seasonal_frequency <- NULL}
+  else {seasonal_frequency <- NULL}
 
   seasonal_sin <- sin(2*pi*t/seasonal_frequency)
   seasonal_cos <- cos(2*pi*t/seasonal_frequency)

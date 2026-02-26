@@ -8,7 +8,7 @@ read_ipaffs <- function(path) {
 
     col_names <- list(date    = c("DeclarationDate", "DateOfArrivalAtBIP", "DateOfArrival", "Declaration", "ArrivalAtBip"),  #"DateofDeclaration"
                       COMCODE = c("CommodityCode", "Commodities", "Commodity"),
-                      weight  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg", "NetWeight(Kg)"))
+                      weight  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg", "NetWeight(Kg)", "TotalNetWeightkg", "TotalNetWeight_kg"))
 
     for (i in names(col_names)) {
 
@@ -16,7 +16,7 @@ read_ipaffs <- function(path) {
       match <- intersect(old_names, names(BDS))
       if (length(match))
         setnames(BDS, match, i)
-    }
+      else {stop(paste("Missing column for", i, "in dataset"))}}
 
 
   if ("date" %in% names(BDS)) {
@@ -31,7 +31,7 @@ read_ipaffs <- function(path) {
     BDS[, date := NA]
   }
 
- # BDS[, weight := as.numeric(weight)]
+   BDS[, weight := as.numeric(weight)]
    BDS[, date := as.POSIXct(paste0(date), format= "%Y-%m-%d")]
 
     return(BDS)
