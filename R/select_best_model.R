@@ -17,7 +17,7 @@
 #' @export
 select_best_model <- function (
     data,
-    seasonal_frequency = NULL,
+    seasonal_frequency,
     metric = "aic",
     formulas = list(~ -1,
                     ~ 1,
@@ -31,14 +31,18 @@ select_best_model <- function (
 
   #linear_trend <- time(data)
   #month = cycle(data)
+  #agg[ , day_of_year:=as.numeric(format(date,"%j"))]
 
-  t <- seq_along(data)
-  linear_trend <- t / frequency(data)
+  y <- data$temp
+  linear_trend <- seq_along(y)/seasonal_frequency
 
-  if (!is.null(seasonal_frequency)) {
-    seasonal_sin <- sin(2*pi*t/seasonal_frequency)
-    seasonal_cos <- cos(2*pi*t/seasonal_frequency) }
-  else {seasonal_frequency <- frequency(data)}
+  if(seasonal_frequency==12){t <- as.numeric(format(data$month,"%m"))}
+  else if(seasonal_frequency==366){t <- as.numeric(format(data$date,"%j"))}
+  else if(seasonal_frequency==7){t <- as.numeric(format(data$date,"%u"))}
+  else { seasonal_frequency <- NULL}
+
+  seasonal_sin <- sin(2*pi*t/seasonal_frequency)
+  seasonal_cos <- cos(2*pi*t/seasonal_frequency)
 
   model <- list()
   metric_values <- rep(Inf, length(formulas))
@@ -51,7 +55,7 @@ select_best_model <- function (
 
     model_fit <- try(
       forecast::auto.arima(
-        if(scale_ts){scale(data)}else{data},
+        if(scale_ts){scale(y)}else{y},
         xreg = if(!formulas[[i]]==formula(~-1)){X}else{NULL},
         max.p = 5,
         max.d = 1,
