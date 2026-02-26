@@ -13,22 +13,26 @@
 #'
 #' @export
 extract_ts <- function (import_data,
-                                code,
-                                quantity = "NET_MASS") {
+                        date_variable,
+                        code,
+                        quantity = "NET_MASS") {
 
-  all_months <- unique(import_data$month)
+
+  all_dates <- unique(import_data$date_variable)
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
-  missing_months <- all_months[!all_months %in% import_data$month]
-  if(length(missing_months) > 0) {
-    warning("Missing months detected for code ",code,": ", paste(missing_months))
+  missing <- all_dates[!all_dates %in% import_data$date_variable]
+  if(length(missing) > 0) {
+    warning("Missing months detected for code ",code,": ", paste(missing))
   }
 
-  import_data <-  import_data[, .(temp = sum(get(quantity), na.rm = T)), by=month]
-  setnames(import_data,"temp",quantity)
+  #import_data <-  import_data[, .(temp = sum(get(quantity), na.rm = T)), by=date_variable]
+  #setnames(import_data,"temp",quantity)
 
-  first_month <- import_data[, min(month)]
-  ts_data <- ts(import_data[[quantity]], start = c(year(first_month), month(first_month)), frequency = 12)
+  ts_data <-  import_data[, .(temp = sum(get(quantity), na.rm = T)), by=date_variable]
+
+  #first_date <- import_data[, min(date_variable)]
+  #ts_data <- ts(import_data[[quantity]], start = c(year(first_date), month(first_date)), frequency = n)
 
   return(ts_data)
 }
