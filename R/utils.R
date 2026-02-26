@@ -31,11 +31,20 @@ extract_ts <- function (import_data,
 
   ts_data <-  import_data[, .(temp = sum(get(quantity), na.rm = T)), by=date_variable]
 
+  if(date_variable=="month"){
+    #ts_data[ , month_end :=  as.POSIXct(as.Date(format(month+31, "%Y-%m-01")) + -1)]}
+     ts_data[ , month_end :=  as.POSIXct(format(month, "%Y-%m-01")) + months(1) - lubridate::days(1)]}
+  else{NULL}
+
+  ts_data[]
+
   #first_date <- import_data[, min(date_variable)]
   #ts_data <- ts(import_data[[quantity]], start = c(year(first_date), month(first_date)), frequency = n)
 
   return(ts_data)
 }
+
+
 
 
 #' View User Guide
