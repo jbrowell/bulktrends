@@ -33,7 +33,7 @@ extract_ts <- function (import_data,
 
   if(date_variable=="month"){
     #ts_data[ , month_end :=  as.POSIXct(as.Date(format(month+31, "%Y-%m-01")) + -1)]}
-     ts_data[ , month_end :=  as.POSIXct(format(month, "%Y-%m-01")) + months(1) - lubridate::days(1)]}
+     ts_data[ , month_end :=  as.POSIXct(format(month, "%Y-%m-01")) + base::months(1) - lubridate::days(1)]}
   else{NULL}
 
   ts_data[]
