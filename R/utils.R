@@ -76,7 +76,6 @@ extract_ts <- function (import_data,
 
   ts_data <- rbind(ts_data,missing_data)
 
-
   return(ts_data[order(get(date_col))])
 }
 

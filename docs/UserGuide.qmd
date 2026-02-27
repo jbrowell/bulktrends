@@ -187,5 +187,4 @@ plot(ts_data)
 
 ```{r}
 select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
-
 ```
