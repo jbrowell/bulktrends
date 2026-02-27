@@ -5,7 +5,7 @@
 #' as exogenous variables and selects the ARIMA model with the lowest value
 #' of the selected metric.
 #'
-#' @param data A time series object containing the dependent variable.
+#' @param data A `data.frame` containing the dependent variable and dates.
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
 #' @param formulas A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.
@@ -17,46 +17,75 @@
 #' @export
 select_best_model <- function (
     data,
-    seasonal_frequency,
+    date_col = "DATE_START",
+    formulas = NULL,
+    response_col = NULL,
     metric = "aic",
-    formulas = list(~ -1,
-                    ~ 1,
-                    ~ linear_trend,
-                    ~ seasonal_sin + seasonal_cos,
-                    ~ linear_trend + seasonal_sin + seasonal_cos),
-                    #  ~ sin(2*pi*month/12) + cos(2*pi*month/12),
-                    #  ~ linear_trend + sin(2*pi*month/12) + cos(2*pi*month/12)),
     scale_ts = FALSE
 ){
 
-  #linear_trend <- time(data)
-  #month = cycle(data)
-  #agg[ , day_of_year:=as.numeric(format(date,"%j"))]
+  if(is.null(formulas) & is.null(response_col)) {
+    stop("Must supply either formulas or response_col.")
+  }
 
-  y <- data$temp
-  linear_trend <- seq_along(y)/seasonal_frequency
+  # Check completeness!
 
-  if(seasonal_frequency==12){t <- as.numeric(format(data$month,"%m"))}
-  else if(seasonal_frequency==366){t <- as.numeric(format(data$date,"%j"))}
-  else if(seasonal_frequency==7){t <- as.numeric(format(data$date,"%u"))}
-  else {seasonal_frequency <- NULL}
+  data[, linear_trend := .I]
+  data <- add_date_features(data,date_col)
 
-  seasonal_sin <- sin(2*pi*t/seasonal_frequency)
-  seasonal_cos <- cos(2*pi*t/seasonal_frequency)
+  data[, annual_sin := sin(2*pi*day_of_year/365)]
+  data[, annual_cos := cos(2*pi*day_of_year/365)]
+
+
+  if(is.null(formulas)) {
+    if(detect_date_frequency(data[[date_col]])=="month"){
+
+      formulas <- list(~ -1,
+                       ~ 1,
+                       ~ linear_trend,
+                       ~ annual_sin + annual_cos,
+                       ~ linear_trend + annual_sin + annual_cos)
+
+      formulas <- lapply(formulas, function(f) {
+        rhs <- f[[2]]
+        as.formula(paste(response_col, "~", deparse(rhs)))
+        })
+
+    } else if(detect_date_frequency(data[[date_col]])=="day"){
+
+      formulas <- list(~ -1,
+                       ~ 1,
+                       ~ linear_trend,
+                       ~ annual_sin + annual_cos,
+                       ~ linear_trend + annual_sin + annual_cos,
+                       ~ linear_trend + annual_sin + annual_cos + day_of_week,
+                       ~ linear_trend + annual_sin + annual_cos + day_of_week + is_uk_holiday)
+
+      formulas <- lapply(formulas, function(f) {
+        rhs <- f[[2]]
+        as.formula(paste(response_col, "~", deparse(rhs)))
+      })
+
+    } else {
+      stop("\"formulas=NULL\" and data isn't daily or monthly.")
+    }
+  }
 
   model <- list()
   metric_values <- rep(Inf, length(formulas))
 
   for (i in seq_along(formulas)) {
 
-    if( !formulas[[i]]==formula(~-1) ) {
-      X <- model.matrix(formulas[[i]], data = data.frame(linear_trend, t))
+    is_empty_model <- deparse(formulas[[i]][[3]])=="-1"
+
+    if( !is_empty_model ) {
+      X <- model.matrix(formulas[[i]], data = data)
     }
 
     model_fit <- try(
       forecast::auto.arima(
         if(scale_ts){scale(y)}else{y},
-        xreg = if(!formulas[[i]]==formula(~-1)){X}else{NULL},
+        xreg = if(is_empty_model){NULL}else{X},
         max.p = 5,
         max.d = 1,
         max.q = 5,
@@ -65,7 +94,7 @@ select_best_model <- function (
       silent=T)
 
     if ("try-error" %in% class(model_fit)){
-      warning("Model failed: ", formulas[[i]])
+      warning("Model failed: ", formulas[[i]],"\n")
       next
     } else {
       model[[i]] <- model_fit
