@@ -179,10 +179,12 @@ head(imports_ipaffs)
 #example of updated functions for monthly and daily data
 ts_data <- extract_ts(imports, "DATE_START", "35", quantity = "NET_MASS")
 head(ts_data)
+select_best_model(ts_data, seasonal_frequency = 12, scale_ts = T)
+
 
 ts_data <- extract_ts(imports_ipaffs, "DATE_START", "03", quantity = "NET_MASS")
 head(ts_data)
-
 select_best_model(ts_data, seasonal_frequency = 366, scale_ts = T)
+select_best_model(ts_data, seasonal_frequency = 7, scale_ts = T)
 
 ```

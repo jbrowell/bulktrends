@@ -36,9 +36,9 @@ select_best_model <- function (
   y <- data$temp
   linear_trend <- seq_along(y)/seasonal_frequency
 
-  if(seasonal_frequency==12){t <- as.numeric(format(data$month,"%m"))}
-  else if(seasonal_frequency==366){t <- as.numeric(format(data$date,"%j"))}
-  else if(seasonal_frequency==7){t <- as.numeric(format(data$date,"%u"))}
+  if(seasonal_frequency==12){t <- as.numeric(format(data$DATE_START,"%m"))}
+  else if(seasonal_frequency==366){t <- as.numeric(format(data$DATE_START,"%j"))}
+  else if(seasonal_frequency==7){t <- as.numeric(format(data$DATE_START,"%u"))}
   else {seasonal_frequency <- NULL}
 
   seasonal_sin <- sin(2*pi*t/seasonal_frequency)
