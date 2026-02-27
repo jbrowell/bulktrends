@@ -6,33 +6,42 @@ read_ipaffs <- function(path) {
 
     BDS <- data.table::fread(path, colClasses = "character")
 
-    col_names <- list(date    = c("DeclarationDate", "DateOfArrivalAtBIP", "DateOfArrival", "Declaration", "ArrivalAtBip"),  #"DateofDeclaration"
+    col_names <- list(DATE_START    = c("DeclarationDate", "DateOfArrivalAtBIP", "DateOfArrival", "Declaration", "ArrivalAtBip"),  #"DateofDeclaration"
                       COMCODE = c("CommodityCode", "Commodities", "Commodity"),
-                      weight  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg", "NetWeight(Kg)", "TotalNetWeightkg", "TotalNetWeight_kg"))
+                      NET_MASS  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg", "NetWeight(Kg)", "TotalNetWeightkg", "TotalNetWeight_kg", "TotalNetWeight_KG", "TotalNetWeight(kg)"))
 
     for (i in names(col_names)) {
 
       old_names <- col_names[[i]]
       match <- intersect(old_names, names(BDS))
       if (length(match))
-        setnames(BDS, match, i)
-      else {stop(paste("Missing column for", i, "in dataset"))}}
+        setnames(BDS, match, i)}
+      #else {stop(paste("Missing column for", i, "in dataset"))}}
 
 
-  if ("date" %in% names(BDS)) {
-    BDS[, date := as.IDate(date)]
+  if ("DATE_START" %in% names(BDS)) {
+    BDS[, DATE_START := as.IDate(DATE_START)]
   }
   else if (all(c("YearOfDeclaration", "MonthOfDeclaration", "DayOfDeclaration") %in% names(BDS))) {
-    BDS[, date := as.IDate(sprintf("%s-%s-%s", YearOfDeclaration, MonthOfDeclaration, DayOfDeclaration))]
+    #BDS[, DATE_START := as.IDate(sprintf("%s-%s-%s", YearOfDeclaration, MonthOfDeclaration, DayOfDeclaration))]
+    BDS[, DATE_START := as.IDate(paste0(YearOfDeclaration,"-",MonthOfDeclaration,"-",DayOfDeclaration),format="%Y-%m-%d")]
   }
   else if (all(c("DeclarationYear", "DeclarationMonth", "DeclarationDay") %in% names(BDS))) {
-    BDS[, date := as.IDate(sprintf("%s-%s-%s", DeclarationYear, DeclarationMonth, DeclarationDay))]
+    #BDS[, DATE_START := as.IDate(sprintf("%s-%s-%s", DeclarationYear, DeclarationMonth, DeclarationDay))]
+    BDS[, DATE_START := as.IDate(paste0(DeclarationYear,"-",DeclarationMonth,"-",DeclarationDay),format="%Y-%m-%d")]
   } else {
-    BDS[, date := NA]
+    BDS[, DATE_START := NA]
   }
 
-   BDS[, weight := as.numeric(weight)]
-   BDS[, date := as.POSIXct(paste0(date), format= "%Y-%m-%d")]
+#as.IDate(paste0(YearOfDeclaration,"-",MonthOfDeclaration,"-",DayOfDeclaration),format="%Y-%m-%d")
+
+   BDS[, NET_MASS := as.numeric(NET_MASS)]
+   #BDS[, date := as.POSIXct(paste0(date), format= "%Y-%m-%d", tz="GB")]
+
+   #BDS[,DATE_START := as.IDate(paste0(date,"01"),format="%Y%m%d")]
+   #BDS[,DATE_END := DATE_START + base::months(1) - lubridate::days(1)]
+   BDS[,DATE_END := DATE_START]
+
 
     return(BDS)
 

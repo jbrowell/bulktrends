@@ -4,7 +4,7 @@
 \alias{extract_ts}
 \title{Utility helper functions}
 \usage{
-extract_ts(import_data, code, quantity = "NET_MASS")
+extract_ts(import_data, date_variable, code, quantity = "NET_MASS")
 }
 \arguments{
 \item{import_data}{A `data.table` containing trade data. Must include columns "COMCODE", "month" and `quantity`.}

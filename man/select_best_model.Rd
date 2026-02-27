@@ -6,9 +6,10 @@
 \usage{
 select_best_model(
   data,
+  seasonal_frequency,
   metric = "aic",
-  formulas = list(~-1, ~1, ~linear_trend, ~sin(2 * pi * month/12) + cos(2 * pi *
-    month/12), ~linear_trend + sin(2 * pi * month/12) + cos(2 * pi * month/12)),
+  formulas = list(~-1, ~1, ~linear_trend, ~seasonal_sin + seasonal_cos, ~linear_trend +
+    seasonal_sin + seasonal_cos),
   scale_ts = FALSE
 )
 }
