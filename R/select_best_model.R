@@ -28,13 +28,12 @@ select_best_model <- function (
     stop("Must supply either formulas or response_col.")
   }
 
+  if(is.null(response_col)){
+    f <- formulas[[1]]
+    response_col <- all.vars(f)[attr(terms(f), "response")]
+  }
+
   # Check completeness!
-
-  data[, linear_trend := .I]
-  data <- add_date_features(data,date_col)
-
-  data[, annual_sin := sin(2*pi*day_of_year/365)]
-  data[, annual_cos := cos(2*pi*day_of_year/365)]
 
 
   if(is.null(formulas)) {
@@ -51,6 +50,12 @@ select_best_model <- function (
         as.formula(paste(response_col, "~", deparse(rhs)))
         })
 
+      data[, linear_trend := .I]
+      data[, day_of_year := as.integer(format(data[[date_col]],"%j"))]
+      data[, annual_sin := sin(2*pi*day_of_year/365)]
+      data[, annual_cos := cos(2*pi*day_of_year/365)]
+
+
     } else if(detect_date_frequency(data[[date_col]])=="day"){
 
       formulas <- list(~ -1,
@@ -65,6 +70,9 @@ select_best_model <- function (
         rhs <- f[[2]]
         as.formula(paste(response_col, "~", deparse(rhs)))
       })
+
+      data[, linear_trend := .I]
+      data <- add_date_features(data,date_col)
 
     } else {
       stop("\"formulas=NULL\" and data isn't daily or monthly.")
@@ -84,7 +92,7 @@ select_best_model <- function (
 
     model_fit <- try(
       forecast::auto.arima(
-        if(scale_ts){scale(y)}else{y},
+        if(scale_ts){scale(data[[response_col]])}else{data[[response_col]]},
         xreg = if(is_empty_model){NULL}else{X},
         max.p = 5,
         max.d = 1,
@@ -106,6 +114,6 @@ select_best_model <- function (
   return( list(
     xreg = if( formulas[[best_metric]]==formula(~-1) ){NULL}else{
       model.matrix(formulas[[best_metric]], data = data)},
-    formula = paste0(formulas[[best_metric]],collapse = ""))
+    formula = formulas[[best_metric]])
   )
 }

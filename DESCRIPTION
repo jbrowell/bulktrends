@@ -12,6 +12,7 @@ LazyData: true
 RoxygenNote: 7.3.3
 Depends:
     R (>= 3.5.0),
+    jsonlite (>= 2.0.0),
     tsoutliers (>= 0.4),
     data.table (>= 1.14.0),
     ggplot2 (>= 3.5.1),

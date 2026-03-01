@@ -2,7 +2,9 @@
 detect_date_frequency <- function(dates) {
 
   if (! inherits(dates, "Date") ) {
-    stop("Input must be of class \"Date\".")
+    tryCatch(
+      dates <- as.Date(dates),
+      stop("Input not of class \"Date\" and couldn't be converted."))
   }
 
   # Remove duplicates and sort
@@ -14,12 +16,14 @@ detect_date_frequency <- function(dates) {
 
   median_gap <- median(as.numeric(diff(dates)))
 
-  if (median_gap <= 10) {
+  if (median_gap <= 1.5) {
     return("day")
+  } else if (median_gap == 7) {
+    return("week")
   } else if (median_gap >= 28 & median_gap <= 31) {
     return("month")
   } else {
-    stop("Couldn't detect date frequency. Maybe daily data has median gap greater than 10, or monthly with median gap outside of 28 to 31.")
+    stop("Couldn't detect date frequency.")
   }
 
 }
@@ -92,6 +96,11 @@ add_date_features <- function(data, date_col) {
   years <- as.numeric(unique(format(dates, "%Y")))
 
   # Build a named vector of date -> holiday name
+  # Would prefer to replace this with function to
+  # get UK Bank Holidays from gov.uk API and github.com/alphagov
+  # https://www.gov.uk/bank-holidays.json
+  # https://github.com/alphagov/calendars/blob/master/lib/data/bank-holidays.json
+
   make_holidays <- function(years) {
 
     fixed <- c(
@@ -116,7 +125,7 @@ add_date_features <- function(data, date_col) {
 
     c(fixed, variable)
   }
-
+  warning("One-off bank holidays missing. Update required...")
   holiday_lookup <- make_holidays(years)
 
   data$day_of_week   <- weekdays(dates)
@@ -124,10 +133,11 @@ add_date_features <- function(data, date_col) {
   data$uk_holiday    <- names(holiday_lookup)[match(dates, holiday_lookup)]
   data$is_uk_holiday <- !is.na(data$uk_holiday)
 
+  data[, annual_sin := sin(2*pi*day_of_year/365)]
+  data[, annual_cos := cos(2*pi*day_of_year/365)]
+
   return(data)
 }
-
-
 
 #' View User Guide
 #'
