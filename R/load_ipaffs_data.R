@@ -1,4 +1,11 @@
 #' Load bulk daily data from IPAFFS
+#'
+#'
+#'
+#' @details
+#' Leading pairs of 00s dropped
+#' Missing leading 0 added to COMCODE of odd length
+
 
 read_ipaffs <- function(path) {
 
@@ -6,42 +13,60 @@ read_ipaffs <- function(path) {
 
     BDS <- data.table::fread(path, colClasses = "character")
 
-    col_names <- list(DATE_START    = c("DeclarationDate", "DateOfArrivalAtBIP", "DateOfArrival", "Declaration", "ArrivalAtBip"),  #"DateofDeclaration"
+    col_names <- list(DATE_START = c("DeclarationDate", "DateOfArrivalAtBIP",
+                                     "DateOfArrival", "Declaration",
+                                     "ArrivalAtBip"),
                       COMCODE = c("CommodityCode", "Commodities", "Commodity"),
-                      NET_MASS  = c("TotalOfNetWeightKG", "NetWeightKg", "TotalNetWeight_Kg", "NetWeight(Kg)", "TotalNetWeightkg", "TotalNetWeight_kg", "TotalNetWeight_KG", "TotalNetWeight(kg)"))
+                      NET_MASS  = c("TotalOfNetWeightKG", "NetWeightKg",
+                                    "TotalNetWeight_Kg", "NetWeight(Kg)",
+                                    "TotalNetWeightkg", "TotalNetWeight_kg",
+                                    "TotalNetWeight_KG", "TotalNetWeight(kg)"))
 
     for (i in names(col_names)) {
 
       old_names <- col_names[[i]]
       match <- intersect(old_names, names(BDS))
-      if (length(match))
-        setnames(BDS, match, i)}
-      #else {stop(paste("Missing column for", i, "in dataset"))}}
+
+      if (length(match)) {
+        setnames(BDS, match, i)
+      }
+    }
+
+    if ("DATE_START" %in% names(BDS)) {
+      BDS[, DATE_START := as.IDate(DATE_START,fomat="%d/%m/%Y", tz="GB")]
+    }
+    else if (all(
+      c("YearOfDeclaration",
+        "MonthOfDeclaration",
+        "DayOfDeclaration"
+      ) %in% names(BDS)) ) {
+      BDS[, DATE_START := as.IDate(
+        paste0(YearOfDeclaration,"-",MonthOfDeclaration,"-",DayOfDeclaration),
+        format="%Y-%m-%d", tz="GB")]
+    }
+    else if (all(
+      c("DeclarationYear",
+        "DeclarationMonth",
+        "DeclarationDay"
+      ) %in% names(BDS)) ) {
+      BDS[, DATE_START := as.IDate(
+        paste0(DeclarationYear,"-",DeclarationMonth,"-",DeclarationDay),
+        format="%Y-%m-%d", tz="GB")]
+    } else {
+      BDS[, DATE_START := NA]
+    }
+    BDS[, DATE_END := DATE_START]
 
 
-  if ("DATE_START" %in% names(BDS)) {
-    BDS[, DATE_START := as.IDate(DATE_START)]
-  }
-  else if (all(c("YearOfDeclaration", "MonthOfDeclaration", "DayOfDeclaration") %in% names(BDS))) {
-    #BDS[, DATE_START := as.IDate(sprintf("%s-%s-%s", YearOfDeclaration, MonthOfDeclaration, DayOfDeclaration))]
-    BDS[, DATE_START := as.IDate(paste0(YearOfDeclaration,"-",MonthOfDeclaration,"-",DayOfDeclaration),format="%Y-%m-%d")]
-  }
-  else if (all(c("DeclarationYear", "DeclarationMonth", "DeclarationDay") %in% names(BDS))) {
-    #BDS[, DATE_START := as.IDate(sprintf("%s-%s-%s", DeclarationYear, DeclarationMonth, DeclarationDay))]
-    BDS[, DATE_START := as.IDate(paste0(DeclarationYear,"-",DeclarationMonth,"-",DeclarationDay),format="%Y-%m-%d")]
-  } else {
-    BDS[, DATE_START := NA]
-  }
+    if( "NET_MASS" %in% colnames(BDS) ) {
+      BDS[, NET_MASS := as.numeric(NET_MASS)]
+    }
 
-#as.IDate(paste0(YearOfDeclaration,"-",MonthOfDeclaration,"-",DayOfDeclaration),format="%Y-%m-%d")
+    BDS[nchar(COMCODE)%%2==1, COMCODE := paste0("0",COMCODE)]
 
-   BDS[, NET_MASS := as.numeric(NET_MASS)]
-   #BDS[, date := as.POSIXct(paste0(date), format= "%Y-%m-%d", tz="GB")]
-
-   #BDS[,DATE_START := as.IDate(paste0(date,"01"),format="%Y%m%d")]
-   #BDS[,DATE_END := DATE_START + base::months(1) - lubridate::days(1)]
-   BDS[,DATE_END := DATE_START]
-
+    while( nrow(BDS[substr(COMCODE,1,2)=="00"])>0 ) {
+      BDS[substr(COMCODE,1,2)=="00",COMCODE := gsub("^00","",COMCODE)]
+    }
 
     return(BDS)
 

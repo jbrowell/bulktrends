@@ -168,23 +168,23 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
 print(hs2_anomalies)
 ```
 
-```{r}
-#loading daily data with - read_ipaffs() (to be discussed)
+## Examples using IPAFFS
 
-imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/animals/2024"))
-head(imports_ipaffs)
+The Food Standards Agency makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`.
+
+```{r}
+devtools::load_all("../")
+imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/Non-animal (FNAO)/2022"))
+
+ts_data <- extract_ts(imports_ipaffs,
+                      code = "07",
+                      quantity = "NET_MASS",
+                      date_col = "DATE_START",
+                      fill_missing=0)
+plot(ts_data)
+
 ```
 
 ```{r}
-#example of updated functions for monthly and daily data
-ts_data <- extract_ts(imports, "DATE_START", "35", quantity = "NET_MASS")
-head(ts_data)
-select_best_model(ts_data, seasonal_frequency = 12, scale_ts = T)
-
-
-ts_data <- extract_ts(imports_ipaffs, "DATE_START", "03", quantity = "NET_MASS")
-head(ts_data)
-select_best_model(ts_data, seasonal_frequency = 366, scale_ts = T)
-select_best_model(ts_data, seasonal_frequency = 7, scale_ts = T)
-
+select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
 ```
