@@ -9,3 +9,7 @@ read_ipaffs(path)
 \description{
 Load bulk daily data from IPAFFS
 }
+\details{
+Leading pairs of 00s dropped
+Missing leading 0 added to COMCODE of odd length
+}

@@ -6,20 +6,20 @@
 \usage{
 select_best_model(
   data,
-  seasonal_frequency,
+  date_col = "DATE_START",
+  formulas = NULL,
+  response_col = NULL,
   metric = "aic",
-  formulas = list(~-1, ~1, ~linear_trend, ~seasonal_sin + seasonal_cos, ~linear_trend +
-    seasonal_sin + seasonal_cos),
   scale_ts = FALSE
 )
 }
 \arguments{
-\item{data}{A time series object containing the dependent variable.}
+\item{data}{A `data.frame` containing the dependent variable and dates.}
+
+\item{formulas}{A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.}
 
 \item{metric}{A character string specifying the criteria for model
 selection. Examples are "aic","aicc" or "bic".}
-
-\item{formulas}{A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 }

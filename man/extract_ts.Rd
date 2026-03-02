@@ -2,24 +2,38 @@
 % Please edit documentation in R/utils.R
 \name{extract_ts}
 \alias{extract_ts}
-\title{Utility helper functions}
+\title{Extract of monthly time series of "NET_MASS" for a given commodity code}
 \usage{
-extract_ts(import_data, date_variable, code, quantity = "NET_MASS")
+extract_ts(
+  import_data,
+  code,
+  date_col = "DATE_START",
+  quantity = "NET_MASS",
+  fill_missing = NA
+)
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns "COMCODE", "month" and `quantity`.}
+\item{import_data}{A `data.table` containing trade data. Must include columns
+"COMCODE", "month" and `quantity`.}
 
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
-\item{quantity}{Quantity to be extracted and aggregated as time series, e.g. "NET_MASS" or "STAT_VALUE".}
+\item{date_col}{Name of column containing timestamps.}
+
+\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.
+"NET_MASS" or "STAT_VALUE".}
+
+\item{fill_missing}{This function returns a continuous time series. Values
+for missing dates are filled with this value.}
 }
 \value{
-Time series object of NET_MASS
+A `data.table` with date and quantity columns.
 }
 \description{
-Extract of monthly time series of "NET_MASS" for a given commodity code
-}
-\details{
 This function extracts the monthly sum "NET_MASS" from import_data for
 any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
+}
+\details{
+Daily or monthly data is expected and detected automatically. Missing
+values are filled.
 }

@@ -33,7 +33,12 @@ read_ipaffs <- function(path) {
     }
 
     if ("DATE_START" %in% names(BDS)) {
-      BDS[, DATE_START := as.IDate(DATE_START,fomat="%d/%m/%Y", tz="GB")]
+
+      BDS[, DATE_START_temp := as.IDate(DATE_START, format = "%Y-%m-%d", tz="GB")] #tz="GB" #format="%d/%m/%Y"
+      BDS[is.na(DATE_START_temp), DATE_START_temp := as.IDate(DATE_START[is.na(DATE_START_temp)], format = "%d/%m/%Y", tz="GB")]
+
+      BDS[, DATE_START := DATE_START_temp]
+      BDS[, DATE_START_temp := NULL]
     }
     else if (all(
       c("YearOfDeclaration",

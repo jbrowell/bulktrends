@@ -174,7 +174,7 @@ The Food Standards Agency makes some Import of Products, Animals, Food and Feed 
 
 ```{r}
 devtools::load_all("../")
-imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/Non-animal (FNAO)/2022"))
+imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs/Non-animal (FNAO)/2023"))
 
 ts_data <- extract_ts(imports_ipaffs,
                       code = "07",
