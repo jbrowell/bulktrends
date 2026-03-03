@@ -6,7 +6,7 @@ An `R` package for analysing and forecasting UK HM Revenue & Customs trade data.
 
 ## Aims
 
-The functions and scripts of this package are designed to monitor, forecast and hindcast UK import flows using large-scale trade datasets to support evidence-based monitoring and analysis of UK trade patterns. The central interest is to assess the effects of the UK's Border Target Operating Model ([BTOM](https://www.gov.uk/government/publications/the-border-target-operating-model-august-2023)) on Sanitary and Phytosanitary (SPS) import dynamics over time. The key objectives include producing robust forecasts with measures of uncertainty, identifying and analysing outlier events and anomalies in the time series, comparing traditional and more novel time series techniques when applied large trade datasets routinely used in DEFRA Animal and Plant Health Agency (APHA) Enforcement and Appeals (E&A) and providing robust diagnostic tools to identify the optimal methods to be used in this case. 
+The functions and scripts of this package are designed to monitor, forecast and hindcast UK import flows using large-scale trade datasets to support evidence-based monitoring and analysis of UK trade patterns. The central interest is to monitor and evaluate for impacts on Sanitary and Phytosanitary (SPS) import dynamics over time. The key objectives include producing robust forecasts with measures of uncertainty, identifying and analysing outlier events and anomalies in the time series, comparing traditional and more novel time series techniques when applied to large trade datasets used for monitoring and providing robust diagnostic tools to identify the optimal methods to be used in this case. 
 
 ## Datasets
 
@@ -33,7 +33,7 @@ Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), 
 
 Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) should be stored in a dedicated directory and unzipped. The function `read_uktradeinfo(path)` will load a single file or all `.txt` files in the given directory and its subdirectories.
 
-This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.DS` object for quicker loading.
+This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.Rds` object for quicker loading.
 
 ### 2. Lookup Tables
 
@@ -111,3 +111,4 @@ The following people have contributed to the development of this repository:
 This work has been supported by:
 
 * The UK Engineering and Physical Sciences Research Council ([EP/Z534985/1](https://gtr.ukri.org/projects?ref=EP%2FZ534985%2F1))
+* Defra APHW Evidence & Analysis
