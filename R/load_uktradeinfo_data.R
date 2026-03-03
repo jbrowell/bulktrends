@@ -11,6 +11,7 @@
 #' @export
 read_uktradeinfo <- function(path) {
 
+  # route 1 - path is a single file:
   if( file_test("-f", path) ) {
 
     BDS <- data.table::fread(path, header = F, strip.white = F, sep = NULL)
@@ -40,19 +41,23 @@ read_uktradeinfo <- function(path) {
 
     return(BDS)
 
+  # route 2 - path is a directory:
   } else if(file_test("-d", path)) {
 
     files <- list.files(path,pattern = ".txt",
                         full.names = T,
                         recursive = T)
 
-    BDS_all <- data.table()
-
-    for(f in files) {
-
-      BDS_all <- rbind(BDS_all, read_uktradeinfo(f))
-
+    # - use all available cores unless the user has set a plan already
+    if (inherits(plan(), "sequential")) {
+      plan(multisession, workers = availableCores())
     }
+
+    BDS_all <- rbindlist(
+      future.apply::future_lapply(files, read_uktradeinfo),
+      use.names = T,
+      fill = F
+    )
 
 
     return(BDS_all)
