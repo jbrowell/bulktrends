@@ -26,19 +26,20 @@ detect_anomalies <- function(
 
   for (i in seq_along(codes)){
     #create time series
-    ts_data <- extract_ts(import_data, code = codes[i], quantity = quantity)
+    ts_data <- extract_ts(import_data, code = codes[i], quantity = quantity, fill_missing=0)
 
     selected_model <- select_best_model(data = ts_data,
+                                        response_col = quantity,
                                         metric = model_selection_metric,
                                         scale_ts = scale_ts)
 
-    detect_anomaly <- try(tso(y = if(scale_ts){scale(ts_data)}else{ts_data},
+    detect_anomaly <- try(tso(y = if(scale_ts){scale(ts_data[[quantity]])}else{ts_data[[quantity]]},
                               xreg = selected_model$xreg,
                               ...),
                           silent=T)
 
     if ("try-error" %in% class(detect_anomaly)){
-      warning("Anomaly detectino failed for code: ", codes[i])
+      warning("Anomaly detection failed for code: ", codes[i])
       next
     }
 

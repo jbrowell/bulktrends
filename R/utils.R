@@ -60,7 +60,7 @@ extract_ts <- function (import_data,
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
   if( quantity=="volume") {
-    ts_data <-  import_data[, .(voluem=.N), by=date_col]
+    ts_data <-  import_data[, .(volume=.N), by=date_col]
   } else {
     ts_data <-  import_data[, .(agg = sum(get(quantity), na.rm = T)),
                             by=date_col]
