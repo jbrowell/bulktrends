@@ -49,8 +49,8 @@ read_uktradeinfo <- function(path) {
                         recursive = T)
 
     # - use all available cores unless the user has set a plan already
-    if (inherits(plan(), "sequential")) {
-      plan(multisession, workers = availableCores())
+    if (inherits(future::plan(), "sequential")) {
+      future::plan(multisession, workers = availableCores())
     }
 
     BDS_all <- rbindlist(
