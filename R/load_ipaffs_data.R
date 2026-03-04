@@ -83,10 +83,11 @@ read_ipaffs <- function(path) {
 
     BDS_all <- data.table()
 
-    for(f in files) {
-
-      BDS_all <- rbind(BDS_all, read_ipaffs(f), fill=T)
-    }
+    BDS_all <- data.table::rbindlist(
+      future.apply::future_lapply(files, read_ipaffs),
+      use.names = T,
+      fill = T
+    )
 
 
     return(BDS_all)
