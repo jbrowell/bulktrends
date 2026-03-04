@@ -8,14 +8,13 @@
 #'
 #' @return A `data.table` of trade data with a POSIXct timestamp.
 #'
+#' @details
+#' This function can be slow to read a large number of files but is much faster
+#' if a `future::plan()` is set that enables parallel computation.
+#'
+#'
 #' @export
-read_uktradeinfo <- function(path, .top_level = T) {
-
-  # capture the plan the user had in place (if any) before the function starts
-  if (.top_level) {   # ensure only the top-level call manages the future plan (i.e. allow the recursive calls in route 2 below to skip the plan logic)
-    old_plan <- future::plan()
-    on.exit(future::plan(old_plan), add = T)   # when the function finishes, restore the user’s original plan
-  }
+read_uktradeinfo <- function(path) {
 
   # route 1 - path is a single file:
   if (file_test("-f", path)) {
@@ -55,16 +54,8 @@ read_uktradeinfo <- function(path, .top_level = T) {
                         full.names = T,
                         recursive = T)
 
-    # parallelize
-    # only the top-level call may modify the plan (and only if the user has not already set a plan)
-    if (.top_level && inherits(old_plan, "sequential")) {  
-      future::plan(multisession, workers = future::availableCores())
-    }
-
     BDS_all <- data.table::rbindlist(
-      future.apply::future_lapply(files, read_uktradeinfo,
-      .top_level = F
-      ),
+      future.apply::future_lapply(files, read_uktradeinfo),
       use.names = T,
       fill = F
     )
@@ -72,7 +63,7 @@ read_uktradeinfo <- function(path, .top_level = T) {
     return(BDS_all)
 
   } else {
-  stop("path is not a file or directory.")
+    stop("path is not a file or directory.")
   }
 
-  }
+}
