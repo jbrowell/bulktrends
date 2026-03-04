@@ -15,4 +15,5 @@ Depends:
     tsoutliers (>= 0.4),
     data.table (>= 1.14.0),
     ggplot2 (>= 3.5.1),
-    forecast (>= 8.20.0)
+    forecast (>= 8.20.0),
+    future.apply (>= 1.20.0)

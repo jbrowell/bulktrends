@@ -12,12 +12,17 @@ format:
 devtools::install("../", upgrade = FALSE)
 ```
 
-Examples of how to use the `bulktrends` package (version `r packageVersion("bulktrends")`). It can be installed from it's [GitHub repository](https://github.com/jbrowell/bulktrends/) using
+Example usage of the `bulktrends` package (version `r packageVersion("bulktrends")`).
+
+## Set-up
+
+`bulktrends` can be installed from it's [GitHub repository](https://github.com/jbrowell/bulktrends/) using
 ```{r installation}
 #| eval: false
 devtools::install_github("jbrowell/bulktrends")
 ```
-Next, let's load the package and set the path to where we are storing data.
+
+Once installed, load the package and set the path to where we are storing data.
 ```{r set-up}
 #| eval: false
 library(bulktrends)
@@ -29,6 +34,11 @@ data_directory <- "path/to/my_data/"
 #| echo: false
 library(bulktrends)
 data_directory <- "../data/Rbuildignore/"
+```
+
+Parallel computation is supported in `bullktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan"...
+```{r}
+future::plan("multisession")
 ```
 
 ## Load UK Trade Info Bulk Data Files
