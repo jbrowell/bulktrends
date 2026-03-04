@@ -8,10 +8,16 @@
 #'
 #' @return A `data.table` of trade data with a POSIXct timestamp.
 #'
+#' @details
+#' This function can be slow to read a large number of files but is much faster
+#' if a `future::plan()` is set that enables parallel computation.
+#'
+#'
 #' @export
 read_uktradeinfo <- function(path) {
 
-  if( file_test("-f", path) ) {
+  # route 1 - path is a single file:
+  if (file_test("-f", path)) {
 
     BDS <- data.table::fread(path, header = F, strip.white = F, sep = NULL)
 
@@ -34,30 +40,26 @@ read_uktradeinfo <- function(path) {
                   FLOW=substr(V1,82,84),
                   REC_TYPE=substr(V1,85,85))]
 
-    BDS[,NET_MASS:=as.numeric(NET_MASS)]
-    BDS[,STAT_VALUE:=as.numeric(STAT_VALUE)]
+    BDS[,NET_MASS:=suppressWarnings(as.numeric(NET_MASS))]
+    BDS[,STAT_VALUE:=suppressWarnings(as.numeric(STAT_VALUE))]
     BDS[,DATE_START := as.IDate(paste0(PERREF,"01"),format="%Y%m%d")]
     BDS[,DATE_END := DATE_START + base::months(1) - lubridate::days(1)]
 
-    # To be removed:
-    BDS[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
-
     return(BDS)
+  }
 
-  } else if(file_test("-d", path)) {
+  # route 2 - path is a directory:
+  else if (file_test("-d", path)) {
 
-    files <- list.files(path,pattern = ".txt",
+    files <- list.files(path, pattern = ".txt",
                         full.names = T,
                         recursive = T)
 
-    BDS_all <- data.table()
-
-    for(f in files) {
-
-      BDS_all <- rbind(BDS_all, read_uktradeinfo(f))
-
-    }
-
+    BDS_all <- data.table::rbindlist(
+      future.apply::future_lapply(files, read_uktradeinfo),
+      use.names = T,
+      fill = F
+    )
 
     return(BDS_all)
 

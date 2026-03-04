@@ -17,3 +17,7 @@ A `data.table` of trade data with a POSIXct timestamp.
 Load a single bulk data file of all files in a directory (and its
 sub-directories) from UK Trade Info.
 }
+\details{
+This function can be slow to read a large number of files but is much faster
+if a `future::plan()` is set that enables parallel computation.
+}
