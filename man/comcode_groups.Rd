@@ -12,6 +12,9 @@ A named `list` containing a groups of commodity codes
   \item{value}{vector of Cn8 codes (`charater`) in specified group}
 }
 }
+\source{
+`bulktrends`
+}
 \usage{
 comcode_groups
 }
