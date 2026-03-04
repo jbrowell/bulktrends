@@ -9,10 +9,16 @@
 #' @return A `data.table` of trade data with a POSIXct timestamp.
 #'
 #' @export
-read_uktradeinfo <- function(path) {
+read_uktradeinfo <- function(path, .top_level = T) {
+
+  # capture the plan the user had in place (if any) before the function starts
+  if (.top_level) {   # ensure only the top-level call manages the future plan (i.e. allow the recursive calls in route 2 below to skip the plan logic)
+    old_plan <- future::plan()
+    on.exit(future::plan(old_plan), add = T)   # when the function finishes, restore the user’s original plan
+  }
 
   # route 1 - path is a single file:
-  if( file_test("-f", path) ) {
+  if (file_test("-f", path)) {
 
     BDS <- data.table::fread(path, header = F, strip.white = F, sep = NULL)
 
@@ -40,30 +46,33 @@ read_uktradeinfo <- function(path) {
     BDS[, month := as.POSIXct(paste0(PERREF,"01"),format="%Y%m%d")]
 
     return(BDS)
+  }
 
   # route 2 - path is a directory:
-  } else if(file_test("-d", path)) {
+  else if (file_test("-d", path)) {
 
-    files <- list.files(path,pattern = ".txt",
+    files <- list.files(path, pattern = ".txt",
                         full.names = T,
                         recursive = T)
 
-    # - use all available cores unless the user has set a plan already
-    if (inherits(future::plan(), "sequential")) {
-      future::plan(multisession, workers = availableCores())
+    # parallelize
+    # only the top-level call may modify the plan (and only if the user has not already set a plan)
+    if (.top_level && inherits(old_plan, "sequential")) {  
+      future::plan(multisession, workers = future::availableCores())
     }
 
-    BDS_all <- rbindlist(
-      future.apply::future_lapply(files, read_uktradeinfo),
+    BDS_all <- data.table::rbindlist(
+      future.apply::future_lapply(files, read_uktradeinfo,
+      .top_level = F
+      ),
       use.names = T,
       fill = F
     )
 
-
     return(BDS_all)
 
   } else {
-    stop("path is not a file or directory.")
+  stop("path is not a file or directory.")
   }
 
-}
+  }
