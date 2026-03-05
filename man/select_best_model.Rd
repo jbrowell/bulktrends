@@ -10,18 +10,27 @@ select_best_model(
   formulas = NULL,
   response_col = NULL,
   metric = "aic",
-  scale_ts = FALSE
+  scale_ts = FALSE,
+  freq = NULL
 )
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{formulas}{A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.}
+\item{date_col}{Name of column containing timestamps.}
+
+\item{formulas}{A list of formulas specifying candidate models. Covariates
+available are `linear_trend` and `month`.}
+
+\item{response_col}{If `formulas` not provided, default formulas will be used
+but the column containing the response variable must be specified.}
 
 \item{metric}{A character string specifying the criteria for model
 selection. Examples are "aic","aicc" or "bic".}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+
+\item{freq}{}
 }
 \value{
 A model matrix of the linear_trend and seasonal regressors of the selected

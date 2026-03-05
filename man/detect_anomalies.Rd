@@ -8,21 +8,27 @@ detect_anomalies(
   import_data,
   codes,
   quantity = "NET_MASS",
+  date_col = "DATE_START",
   model_selection_metric = "aic",
   scale_ts = FALSE,
+  freq = NULL,
   ...
 )
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns "COMCODE", "month" and `quantity`.}
+\item{import_data}{A `data.table` containing trade data. Must include columns "COMCODE" and `quantity`.}
 
 \item{codes}{A vector of HS2/HS4/HS6/CN8 codes}
 
 \item{quantity}{Quantity to be analysed, e.g. "NET_MASS" or "STAT_VALUE".}
 
+\item{date_col}{Name of column containing timestamps.}
+
 \item{model_selection_metric}{Selection criteria passed to `select_best_model()`}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+
+\item{freq}{See `?extract_ts()`}
 
 \item{...}{Additional arguments passed to `tso()`}
 }
