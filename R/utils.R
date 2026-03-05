@@ -16,7 +16,7 @@ detect_date_frequency <- function(dates) {
 
   median_gap <- median(as.numeric(diff(dates)))
 
-  if (median_gap <= 1.5) {
+  if (median_gap <= 3) {
     return("day")
   } else if (median_gap == 7) {
     return("week")
