@@ -184,7 +184,7 @@ print(hs2_anomalies)
 The Food Standards Agency makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`.
 
 ```{r}
-#devtools::load_all("../")
+
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
 
 comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
@@ -202,12 +202,6 @@ plot(ts_data)
 ```
 
 ```{r}
-select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
-```
-
-```{r}
-
-#anomaly detection for individual comcode
 
 ts_data <- extract_ts(imports_ipaffs,
                       code = "12",
@@ -218,12 +212,9 @@ ts_data <- extract_ts(imports_ipaffs,
 selected_model <- select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
 print(selected_model)
 
-#numeric vector vs ts object
-#y <- ts(as.numeric(scale(ts_data[["NET_MASS"]])))
-
 detect_anomaly <- tso(y = as.ts(scale(ts_data[["NET_MASS"]])),
-                     cval=5,
-                     types = c("AO", "LS", "TC", "IO"),
+                      cval=5,
+                      types = c("AO", "LS", "TC", "IO"),
                       xreg = selected_model$xreg)
 
 print(detect_anomaly)
@@ -233,8 +224,6 @@ plot.tsoutliers(detect_anomaly)
 ```
 
 ```{r}
-#large scale anomaly detection for imports_ipaffs
-
 hs2_codes <- unique(substr(imports_ipaffs$COMCODE, 1,2))
 
 hs2_anomalies <- detect_anomalies(import_data = imports_ipaffs,
@@ -244,6 +233,6 @@ hs2_anomalies <- detect_anomalies(import_data = imports_ipaffs,
                                   types = c("AO", "LS", "TC", "IO"),
                                   freq = "day")
 
-print(hs2_anomalies)
+head(hs2_anomalies)
 
 ```
