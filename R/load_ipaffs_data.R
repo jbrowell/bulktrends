@@ -64,7 +64,7 @@ read_ipaffs <- function(path) {
 
 
     if( "NET_MASS" %in% colnames(BDS) ) {
-      BDS[, NET_MASS := as.numeric(NET_MASS)]
+      BDS[, NET_MASS := suppressWarnings(as.numeric(NET_MASS))]
     }
 
     BDS[nchar(COMCODE)%%2==1, COMCODE := paste0("0",COMCODE)]

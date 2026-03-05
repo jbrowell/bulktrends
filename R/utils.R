@@ -65,6 +65,12 @@ extract_ts <- function (import_data,
 
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
+  if( import_data[,any(is.na(get(date_col)))] ) {
+    import_data <- import_data[!is.na(get(date_col))]
+    warning("Some timestamps are NA and have been omitted.")
+  }
+
+
   if( quantity=="volume") {
     ts_data <-  import_data[, .(volume=.N), by=date_col]
   } else {
