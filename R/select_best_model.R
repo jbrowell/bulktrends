@@ -6,10 +6,15 @@
 #' of the selected metric.
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
+#' @param date_col Name of column containing timestamps.
+#' @param formulas A list of formulas specifying candidate models. Covariates
+#' available are `linear_trend` and `month`.
+#' @param response_col If `formulas` not provided, default formulas will be used
+#' but the column containing the response variable must be specified.
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
-#' @param formulas A list of formulas specifying candidate models. Covariates available are `linear_trend` and `month`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
+#' @param freq
 #'
 #' @returns A model matrix of the linear_trend and seasonal regressors of the selected
 #' model and the related model formula.
@@ -21,7 +26,8 @@ select_best_model <- function (
     formulas = NULL,
     response_col = NULL,
     metric = "aic",
-    scale_ts = FALSE
+    scale_ts = FALSE,
+    freq = NULL
 ){
 
   if(is.null(formulas) & is.null(response_col)) {
@@ -37,7 +43,12 @@ select_best_model <- function (
 
 
   if(is.null(formulas)) {
-    if(detect_date_frequency(data[[date_col]])=="month"){
+
+    if(is.null(freq)){
+      freq <- detect_date_frequency(data[[date_col]])
+    }
+
+    if(freq=="month"){
 
       formulas <- list(~ -1,
                        ~ 1,
@@ -48,7 +59,7 @@ select_best_model <- function (
       formulas <- lapply(formulas, function(f) {
         rhs <- f[[2]]
         as.formula(paste(response_col, "~", deparse(rhs)))
-        })
+      })
 
       data[, linear_trend := .I]
       data[, day_of_year := as.integer(format(data[[date_col]],"%j"))]
@@ -102,7 +113,7 @@ select_best_model <- function (
       silent=T)
 
     if ("try-error" %in% class(model_fit)){
-      warning("Model failed: ", formulas[[i]],"\n")
+      warning("Model failed: ", deparse(formulas[[i]]),"\n")
       next
     } else {
       model[[i]] <- model_fit

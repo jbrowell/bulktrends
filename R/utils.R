@@ -41,11 +41,16 @@ detect_date_frequency <- function(dates) {
 #' "NET_MASS" or "STAT_VALUE".
 #' @param fill_missing This function returns a continuous time series. Values
 #' for missing dates are filled with this value.
+#' @param freq Frequency of time series data. See details.
 #'
 #' @return A `data.table` with date and quantity columns.
 #'
 #' @details Daily or monthly data is expected and detected automatically. Missing
 #' values are filled.
+#'
+#' By default, `freq=NULL` and will be detected automatically. However, this may
+#' fail for sparse data, in which case `freq` should be set manually. Options are
+#' "day", "week", or "month".
 #'
 #'
 #' @export
@@ -53,7 +58,8 @@ extract_ts <- function (import_data,
                         code,
                         date_col = "DATE_START",
                         quantity = "NET_MASS",
-                        fill_missing = NA
+                        fill_missing = NA,
+                        freq = NULL
 ) {
 
 
@@ -67,7 +73,14 @@ extract_ts <- function (import_data,
     setnames(ts_data,"agg",quantity)
   }
 
-  freq <- detect_date_frequency(ts_data[,get(date_col)])
+  if (is.null(freq)) {
+    freq <- detect_date_frequency(ts_data[,get(date_col)])
+  } else {
+    if( !freq %in% c("day","week","month")) {
+      stop("\"freq\" must be \"day\",\"week\" or \"month\"")
+    }
+  }
+
   complete_seq <- ts_data[,
                           seq(
                             min(get(date_col)),
