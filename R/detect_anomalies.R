@@ -67,6 +67,9 @@ detect_anomalies <- function(
       new_outliers <- as.data.table(detect_anomaly$outliers)
       new_outliers[, code := codes[i]]
       new_outliers[, model_formula := deparse(selected_model$formula)]
+
+      new_outliers[, time := ts_data$DATE_START[ind]]
+
       all_outliers[[i]] <- new_outliers
     } else {
       all_outliers[[i]] <- data.table(code = codes[i],
