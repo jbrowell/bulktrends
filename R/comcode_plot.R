@@ -1,16 +1,17 @@
 #' Visualisation of a given commodity code.
-
-#' This function displays the total weight per month for all
-#' levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
+#'
+#' This function plots aggregated data for a given
+#' Hs2, Hs4, Hs6 or Cn8 code and contributions from the top Cn8.
 #'
 #' @param import_data A `data.table` containing trade data. Must include "COMCODE".
 #' @param code A character string representing any HS2/HS4/HS6/CN8 code.
+#' @param comcode_lookup A `data.table` containing details of each code level.
+#' May be obtained via `uktrades_request(endpoint = "Commodity")$value`.
 #' @param variable A character string representing the variable to be visualised
 #' - must be the name of a numeric column in `import_data` or "volume".  If
 #' "volume", this is computed as the number of rows in `import_data` my time period
 #' and commodity code.
-#' @param comcode_lookup A `data.table` containing details of each code level.
-#' May be obtained via `uktrades_request(endpoint = "Commodity")$value`.
+#' @param date_col Name of column containing timestamps.
 #'
 #' @return A display of total weight per month per code.
 #'
@@ -19,6 +20,7 @@ comcode_plot <- function(import_data,
                          code,
                          comcode_lookup,
                          variable = "NET_MASS",
+                         date_col = "DATE_START",
                          max_unique_comcodes=10) {
 
   #"code" info to meta
@@ -44,18 +46,19 @@ comcode_plot <- function(import_data,
     import_data[ ! COMCODE %in% topX, COMCODE := "Other"]
   }
 
-  # Aggregate by month and comcode...
+  # Aggregate by date and comcode...
   import_data <- import_data[, .(variable = sum(get(variable))),
-                             by=c("COMCODE","month")]
+                             by=c("COMCODE",date_col)]
 
-  #merge data and comcode descriptions
+  # merge data and comcode descriptions
   import_data <- merge(import_data, meta,
                        by.x = "COMCODE", by.y = "Cn8Code",
                        all.x=T)
 
   #plot month and variable
-  p <- ggplot(import_data, aes(x = month, y = variable, fill = factor(COMCODE))) +
-    geom_area() +
+  p <- ggplot(import_data, aes(x = get(date_col), y = variable, fill = factor(COMCODE))) +
+    # geom_area() +
+    geom_bar(position="stack", stat="identity") +
     scale_fill_manual(values = colorRampPalette(c("#c6dbef", "#6baed6", "#08306b"))(length(unique(import_data$COMCODE)))) +
     labs(title = if (variable == "volume") {
       "Total Volume by Commodity Code"
@@ -90,7 +93,7 @@ comcode_plot <- function(import_data,
       paste0(variable)
     },
     fill = paste0("Commodity Code\n(Top ",max_unique_comcodes,")")) +
-    guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 2)) +
+    guides(fill = guide_legend(keywidth = 0.8, keyheight = 0.6, ncol = 3)) +
     theme_minimal(base_family = "serif") +
     theme(panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),

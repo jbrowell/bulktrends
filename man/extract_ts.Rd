@@ -9,7 +9,8 @@ extract_ts(
   code,
   date_col = "DATE_START",
   quantity = "NET_MASS",
-  fill_missing = NA
+  fill_missing = NA,
+  freq = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ extract_ts(
 
 \item{fill_missing}{This function returns a continuous time series. Values
 for missing dates are filled with this value.}
+
+\item{freq}{Frequency of time series data. See details.}
 }
 \value{
 A `data.table` with date and quantity columns.
@@ -36,4 +39,8 @@ any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 \details{
 Daily or monthly data is expected and detected automatically. Missing
 values are filled.
+
+By default, `freq=NULL` and will be detected automatically. However, this may
+fail for sparse data, in which case `freq` should be set manually. Options are
+"day", "week", or "month".
 }

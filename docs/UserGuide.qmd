@@ -187,6 +187,10 @@ The Food Standards Agency makes some Import of Products, Animals, Food and Feed 
 #devtools::load_all("../")
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
 
+comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
+             code =  "02",
+             comcode_lookup=Commodity)
+
 ts_data <- extract_ts(imports_ipaffs,
                       code = "15",
                       quantity = "NET_MASS",
