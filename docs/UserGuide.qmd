@@ -179,17 +179,33 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
 print(hs2_anomalies)
 ```
 
-## Examples using IPAFFS
+## Examples using IPAFFS data
 
-The Food Standards Agency makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`.
+The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the [FSA](https://www.food.gov.uk/our-work/imports-intelligence-hub) website for more information. We can load a single csv file or all csv files in a directory (and subdirectories) using `read_ipaffs()`.
 
 ```{r}
 
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
 
+```
+
+
+## Data Visualisation
+
+The `comcode_plot()` function can be used to also visualise daily time series. For the IPAFFS data, we can currently view `NET_MASS` and `volume` as follows:
+
+```{r}
+
 comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
              code =  "02",
+             variable = "NET_MASS",
              comcode_lookup=Commodity)
+
+comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
+             code =  "02",
+             variable = "volume",
+             comcode_lookup=Commodity)
+
 
 ts_data <- extract_ts(imports_ipaffs,
                       code = "15",
@@ -201,10 +217,14 @@ plot(ts_data)
 
 ```
 
+## Anomaly detection
+
+The anomaly detection procedure described using the monthly HMRC data can also be applied to the daily IPAFFS data. This involves using the same functions, such as, `extract_ts` to obtain the time series of a given commodity code, `select_best_model` to select an appropriate model from a set of candidate models and using the outlier detection algorithm to identify the various types of outliers.
+
 ```{r}
 
 ts_data <- extract_ts(imports_ipaffs,
-                      code = "12",
+                      code = "23",
                       quantity = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing=0)
@@ -214,14 +234,20 @@ print(selected_model)
 
 detect_anomaly <- tso(y = as.ts(scale(ts_data[["NET_MASS"]])),
                       cval=5,
+                      maxit.iloop = 20,
+                      maxit.oloop = 50,
                       types = c("AO", "LS", "TC", "IO"),
-                      xreg = selected_model$xreg)
+                      xreg = if(ncol(selected_model$xreg)>0) {
+                              selected_model$xreg} else {NULL})
 
 print(detect_anomaly)
 plot.tsoutliers(detect_anomaly)
 
 
 ```
+
+
+Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection:
 
 ```{r}
 hs2_codes <- unique(substr(imports_ipaffs$COMCODE, 1,2))
