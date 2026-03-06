@@ -2212,9 +2212,11 @@ vertical-align: -.125em;
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>future<span class="sc">::</span><span class="fu">plan</span>(<span class="st">&quot;multisession&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="load-uk-trade-info-bulk-data-files" class="level2">
-<h2 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h2>
-<p>So far, this package has been developed to work with HMRC Monthly Import data. For more details, see the package <a href="https://github.com/jbrowell/bulktrends/">README</a>. We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an <code>.rds</code> for quicker loading in the future.</p>
+<section id="monthly-uk-trade-info-data" class="level2">
+<h2 class="anchored" data-anchor-id="monthly-uk-trade-info-data">Monthly UK Trade Info Data</h2>
+<section id="load-uk-trade-info-bulk-data-files" class="level3">
+<h3 class="anchored" data-anchor-id="load-uk-trade-info-bulk-data-files">Load UK Trade Info Bulk Data Files</h3>
+<p>This package has been developed to work with HMRC Monthly Import data. For more details, see the package <a href="https://github.com/jbrowell/bulktrends/">README</a>. We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an <code>.rds</code> for quicker loading in the future.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>imports <span class="ot">&lt;-</span> <span class="fu">read_uktradeinfo</span>(<span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">&quot;imports/&quot;</span>))</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(imports, <span class="at">file =</span> <span class="fu">paste0</span>(data_directory,<span class="st">&quot;imports.rds&quot;</span>))</span>
@@ -2249,16 +2251,16 @@ vertical-align: -.125em;
 6:          0    imp        0 2016-01-01 2016-01-31</code></pre>
 </div>
 </div>
-<section id="things-to-be-aware-of" class="level3">
-<h3 class="anchored" data-anchor-id="things-to-be-aware-of">Things to be aware of</h3>
+<section id="things-to-be-aware-of" class="level4">
+<h4 class="anchored" data-anchor-id="things-to-be-aware-of">Things to be aware of</h4>
 <ul>
 <li><p>Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data (see <a href="https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources">methodology and quality report</a> for more information on the data).</p></li>
 <li><p>Low value Trade EU: Imports via port code QVV only report chapter of <code>COMCODE</code> and do not include <code>NET_MASS</code>.</p></li>
 </ul>
 </section>
 </section>
-<section id="request-data-from-uk-trade-data-api" class="level2">
-<h2 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h2>
+<section id="request-data-from-uk-trade-data-api" class="level3">
+<h3 class="anchored" data-anchor-id="request-data-from-uk-trade-data-api">Request Data from UK Trade Data API</h3>
 <p>Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Commodity <span class="ot">&lt;-</span> <span class="fu">uktrades_request</span>(<span class="at">endpoint =</span> <span class="st">&quot;Commodity&quot;</span>)<span class="sc">$</span>value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2290,8 +2292,8 @@ vertical-align: -.125em;
 </div>
 </div>
 </section>
-<section id="quick-visualisation" class="level2">
-<h2 class="anchored" data-anchor-id="quick-visualisation">Quick Visualisation</h2>
+<section id="quick-visualisation" class="level3">
+<h3 class="anchored" data-anchor-id="quick-visualisation">Quick Visualisation</h3>
 <p>The <code>comcode_plot()</code> function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).</p>
 <p>Here are some examples:</p>
 <div class="cell">
@@ -2359,8 +2361,8 @@ Commodity code (Cn8):    16041428  —  Prepared or preserved skipjack, whole or
 </div>
 </div>
 </section>
-<section id="filter-by-commodity-groups" class="level2">
-<h2 class="anchored" data-anchor-id="filter-by-commodity-groups">Filter by commodity groups</h2>
+<section id="filter-by-commodity-groups" class="level3">
+<h3 class="anchored" data-anchor-id="filter-by-commodity-groups">Filter by commodity groups</h3>
 <p><code>bulktrends</code> includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called <code>comcode_groups</code> is included in <code>bulktrends</code> and loaded along with the package. Warning: <code>comcode_groups</code> does not include any suppressed codes, e.g. “01——”, take care when using.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports[COMCODE <span class="sc">%in%</span> comcode_groups<span class="sc">$</span>animal_SPS])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2392,8 +2394,8 @@ Commodity code (Cn8):    16041428  —  Prepared or preserved skipjack, whole or
 </div>
 </div>
 </section>
-<section id="anomaly-detection" class="level2">
-<h2 class="anchored" data-anchor-id="anomaly-detection">Anomaly detection</h2>
+<section id="anomaly-detection" class="level3">
+<h3 class="anchored" data-anchor-id="anomaly-detection">Anomaly detection</h3>
 <p>For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types (“AO” additive outliers, “LS” level shifts, “TC” temporary changes, “IO” innovative outliers and “SLS” seasonal level shifts).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> <span class="fu">extract_ts</span>(imports, <span class="st">&quot;01&quot;</span>, <span class="at">quantity=</span><span class="st">&quot;NET_MASS&quot;</span>)</span>
@@ -2456,15 +2458,18 @@ Outliers:
 </div>
 </div>
 </section>
-<section id="examples-using-ipaffs-data" class="level2">
-<h2 class="anchored" data-anchor-id="examples-using-ipaffs-data">Examples using IPAFFS data</h2>
-<p>The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with <code>bulktrends</code>. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the <a href="https://www.food.gov.uk/our-work/imports-intelligence-hub">FSA</a> website for more information. We can load a single csv file or all csv files in a directory (and subdirectories) using <code>read_ipaffs()</code>.</p>
+</section>
+<section id="daily-ipaffs-data" class="level2">
+<h2 class="anchored" data-anchor-id="daily-ipaffs-data">Daily IPAFFS Data</h2>
+<section id="load-ipaffs-data-files" class="level3">
+<h3 class="anchored" data-anchor-id="load-ipaffs-data-files">Load IPAFFS Data Files</h3>
+<p>The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with <code>bulktrends</code>. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the <a href="https://www.food.gov.uk/our-work/imports-intelligence-hub">FSA</a> website for more information). We can load a single csv file or all csv files in a directory (and subdirectories) using <code>read_ipaffs()</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>imports_ipaffs <span class="ot">&lt;-</span> <span class="fu">read_ipaffs</span>(<span class="at">path =</span> <span class="fu">paste0</span>(data_directory,<span class="st">&quot;imports_ipaffs&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>For consistency, some column names have been standardised. For example, (i) date columns include <code>DATE_START</code> and <code>DATE_END</code>, (ii) all variations of net weight columns across <code>.csv</code> files have been renamed as <code>NET_MASS</code> and (iii) all variations of commodity code columns are renamed as <code>COMCODE</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports_ipaffs[,<span class="dv">1</span><span class="sc">:</span><span class="dv">56</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(imports_ipaffs[,<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>,<span class="dv">9</span>,<span class="dv">10</span>,<span class="dv">55</span>,<span class="dv">56</span>,<span class="dv">43</span>,<span class="dv">17</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   YearOfDeclaration QuarterOfDeclaration MonthOfDeclaration DayOfDeclaration
               &lt;char&gt;               &lt;char&gt;             &lt;char&gt;           &lt;char&gt;
@@ -2474,123 +2479,19 @@ Outliers:
 4:              2017                   Q1                  2               15
 5:              2017                   Q1                  2               16
 6:              2017                   Q1                  2               16
-   ConsignorCountry EntryBIPcountryISOcode BorderInspectionPost
-             &lt;char&gt;                 &lt;char&gt;               &lt;char&gt;
-1:               IN                     GB             Stansted
-2:               CN                     GB            Liverpool
-3:               AU                     GB        Southampton P
-4:               AU                     GB        Southampton P
-5:               NZ                     GB        Southampton P
-6:               NZ                     GB        Southampton P
-   ConsigneeCountry ImporterCountry CountryOfOrigin CountryFromWhereConsigned
-             &lt;char&gt;          &lt;char&gt;          &lt;char&gt;                    &lt;char&gt;
-1:               GB              GB              IN                     India
-2:               GB              GB              CN                     China
-3:               GB              GB              AU                 Australia
-4:               GB              GB              AU                 Australia
-5:               GB              GB              NZ               New Zealand
-6:               GB              GB              NZ               New Zealand
-   DeliveryISO DeliveryType ForRe_import   ForInternalMarket GrossWeight_Kg
-        &lt;char&gt;       &lt;char&gt;       &lt;char&gt;              &lt;char&gt;         &lt;char&gt;
-1:          GB        CVEDP           No Animal Feedingstuff            2.2
-2:          GB        CVEDP           No Animal Feedingstuff          12905
-3:          GB        CVEDP           No   Human Consumption        13329.5
-4:          GB        CVEDP           No   Human Consumption        13329.5
-5:          GB        CVEDP           No   Human Consumption       18415.46
-6:          GB        CVEDP           No   Human Consumption          18348
-   NET_MASS TransshipmentExitBIPcountryISOcode ExitBIPcountryTransit
-      &lt;num&gt;                             &lt;char&gt;                &lt;char&gt;
-1:     0.63                                  /                     /
-2: 10502.00                                  /                     /
-3: 12575.70                                  /                     /
-4: 12575.70                                  /                     /
-5: 17979.20                                  /                     /
-6: 17952.00                                  /                     /
-   DocumentaryCheck IdentityCheck PhysicalCheck LaboratoryTests1 TestedFor
-             &lt;char&gt;        &lt;char&gt;        &lt;char&gt;           &lt;char&gt;    &lt;char&gt;
-1:  notsatisfactory  satisfactory       notdone               No         -
-2:     satisfactory  satisfactory       notdone               No         -
-3:     satisfactory  satisfactory       notdone               No         -
-4:     satisfactory  satisfactory       notdone               No         -
-5:     satisfactory  satisfactory       notdone               No         -
-6:     satisfactory  satisfactory       notdone               No         -
-   Results1 AcceptableForTranshipment TranshipmentBIP TranshipmentEU_BIP
-     &lt;char&gt;                    &lt;char&gt;          &lt;char&gt;             &lt;char&gt;
-1:        -            Not Acceptable               /                  /
-2:        -                Acceptable               /                  /
-3:        -                Acceptable               /                  /
-4:        -                Acceptable               /                  /
-5:        -                Acceptable               /                  /
-6:        -                Acceptable               /                  /
-   TranshipmentUnitNumber TransitTo3rdCountry TransitExitBIP TracesUnitNumber
-                   &lt;char&gt;              &lt;char&gt;         &lt;char&gt;           &lt;char&gt;
-1:                      /                   -              /                /
-2:                      /                   -              /                /
-3:                      /                   -              /                /
-4:                      /                   -              /                /
-5:                      /                   -              /                /
-6:                      /                   -              /                /
-   AcceptableForInternalMarket
-                        &lt;char&gt;
-1:                           -
-2:         Animal Feedingstuff
-3:           Human Consumption
-4:           Human Consumption
-5:           Human Consumption
-6:           Human Consumption
-   AcceptableForSpecificWarehouseProcedure_Article12.4and13  NotAcceptable
-                                                     &lt;char&gt;         &lt;char&gt;
-1:                                                        - 2. Destruction
-2:                                                        -              -
-3:                                                        -              -
-4:                                                        -              -
-5:                                                        -              -
-6:                                                        -              -
-                   RefusalReasons DateOfSignature YearOfDecision
-                           &lt;char&gt;          &lt;char&gt;         &lt;char&gt;
-1: 1. Absence/Invalid Certificate      2017-04-28           2017
-2:                              -      2017-04-07           2017
-3:                              -      2017-04-07           2017
-4:                              -      2017-04-07           2017
-5:                              -      2017-04-03           2017
-6:                              -      2017-04-03           2017
-   QuarterOfDecision MonthOfDecision DayOfDecision LaboratoryTests2  COMCODE
-              &lt;char&gt;          &lt;char&gt;        &lt;char&gt;           &lt;char&gt;   &lt;char&gt;
-1:                Q2               4            28                -   230910
-2:                Q2               4             7                -   230910
-3:                Q2               4             7                - 02044250
-4:                Q2               4             7                - 02044310
-5:                Q2               4             3                - 02069099
-6:                Q2               4             3                - 02044310
-      Commodity_List    Species          Species_List CountryOfDestination
-              &lt;char&gt;     &lt;char&gt;                &lt;char&gt;               &lt;char&gt;
-1:          00230910          -                             United Kingdom
-2:          00230910          -                             United Kingdom
-3: 02044250|02044310 Ovis Aries Ovis Aries|Ovis Aries       United Kingdom
-4: 02044250|02044310 Ovis Aries Ovis Aries|Ovis Aries       United Kingdom
-5:          02069099 Ovis Aries            Ovis Aries       United Kingdom
-6:          02044310 Ovis Aries            Ovis Aries       United Kingdom
-   Motivation LaboratoryTests3 SampleDate Results2 SampleCount
-       &lt;char&gt;           &lt;char&gt;     &lt;char&gt;   &lt;char&gt;      &lt;char&gt;
-1:          -                -                   -           -
-2:          -                -                   -           -
-3:          -                -                   -           -
-4:          -                -                   -           -
-5:          -                -                   -           -
-6:          -                -                   -           -
-   LaboratoryTestConclusion ReleasedDate DATE_START   DATE_END
-                     &lt;char&gt;       &lt;char&gt;     &lt;Date&gt;     &lt;Date&gt;
-1:                        -              2017-01-23 2017-01-23
-2:                        -              2017-02-10 2017-02-10
-3:                        -              2017-02-15 2017-02-15
-4:                        -              2017-02-15 2017-02-15
-5:                        -              2017-02-16 2017-02-16
-6:                        -              2017-02-16 2017-02-16</code></pre>
+   ImporterCountry CountryOfOrigin DATE_START   DATE_END  COMCODE NET_MASS
+            &lt;char&gt;          &lt;char&gt;     &lt;Date&gt;     &lt;Date&gt;   &lt;char&gt;    &lt;num&gt;
+1:              GB              IN 2017-01-23 2017-01-23   230910     0.63
+2:              GB              CN 2017-02-10 2017-02-10   230910 10502.00
+3:              GB              AU 2017-02-15 2017-02-15 02044250 12575.70
+4:              GB              AU 2017-02-15 2017-02-15 02044310 12575.70
+5:              GB              NZ 2017-02-16 2017-02-16 02069099 17979.20
+6:              GB              NZ 2017-02-16 2017-02-16 02044310 17952.00</code></pre>
 </div>
 </div>
 </section>
-<section id="data-visualisation" class="level2">
-<h2 class="anchored" data-anchor-id="data-visualisation">Data Visualisation</h2>
+<section id="data-visualisation" class="level3">
+<h3 class="anchored" data-anchor-id="data-visualisation">Data Visualisation</h3>
 <p>The <code>comcode_plot()</code> function can be used to also visualise daily time series. For the IPAFFS data, we can currently view <code>NET_MASS</code> and <code>volume</code> as follows:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">comcode_plot</span>(imports_ipaffs[DATE_START<span class="sc">&gt;=</span><span class="st">&quot;2024-01-01&quot;</span>],</span>
@@ -2631,8 +2532,8 @@ Outliers:
 </div>
 </div>
 </section>
-<section id="anomaly-detection-1" class="level2">
-<h2 class="anchored" data-anchor-id="anomaly-detection-1">Anomaly detection</h2>
+<section id="anomaly-detection-1" class="level3">
+<h3 class="anchored" data-anchor-id="anomaly-detection-1">Anomaly detection</h3>
 <p>The anomaly detection procedure described using the monthly HMRC data can also be applied to the daily IPAFFS data. This involves using the same functions, such as, <code>extract_ts</code> to obtain the time series of a given commodity code, <code>select_best_model</code> to select an appropriate model from a set of candidate models and using the outlier detection algorithm to identify the various types of outliers.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> <span class="fu">extract_ts</span>(imports_ipaffs,</span>
@@ -2676,7 +2577,8 @@ Outliers:
 <span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(hs2_anomalies_netmass)</span>
 <span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(hs2_anomalies_volume)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded in the current version of the html.</p>
+<p>Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded in the current version of the userguide.</p>
+</section>
 </section>
 
 </main>

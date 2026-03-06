@@ -42,9 +42,11 @@ Parallel computation is supported in `bullktrends` using on the [`future` framew
 future::plan("multisession")
 ```
 
-## Load UK Trade Info Bulk Data Files
+## Monthly UK Trade Info Data
 
-So far, this package has been developed to work with HMRC Monthly Import data. For more details, see the package [README](https://github.com/jbrowell/bulktrends/). We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an `.rds` for quicker loading in the future.
+### Load UK Trade Info Bulk Data Files
+
+This package has been developed to work with HMRC Monthly Import data. For more details, see the package [README](https://github.com/jbrowell/bulktrends/). We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an `.rds` for quicker loading in the future.
 
 ```{r load-trade-data}
 #| include: false
@@ -70,13 +72,13 @@ saveRDS(imports, file = paste0(data_directory,"imports.rds"))
 head(imports)
 ```
 
-### Things to be aware of
+#### Things to be aware of
 
 -   Country of origin reporting changes from 2022 onward, individual EU countries are specified where previously they were not. There is therefore a large increase in volume (number or rows) of import data (see [methodology and quality report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information on the data).
 
 -   Low value Trade EU: Imports via port code QVV only report chapter of `COMCODE` and do not include `NET_MASS`.
 
-## Request Data from UK Trade Data API
+### Request Data from UK Trade Data API
 
 Download look-up tables, e.g. for commodity codes and ports, and save, or load if already available.
 
@@ -107,7 +109,7 @@ Commodity <- uktrades_request(endpoint = "Commodity")$value
 head(Commodity)
 ```
 
-## Quick Visualisation
+### Quick Visualisation
 
 The `comcode_plot()` function produces time plots of imports by various measures included in import data, including mass, value (£) and volume (number of imports).
 
@@ -133,7 +135,7 @@ comcode_description("16041428", Commodity)
 
 ```
 
-## Filter by commodity groups
+### Filter by commodity groups
 
 `bulktrends` includes useful groupings of commodity codes, such as plants and animals relevant for Sanitary and Phytosanitary Controls (SPS). An object called `comcode_groups` is included in `bulktrends` and loaded along with the package. Warning: `comcode_groups` does not include any suppressed codes, e.g. "01------", take care when using.
 
@@ -143,7 +145,7 @@ comcode_description("16041428", Commodity)
 head(imports[COMCODE %in% comcode_groups$animal_SPS])
 ```
 
-## Anomaly detection
+### Anomaly detection
 
 For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types ("AO" additive outliers, "LS" level shifts, "TC" temporary changes, "IO" innovative outliers and "SLS" seasonal level shifts).
 
@@ -179,9 +181,11 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
 print(hs2_anomalies)
 ```
 
-## Examples using IPAFFS data
+## Daily IPAFFS Data
 
-The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the [FSA](https://www.food.gov.uk/our-work/imports-intelligence-hub) website for more information. We can load a single csv file or all csv files in a directory (and subdirectories) using `read_ipaffs()`.
+### Load IPAFFS Data Files
+
+The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the [FSA](https://www.food.gov.uk/our-work/imports-intelligence-hub) website for more information). We can load a single csv file or all csv files in a directory (and subdirectories) using `read_ipaffs()`.
 
 ```{r load-ipaffs-data}
 
@@ -192,10 +196,10 @@ imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
 For consistency, some column names have been standardised. For example, (i) date columns include `DATE_START` and `DATE_END`, (ii) all variations of net weight columns across `.csv` files have been renamed as `NET_MASS` and (iii) all variations of commodity code columns are renamed as `COMCODE`.
 
 ```{r}
-head(imports_ipaffs[,1:56])
+head(imports_ipaffs[,c(1:4,9,10,55,56,43,17)])
 ```
 
-## Data Visualisation
+### Data Visualisation
 
 The `comcode_plot()` function can be used to also visualise daily time series. For the IPAFFS data, we can currently view `NET_MASS` and `volume` as follows:
 
@@ -223,7 +227,7 @@ plot(ts_data)
 
 ```
 
-## Anomaly detection
+### Anomaly detection
 
 The anomaly detection procedure described using the monthly HMRC data can also be applied to the daily IPAFFS data. This involves using the same functions, such as, `extract_ts` to obtain the time series of a given commodity code, `select_best_model` to select an appropriate model from a set of candidate models and using the outlier detection algorithm to identify the various types of outliers.
 
@@ -282,4 +286,4 @@ head(hs2_anomalies_volume)
 
 ```
 
-Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded in the current version of the html.
+Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded in the current version of the userguide.
