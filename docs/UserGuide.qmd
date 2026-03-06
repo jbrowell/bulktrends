@@ -52,7 +52,7 @@ if ( !exists("imports") ){
   if (file.exists(paste0(data_directory,"imports.rds"))) {
     imports <- readRDS(paste0(data_directory,"imports.rds"))
   } else {
-    imports <- read_uktradeinfo( path = paste0(data_directory,"imports/"))
+    imports <- read_uktradeinfo(path = paste0(data_directory,"imports/"))
     saveRDS(imports, file = paste0(data_directory,"imports.rds"))
   }
 }

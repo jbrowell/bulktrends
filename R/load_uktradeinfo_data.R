@@ -42,7 +42,7 @@ read_uktradeinfo <- function(path) {
 
     BDS[,NET_MASS:=suppressWarnings(as.numeric(NET_MASS))]
     BDS[,STAT_VALUE:=suppressWarnings(as.numeric(STAT_VALUE))]
-    BDS[,DATE_START := as.IDate(paste0(PERREF,"01"),format="%Y%m%d")]
+    BDS[,DATE_START := as.Date(paste0(PERREF,"01"),format="%Y%m%d")]
     BDS[,DATE_END := DATE_START + base::months(1) - lubridate::days(1)]
 
     return(BDS)
