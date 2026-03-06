@@ -22,8 +22,8 @@ comcode_plot(
 May be obtained via `uktrades_request(endpoint = "Commodity")$value`.}
 
 \item{variable}{A character string representing the variable to be visualised
-- must be the name of a numeric column in `import_data` or "volume".  If
-"volume", this is computed as the number of rows in `import_data` my time period
+- must be the name of a numeric column in `import_data` or "`volume`.  If
+`volume`, this is computed as the number of rows in `import_data` by time period
 and commodity code.}
 
 \item{date_col}{Name of column containing timestamps.}

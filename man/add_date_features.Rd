@@ -6,6 +6,15 @@
 \usage{
 add_date_features(data, date_col)
 }
+\arguments{
+\item{data}{A `data.table` containing trade data.}
+
+\item{date_col}{Name of column containing timestamps.}
+}
+\value{
+A `data.table` with the original data and additional calendar features, including
+day of week, day of year, UK holiday indicators etc.
+}
 \description{
-Add date features
+A function that identifies the features (bank holidays) of dates provided.
 }

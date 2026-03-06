@@ -2,7 +2,7 @@
 % Please edit documentation in R/detect_anomalies.R
 \name{detect_anomalies}
 \alias{detect_anomalies}
-\title{Large scale anomaly detection}
+\title{Large-scale anomaly detection}
 \usage{
 detect_anomalies(
   import_data,
@@ -16,11 +16,11 @@ detect_anomalies(
 )
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns "COMCODE" and `quantity`.}
+\item{import_data}{A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.}
 
 \item{codes}{A vector of HS2/HS4/HS6/CN8 codes}
 
-\item{quantity}{Quantity to be analysed, e.g. "NET_MASS" or "STAT_VALUE".}
+\item{quantity}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
 
 \item{date_col}{Name of column containing timestamps.}
 

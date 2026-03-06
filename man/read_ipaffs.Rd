@@ -2,12 +2,20 @@
 % Please edit documentation in R/load_ipaffs_data.R
 \name{read_ipaffs}
 \alias{read_ipaffs}
-\title{Load bulk daily data from IPAFFS}
+\title{Load bulk daily data from IPAFFS (Import of Products, Animals, Food and Feed System)}
 \usage{
 read_ipaffs(path)
 }
+\arguments{
+\item{path}{Path to a file to read, or directory containing multiple files,
+files in sub-directories are read recursively.}
+}
+\value{
+A `data.table` of trade data with columns containing timestamps.
+}
 \description{
-Load bulk daily data from IPAFFS
+Load a single or multiple daily data `.csv` files in a directory (and its
+sub-directories) from IPAFFS
 }
 \details{
 Leading pairs of 00s dropped

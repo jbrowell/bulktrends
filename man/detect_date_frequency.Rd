@@ -6,6 +6,12 @@
 \usage{
 detect_date_frequency(dates)
 }
+\arguments{
+\item{dates}{A vector of dates or name of column containing timestamps.}
+}
+\value{
+A character string indicating the detected date frequency: "day", "week", or "month".
+}
 \description{
-Detect date frequency
+This function detects the frequency of a time series.
 }

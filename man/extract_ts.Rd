@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{extract_ts}
 \alias{extract_ts}
-\title{Extract of monthly time series of "NET_MASS" for a given commodity code}
+\title{Extract of monthly or daily time series for a given commodity code}
 \usage{
 extract_ts(
   import_data,
@@ -15,14 +15,14 @@ extract_ts(
 }
 \arguments{
 \item{import_data}{A `data.table` containing trade data. Must include columns
-"COMCODE", "month" and `quantity`.}
+`COMCODE` and specified `quantity`.}
 
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
 \item{date_col}{Name of column containing timestamps.}
 
 \item{quantity}{Quantity to be extracted and aggregated as time series, e.g.
-"NET_MASS" or "STAT_VALUE".}
+`NET_MASS` or `STAT_VALUE` or `volume`.}
 
 \item{fill_missing}{This function returns a continuous time series. Values
 for missing dates are filled with this value.}
@@ -33,7 +33,7 @@ for missing dates are filled with this value.}
 A `data.table` with date and quantity columns.
 }
 \description{
-This function extracts the monthly sum "NET_MASS" from import_data for
+This function extracts the sum of a given quantity from import_data for
 any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 }
 \details{
