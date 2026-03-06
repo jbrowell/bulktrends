@@ -1,4 +1,4 @@
-#' Load bulk data form UK Trade Info
+#' Load bulk data from UK Trade Info
 #'
 #' Load a single bulk data file of all files in a directory (and its
 #' sub-directories) from UK Trade Info.
@@ -6,7 +6,7 @@
 #' @param path Path to a file to read, or directory containing multiple files,
 #' files in sub-directories are read recursively.
 #'
-#' @return A `data.table` of trade data with a POSIXct timestamp.
+#' @return A `data.table` of trade data with columns containing timestamps.
 #'
 #' @details
 #' This function can be slow to read a large number of files but is much faster

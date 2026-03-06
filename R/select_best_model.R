@@ -1,4 +1,3 @@
-#'
 #' Extract suitable model matrix for a given commodity code
 #'
 #' This function evaluates a set of formulas with linear_trend and seasonal terms

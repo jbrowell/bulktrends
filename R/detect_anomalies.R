@@ -1,11 +1,11 @@
-#' Large scale anomaly detection
+#' Large-scale anomaly detection
 #'
 #' This function loops over a list of commodity codes, selects a regression model,
 #' and detects anomalies.
 #'
-#' @param import_data A `data.table` containing trade data. Must include columns "COMCODE" and `quantity`.
+#' @param import_data A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.
 #' @param codes A vector of HS2/HS4/HS6/CN8 codes
-#' @param quantity Quantity to be analysed, e.g. "NET_MASS" or "STAT_VALUE".
+#' @param quantity Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
 #' @param model_selection_metric Selection criteria passed to `select_best_model()`
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.

@@ -1,10 +1,18 @@
-#' Load bulk daily data from IPAFFS
+#' Load bulk daily data from IPAFFS (Import of Products, Animals, Food and Feed System)
+#'
+#' Load a single or multiple daily data `.csv` files in a directory (and its
+#' sub-directories) from IPAFFS
 #'
 #'
+#' @param path Path to a file to read, or directory containing multiple files,
+#' files in sub-directories are read recursively.
+#'
+#' @return A `data.table` of trade data with columns containing timestamps.
 #'
 #' @details
 #' Leading pairs of 00s dropped
 #' Missing leading 0 added to COMCODE of odd length
+#'
 #' @export
 
 read_ipaffs <- function(path) {

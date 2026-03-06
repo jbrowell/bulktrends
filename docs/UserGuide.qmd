@@ -222,6 +222,7 @@ plot(ts_data)
 The anomaly detection procedure described using the monthly HMRC data can also be applied to the daily IPAFFS data. This involves using the same functions, such as, `extract_ts` to obtain the time series of a given commodity code, `select_best_model` to select an appropriate model from a set of candidate models and using the outlier detection algorithm to identify the various types of outliers.
 
 ```{r}
+#| eval: false
 #| warning: false
 
 ts_data <- extract_ts(imports_ipaffs,
@@ -251,17 +252,27 @@ plot.tsoutliers(detect_anomaly)
 Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection:
 
 ```{r}
+#| eval: false
 #| warning: false
 
 hs2_codes <- unique(substr(imports_ipaffs$COMCODE, 1,2))
 
-hs2_anomalies <- detect_anomalies(import_data = imports_ipaffs,
+hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs,
                                   codes = hs2_codes[1:3],
+                                  quantity = "NET_MASS",
                                   scale=T,
                                   cval=5,
                                   types = c("AO", "LS", "TC", "IO"),
                                   freq = "day")
 
-head(hs2_anomalies)
+hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
+                                  codes = hs2_codes[1:3],
+                                  quantity = "volume",
+                                  scale=T,
+                                  cval=5,
+                                  types = c("AO", "LS", "TC", "IO"),
+                                  freq = "day")
+head(hs2_anomalies_netmass)
+head(hs2_anomalies_volume)
 
 ```

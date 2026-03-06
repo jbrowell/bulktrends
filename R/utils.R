@@ -1,4 +1,12 @@
 #' Detect date frequency
+#'
+#' This function detects the frequency of a time series.
+#'
+#' @param dates A vector of dates or name of column containing timestamps.
+#'
+#' @return A character string indicating the detected date frequency: "day", "week", or "month".
+#'
+#' @export
 detect_date_frequency <- function(dates) {
 
   if (! inherits(dates, "Date") ) {
@@ -28,17 +36,17 @@ detect_date_frequency <- function(dates) {
 
 }
 
-#' Extract of monthly time series of "NET_MASS" for a given commodity code
+#' Extract of monthly or daily time series for a given commodity code
 #'
-#' This function extracts the monthly sum "NET_MASS" from import_data for
+#' This function extracts the sum of a given quantity from import_data for
 #' any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 #'
 #' @param import_data A `data.table` containing trade data. Must include columns
-#' "COMCODE", "month" and `quantity`.
+#' `COMCODE` and specified `quantity`.
 #' @param code A character string representing any HS2/HS4/HS6/CN8 code.
 #' @param date_col Name of column containing timestamps.
 #' @param quantity Quantity to be extracted and aggregated as time series, e.g.
-#' "NET_MASS" or "STAT_VALUE".
+#' `NET_MASS` or `STAT_VALUE` or `volume`.
 #' @param fill_missing This function returns a continuous time series. Values
 #' for missing dates are filled with this value.
 #' @param freq Frequency of time series data. See details.
@@ -104,6 +112,16 @@ extract_ts <- function (import_data,
 
 
 #' Add date features
+#'
+#' A function that identifies the features (bank holidays) of dates provided.
+#'
+#' @param data A `data.table` containing trade data.
+#' @param date_col Name of column containing timestamps.
+#'
+#' @return A `data.table` with the original data and additional calendar features, including
+#' day of week, day of year, UK holiday indicators etc.
+#'
+#' @export
 add_date_features <- function(data, date_col) {
 
   # Ensure the date column is Date type
@@ -164,6 +182,7 @@ add_date_features <- function(data, date_col) {
 #'
 #' @param path Optional. Path to specific instance of `UserGuide.html`. If `NULL`, it will be retrieved from the current installation of `bulktrends`.
 #'
+#' @export
 open_userguide <- function(path=NULL) {
 
   if( is.null(path) ) {
