@@ -14,7 +14,6 @@
 #' Missing leading 0 added to COMCODE of odd length
 #'
 #' @export
-
 read_ipaffs <- function(path) {
 
   if( file_test("-f", path) ) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/load_uktradeinfo_data.R
 \name{read_uktradeinfo}
 \alias{read_uktradeinfo}
-\title{Load bulk data from UK Trade Info}
+\title{Load bulk monthly data from UK Trade Info}
 \usage{
 read_uktradeinfo(path)
 }

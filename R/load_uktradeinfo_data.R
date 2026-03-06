@@ -1,4 +1,4 @@
-#' Load bulk data from UK Trade Info
+#' Load bulk monthly data from UK Trade Info
 #'
 #' Load a single bulk data file of all files in a directory (and its
 #' sub-directories) from UK Trade Info.

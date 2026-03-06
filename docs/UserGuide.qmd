@@ -183,18 +183,24 @@ print(hs2_anomalies)
 
 The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the [FSA](https://www.food.gov.uk/our-work/imports-intelligence-hub) website for more information. We can load a single csv file or all csv files in a directory (and subdirectories) using `read_ipaffs()`.
 
-```{r}
+```{r load-ipaffs-data}
 
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
 
 ```
 
+For consistency, some column names have been standardised. For example, (i) date columns include `DATE_START` and `DATE_END`, (ii) all variations of net weight columns across `.csv` files have been renamed as `NET_MASS` and (iii) all variations of commodity code columns are renamed as `COMCODE`.
+
+```{r}
+head(imports_ipaffs[,1:56])
+```
 
 ## Data Visualisation
 
 The `comcode_plot()` function can be used to also visualise daily time series. For the IPAFFS data, we can currently view `NET_MASS` and `volume` as follows:
 
 ```{r}
+#| warning: false
 
 comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
              code =  "02",
@@ -232,7 +238,6 @@ ts_data <- extract_ts(imports_ipaffs,
                       fill_missing=0)
 
 selected_model <- select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
-print(selected_model)
 
 detect_anomaly <- tso(y = as.ts(scale(ts_data[["NET_MASS"]])),
                       cval=5,
@@ -276,3 +281,5 @@ head(hs2_anomalies_netmass)
 head(hs2_anomalies_volume)
 
 ```
+
+Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded in the current version of the html.
