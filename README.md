@@ -13,7 +13,7 @@ The functions and scripts of this package are designed to monitor, forecast and 
 ### 1. Monthly HMRC Imports
 
 
-The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics, and consist of monthly import `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. See the following resources:
+The project uses publicly available HM Revenue & Customs (HMRC) import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics, and consist of monthly import `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. See the following resources:
 
 * [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly `.txt` files representing UK import transactions for a given period.
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
