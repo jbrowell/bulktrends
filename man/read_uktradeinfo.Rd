@@ -2,7 +2,7 @@
 % Please edit documentation in R/load_uktradeinfo_data.R
 \name{read_uktradeinfo}
 \alias{read_uktradeinfo}
-\title{Load bulk data form UK Trade Info}
+\title{Load bulk monthly data from UK Trade Info}
 \usage{
 read_uktradeinfo(path)
 }
@@ -11,7 +11,7 @@ read_uktradeinfo(path)
 files in sub-directories are read recursively.}
 }
 \value{
-A `data.table` of trade data with a POSIXct timestamp.
+A `data.table` of trade data with columns containing timestamps.
 }
 \description{
 Load a single bulk data file of all files in a directory (and its

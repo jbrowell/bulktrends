@@ -10,24 +10,13 @@ The functions and scripts of this package are designed to monitor, forecast and 
 
 ## Datasets
 
-### 1. HMRC Monthly Imports
+### 1. Monthly HMRC Imports
 
 
-The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the sections below for guidelines on downloading, storing and loading the data in `R`.
-
-##### Access:
-
-Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics. See the following resources:
+The project uses publicly available HM Revenue & Customs (HMRC) import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics, and consist of monthly import `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. See the following resources:
 
 * [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly `.txt` files representing UK import transactions for a given period.
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
-
-#### Key Features:
-
-* `PERREF` -  Period Reference (YYYYMM)
-* `COMCODE` - Commodity code
-* `NET_MASS` - Net mass (kg)
-* `STAT_VALUE` - Statistical Value (£)
 
 #### Storage and loading
 
@@ -35,7 +24,18 @@ Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/late
 
 This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.Rds` object for quicker loading.
 
-### 2. Lookup Tables
+### 2. Daily IPAFFS Imports
+
+The package also supports the use of open sourced daily import data of Products, Animals, Food and Feed System (IPAFFS) published by Food Standards Agency (FSA). The data contains individual `.csv` files of animal and non-animal imports to the UK reported separately. The data files are available in the [Imports Intelligence Hub](https://www.food.gov.uk/our-work/imports-intelligence-hub) on the FSA website. See the following resources to access the historical import files:
+
+* [Trade Control – HRFNAO](https://data.food.gov.uk/catalog/datasets/71f9bee8-b68c-4ffc-813e-901d1ac20245) for non-animal origin imports.
+* [Trade Control – POAO](https://data.food.gov.uk/catalog/datasets/1a6ebd38-460e-4734-aa59-40fdd6b8e209) for animal origin imports.
+
+#### Storage and loading
+
+The `.csv` files should downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
+
+### 3. Lookup Tables
 
 In addition to trade data, a series of lookup tables are required to interpret some data fields.
 
@@ -53,9 +53,9 @@ Both lookup tables can be accessed via an API function, which allows the data to
 
 ##### Notes:
 
-1. The imports dataset and lookup tables are used together throughout the project. The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
+1. Both monthly and daily import datasets and lookup tables are used together throughout the project. The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
 
-2. There is a change in data collection procedure for UK imports from EU from January 2022 following the UK’s exit from the EU (see [report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information). This is reflected as a break in the time series for `volume`, reducing comparability for this variable before and after 2022.
+2. There is a change in data collection procedure for HMRC UK imports from EU from January 2022 following the UK’s exit from the EU (see [report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information). This is reflected as a break in the time series for HMRC `volume`, reducing comparability for this variable before and after 2022.
 
 ## Installation and User Guide
 

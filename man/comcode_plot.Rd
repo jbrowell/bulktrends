@@ -2,15 +2,14 @@
 % Please edit documentation in R/comcode_plot.R
 \name{comcode_plot}
 \alias{comcode_plot}
-\title{Visualisation of a given commodity code.
-This function displays the total weight per month for all
-levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.}
+\title{Visualisation of a given commodity code.}
 \usage{
 comcode_plot(
   import_data,
   code,
   comcode_lookup,
   variable = "NET_MASS",
+  date_col = "DATE_START",
   max_unique_comcodes = 10
 )
 }
@@ -23,15 +22,16 @@ comcode_plot(
 May be obtained via `uktrades_request(endpoint = "Commodity")$value`.}
 
 \item{variable}{A character string representing the variable to be visualised
-- must be the name of a numeric column in `import_data` or "volume".  If
-"volume", this is computed as the number of rows in `import_data` my time period
+- must be the name of a numeric column in `import_data` or "`volume`.  If
+`volume`, this is computed as the number of rows in `import_data` by time period
 and commodity code.}
+
+\item{date_col}{Name of column containing timestamps.}
 }
 \value{
 A display of total weight per month per code.
 }
 \description{
-Visualisation of a given commodity code.
-This function displays the total weight per month for all
-levels of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
+This function plots aggregated data for a given
+Hs2, Hs4, Hs6 or Cn8 code and contributions from the top Cn8.
 }

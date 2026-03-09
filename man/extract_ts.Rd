@@ -2,24 +2,45 @@
 % Please edit documentation in R/utils.R
 \name{extract_ts}
 \alias{extract_ts}
-\title{Utility helper functions}
+\title{Extract of monthly or daily time series for a given commodity code}
 \usage{
-extract_ts(import_data, code, quantity = "NET_MASS")
+extract_ts(
+  import_data,
+  code,
+  date_col = "DATE_START",
+  quantity = "NET_MASS",
+  fill_missing = NA,
+  freq = NULL
+)
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns "COMCODE", "month" and `quantity`.}
+\item{import_data}{A `data.table` containing trade data. Must include columns
+`COMCODE` and specified `quantity`.}
 
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
-\item{quantity}{Quantity to be extracted and aggregated as time series, e.g. "NET_MASS" or "STAT_VALUE".}
+\item{date_col}{Name of column containing timestamps.}
+
+\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.
+`NET_MASS` or `STAT_VALUE` or `volume`.}
+
+\item{fill_missing}{This function returns a continuous time series. Values
+for missing dates are filled with this value.}
+
+\item{freq}{Frequency of time series data. See details.}
 }
 \value{
-Time series object of NET_MASS
+A `data.table` with date and quantity columns.
 }
 \description{
-Extract of monthly time series of "NET_MASS" for a given commodity code
+This function extracts the sum of a given quantity from import_data for
+any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 }
 \details{
-This function extracts the monthly sum "NET_MASS" from import_data for
-any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
+Daily or monthly data is expected and detected automatically. Missing
+values are filled.
+
+By default, `freq=NULL` and will be detected automatically. However, this may
+fail for sparse data, in which case `freq` should be set manually. Options are
+"day", "week", or "month".
 }

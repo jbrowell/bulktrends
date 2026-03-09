@@ -1,38 +1,180 @@
-#' Utility helper functions
+#' Detect date frequency
 #'
-#' Extract of monthly time series of "NET_MASS" for a given commodity code
+#' This function detects the frequency of a time series.
 #'
-#' This function extracts the monthly sum "NET_MASS" from import_data for
+#' @param dates A vector of dates or name of column containing timestamps.
+#'
+#' @return A character string indicating the detected date frequency: "day", "week", or "month".
+#'
+#' @export
+detect_date_frequency <- function(dates) {
+
+  if (! inherits(dates, "Date") ) {
+    tryCatch(
+      dates <- as.Date(dates),
+      stop("Input not of class \"Date\" and couldn't be converted."))
+  }
+
+  # Remove duplicates and sort
+  dates <- sort(unique(dates))
+
+  if (length(dates) < 2) {
+    stop("At least 2 unique dates are required to detect frequency.")
+  }
+
+  median_gap <- median(as.numeric(diff(dates)))
+
+  if (median_gap <= 3) {
+    return("day")
+  } else if (median_gap == 7) {
+    return("week")
+  } else if (median_gap >= 28 & median_gap <= 31) {
+    return("month")
+  } else {
+    stop("Couldn't detect date frequency.")
+  }
+
+}
+
+#' Extract of monthly or daily time series for a given commodity code
+#'
+#' This function extracts the sum of a given quantity from import_data for
 #' any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 #'
-#' @param import_data A `data.table` containing trade data. Must include columns "COMCODE", "month" and `quantity`.
+#' @param import_data A `data.table` containing trade data. Must include columns
+#' `COMCODE` and specified `quantity`.
 #' @param code A character string representing any HS2/HS4/HS6/CN8 code.
-#' @param quantity Quantity to be extracted and aggregated as time series, e.g. "NET_MASS" or "STAT_VALUE".
+#' @param date_col Name of column containing timestamps.
+#' @param quantity Quantity to be extracted and aggregated as time series, e.g.
+#' `NET_MASS` or `STAT_VALUE` or `volume`.
+#' @param fill_missing This function returns a continuous time series. Values
+#' for missing dates are filled with this value.
+#' @param freq Frequency of time series data. See details.
 #'
-#' @return Time series object of NET_MASS
+#' @return A `data.table` with date and quantity columns.
+#'
+#' @details Daily or monthly data is expected and detected automatically. Missing
+#' values are filled.
+#'
+#' By default, `freq=NULL` and will be detected automatically. However, this may
+#' fail for sparse data, in which case `freq` should be set manually. Options are
+#' "day", "week", or "month".
+#'
 #'
 #' @export
 extract_ts <- function (import_data,
-                                code,
-                                quantity = "NET_MASS") {
+                        code,
+                        date_col = "DATE_START",
+                        quantity = "NET_MASS",
+                        fill_missing = NA,
+                        freq = NULL
+) {
 
-  all_months <- unique(import_data$month)
+
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
-  missing_months <- all_months[!all_months %in% import_data$month]
-  if(length(missing_months) > 0) {
-    warning("Missing months detected for code ",code,": ", paste(missing_months))
+  if( import_data[,any(is.na(get(date_col)))] ) {
+    import_data <- import_data[!is.na(get(date_col))]
+    warning("Some timestamps are NA and have been omitted.")
   }
 
-  import_data <-  import_data[, .(temp = sum(get(quantity), na.rm = T)), by=month]
-  setnames(import_data,"temp",quantity)
 
-  first_month <- import_data[, min(month)]
-  ts_data <- ts(import_data[[quantity]], start = c(year(first_month), month(first_month)), frequency = 12)
+  if( quantity=="volume") {
+    ts_data <-  import_data[, .(volume=.N), by=date_col]
+  } else {
+    ts_data <-  import_data[, .(agg = sum(get(quantity), na.rm = T)),
+                            by=date_col]
+    setnames(ts_data,"agg",quantity)
+  }
 
-  return(ts_data)
+  if (is.null(freq)) {
+    freq <- detect_date_frequency(ts_data[,get(date_col)])
+  } else {
+    if( !freq %in% c("day","week","month")) {
+      stop("\"freq\" must be \"day\",\"week\" or \"month\"")
+    }
+  }
+
+  complete_seq <- ts_data[,
+                          seq(
+                            min(get(date_col)),
+                            max(get(date_col)),
+                            by = freq)]
+
+  missing_data <- data.table()
+  missing_data[, (date_col) := complete_seq[!complete_seq %in% ts_data[,get(date_col)]]]
+  missing_data[, (quantity) := fill_missing]
+
+  ts_data <- rbind(ts_data,missing_data)
+
+  return(ts_data[order(get(date_col))])
 }
 
+
+#' Add date features
+#'
+#' A function that identifies the features (bank holidays) of dates provided.
+#'
+#' @param data A `data.table` containing trade data.
+#' @param date_col Name of column containing timestamps.
+#'
+#' @return A `data.table` with the original data and additional calendar features, including
+#' day of week, day of year, UK holiday indicators etc.
+#'
+#' @export
+add_date_features <- function(data, date_col) {
+
+  # Ensure the date column is Date type
+  if (! inherits(data[[date_col]], "Date") ) {
+    stop("Input must be of class \"Date\".")
+  }
+
+  dates <- data[[date_col]]
+  years <- as.numeric(unique(format(dates, "%Y")))
+
+  # Build a named vector of date -> holiday name
+  # Would prefer to replace this with function to
+  # get UK Bank Holidays from gov.uk API and github.com/alphagov
+  # https://www.gov.uk/bank-holidays.json
+  # https://github.com/alphagov/calendars/blob/master/lib/data/bank-holidays.json
+
+  make_holidays <- function(years) {
+
+    fixed <- c(
+      setNames(as.Date(as.character(timeDate::GoodFriday(years))),    rep("Good Friday",        length(years))),
+      setNames(as.Date(as.character(timeDate::EasterMonday(years))),  rep("Easter Monday",      length(years))),
+      setNames(as.Date(as.character(timeDate::ChristmasDay(years))),  rep("Christmas Day",      length(years))),
+      setNames(as.Date(as.character(timeDate::BoxingDay(years))),     rep("Boxing Day",         length(years))),
+      setNames(as.Date(as.character(timeDate::NewYearsDay(years))),   rep("New Year's Day",     length(years)))
+    )
+
+    find_monday <- function(y, month, start_day, label) {
+      d <- seq(as.Date(paste0(y, "-", month, "-", start_day)),
+               as.Date(paste0(y, "-", month, "-", start_day))+6, by = "day")
+      setNames(d[weekdays(d) == "Monday"][1], label)
+    }
+
+    variable <- do.call(c, lapply(years, function(y) c(
+      find_monday(y, "05", "01", "Early May Bank Holiday"),
+      find_monday(y, "05", "25", "Spring Bank Holiday"),
+      find_monday(y, "08", "25", "Summer Bank Holiday")
+    )))
+
+    c(fixed, variable)
+  }
+  warning("One-off bank holidays missing. Update required...")
+  holiday_lookup <- make_holidays(years)
+
+  data$day_of_week   <- weekdays(dates)
+  data$day_of_year   <- as.integer(format(dates, "%j"))
+  data$uk_holiday    <- names(holiday_lookup)[match(dates, holiday_lookup)]
+  data$is_uk_holiday <- !is.na(data$uk_holiday)
+
+  data[, annual_sin := sin(2*pi*day_of_year/365)]
+  data[, annual_cos := cos(2*pi*day_of_year/365)]
+
+  return(data)
+}
 
 #' View User Guide
 #'
@@ -40,6 +182,7 @@ extract_ts <- function (import_data,
 #'
 #' @param path Optional. Path to specific instance of `UserGuide.html`. If `NULL`, it will be retrieved from the current installation of `bulktrends`.
 #'
+#' @export
 open_userguide <- function(path=NULL) {
 
   if( is.null(path) ) {

@@ -1,7 +1,7 @@
 Package: bulktrends
 Type: Package
 Title: An R Package for the Analysis of UK Trade Data
-Version: 0.0.4
+Version: 0.1.0
 Authors@R: c(
     person("Jethro", "Browell", email = "jethro.browell@glasgow.ac.uk", role = c("aut", "cre")),
     person("Janeeta", "Maunthrooa", email = "Janeeta.Maunthrooa@glasgow.ac.uk", role = c("aut")))
@@ -12,8 +12,11 @@ LazyData: true
 RoxygenNote: 7.3.3
 Depends:
     R (>= 3.5.0),
+    jsonlite (>= 2.0.0),
     tsoutliers (>= 0.4),
     data.table (>= 1.14.0),
     ggplot2 (>= 3.5.1),
     forecast (>= 8.20.0),
+    lubridate (>= 1.8.0),
+    timeDate (>= 4032.109),
     future.apply (>= 1.20.0)
