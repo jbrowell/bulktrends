@@ -37,7 +37,7 @@ This can take some time if loading several years worth of data. We recommend sav
 
 ### 2. Daily IPAFFS Imports
 
-The package also supports the use of open sourced daily import data of Products, Animals, Food and Feed System (IPAFFS) published by Food Standards Agency (FSA). The data contains individual `.csv` files of animals and non-animals imports to the UK reported separately. The data files can be downloaded from the [Imports Intelligence Hub](https://www.food.gov.uk/our-work/imports-intelligence-hub). See the following resources to access the historical import files:
+The package also supports the use of open sourced daily import data of Products, Animals, Food and Feed System (IPAFFS) published by Food Standards Agency (FSA). The data contains individual `.csv` files of animal and non-animal imports to the UK reported separately. The data files are available in the [Imports Intelligence Hub](https://www.food.gov.uk/our-work/imports-intelligence-hub) on the FSA website. See the following resources to access the historical import files:
 
 * [Trade Control – HRFNAO](https://data.food.gov.uk/catalog/datasets/71f9bee8-b68c-4ffc-813e-901d1ac20245) for non-animal origin imports.
 * [Trade Control – POAO](https://data.food.gov.uk/catalog/datasets/1a6ebd38-460e-4734-aa59-40fdd6b8e209) for animal origin imports.
