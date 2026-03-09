@@ -10,7 +10,7 @@ The functions and scripts of this package are designed to monitor, forecast and 
 
 ## Datasets
 
-### 1. HMRC Monthly Imports
+### 1. Monthly HMRC Imports
 
 
 The project uses publicly available import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. The data contain monthly import data in `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. Refer to the sections below for guidelines on downloading, storing and loading the data in `R`.
@@ -35,7 +35,18 @@ Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/late
 
 This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.DS` object for quicker loading.
 
-### 2. Lookup Tables
+### 2. Daily IPAFFS Imports
+
+The package also supports the use of open sourced daily import data of Products, Animals, Food and Feed System (IPAFFS) published by Food Standards Agency (FSA). The data contains individual `.csv` files of animals and non-animals imports to the UK reported separately. The data files can be downloaded from the [Imports Intelligence Hub](https://www.food.gov.uk/our-work/imports-intelligence-hub). See
+
+* [Trade Control – HRFNAO](https://data.food.gov.uk/catalog/datasets/71f9bee8-b68c-4ffc-813e-901d1ac20245) for non-animal origin imports
+* [Trade Control – POAO](https://data.food.gov.uk/catalog/datasets/1a6ebd38-460e-4734-aa59-40fdd6b8e209) for animal origin imports
+
+#### Storage and loading
+
+The `csv` files should downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
+
+### 3. Lookup Tables
 
 In addition to trade data, a series of lookup tables are required to interpret some data fields.
 
