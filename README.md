@@ -107,6 +107,7 @@ The following people have contributed to the development of this repository:
 
 * Jethro Browell (`@jbrowell`), University of Glasgow, ([email](mailto:jethro.browell@glasgow.ac.uk))
 * Janeeta Maunthrooa (`@janeetam`), University of Glasgow
+* Damien Hicks (`@Gitmojoworking`), Defra
 
 This work has been supported by:
 
