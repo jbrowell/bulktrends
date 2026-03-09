@@ -22,13 +22,6 @@ Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), 
 * [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly `.txt` files representing UK import transactions for a given period.
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
 
-#### Key Features:
-
-* `PERREF` -  Period Reference (YYYYMM)
-* `COMCODE` - Commodity code
-* `NET_MASS` - Net mass (kg)
-* `STAT_VALUE` - Statistical Value (£)
-
 #### Storage and loading
 
 Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) should be stored in a dedicated directory and unzipped. The function `read_uktradeinfo(path)` will load a single file or all `.txt` files in the given directory and its subdirectories.
