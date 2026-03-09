@@ -44,7 +44,7 @@ The package also supports the use of open sourced daily import data of Products,
 
 #### Storage and loading
 
-The `csv` files should downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
+The `.csv` files should downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
 
 ### 3. Lookup Tables
 
