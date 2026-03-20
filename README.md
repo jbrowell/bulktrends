@@ -1,6 +1,6 @@
 # bulktrends
 
-An `R` package for analysing and forecasting UK HM Revenue & Customs trade data. For example usage, see [the user guide](https://jbrowell.github.io/bulktrends/).
+An `R` package for analysing and forecasting UK trade data. For example usage, see [the user guide](https://jbrowell.github.io/bulktrends/).
 
 :warning: This package is under development! Expect features and performance to change, including breaking changes, until the first stable release.
 
