@@ -43,6 +43,11 @@ tradetariff_request <- function(endpoint, as_of = NULL) {
 #' parallelism. Codes that fail are returned with \code{NA} dates and a message
 #' is printed for each failure.
 #'
+#' Validity dates are always retrieved from the live API. For 8-digit codes,
+#' the bundled \code{\link{tariff_commodities}} dataset is used to identify
+#' candidate 10-digit expansions, which are tried first before falling back to
+#' the full suffix search.
+#'
 #' When \code{as_of} is \code{NULL} (the default) and a commodity code is not
 #' valid on today's date, the function automatically retries the request using
 #' January 1st of each year from the previous year back to \code{search_to},
@@ -74,8 +79,18 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
   }
 
   if (nchar(comcodes) == 8) {
-    primary  <- c("00","10","99","90")
-    suffixes <- c(primary, setdiff(sprintf("%02d", 0:99), primary))
+    # Use tariff_commodities to find candidate 10-digit codes, then query each via the API
+    matches <- tariff_commodities[substr(tariff_commodities$comcode, 1, 8) == comcodes, ]
+    primary  <- c("00", "10", "99", "90")
+    suffixes <- if (nrow(matches) > 0) {
+      candidates <- substr(matches$comcode, 9, 10)
+      c(intersect(primary, candidates),
+        setdiff(candidates, primary),
+        setdiff(primary, candidates),
+        setdiff(sprintf("%02d", 0:99), union(candidates, primary)))
+    } else {
+      c(primary, setdiff(sprintf("%02d", 0:99), primary))
+    }
     for (suffix in suffixes) {
       result <- comcode_validity_dates(paste0(comcodes, suffix), as_of = as_of, search_to = search_to)
       if (!is.na(result$valid_from) || !is.na(result$valid_to)) {
@@ -114,7 +129,6 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
   }
 
   if (is.null(result)) {
-    message("Skipping '", comcodes, "': no valid response found for any date.")
     return(data.frame(comcode = comcodes, comcode_10 = NA_character_, valid_from = as.Date(NA),
                       valid_to = as.Date(NA), stringsAsFactors = FALSE))
   }
@@ -132,5 +146,46 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
     },
     stringsAsFactors = FALSE
   )
+
+}
+
+
+#' Download and save the Trade Tariff commodity code lookup table
+#'
+#' Downloads a bulk CSV of all UK Trade Tariff commodity codes with validity
+#' dates from the Department for Business and Trade Data API and saves the
+#' result as \code{tariff_commodities.rda} in the package \code{data/}
+#' directory.
+#'
+#' @details
+#' This function is intended to be run from the package root directory during
+#' development to refresh the bundled \code{\link{tariff_commodities}} dataset.
+#' It is not exported. Coverage begins from 1 January 2021; codes that expired
+#' before that date will not appear in the dataset.
+#'
+#' @return Invisibly returns the \code{data.frame} that was saved.
+#'
+#' @keywords internal
+update_tariff_commodities <- function() {
+
+  url <- paste0(
+    "https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/",
+    "latest/tables/commodities/data?format=csv&download"
+  )
+
+  raw <- utils::read.csv(url, stringsAsFactors = FALSE)
+
+  tariff_commodities <- data.frame(
+    comcode    = formatC(trimws(raw$item_id), width = 10, flag = "0"),
+    valid_from = as.Date(ifelse(raw$validity_start %in% c("", "NULL", "#NA", NA),
+                                NA, raw$validity_start)),
+    valid_to   = as.Date(ifelse(raw$validity_end   %in% c("", "NULL", "#NA", NA),
+                                NA, raw$validity_end)),
+    stringsAsFactors = FALSE
+  )
+
+  save(tariff_commodities, file = "data/tariff_commodities.rda")
+
+  invisible(tariff_commodities)
 
 }
