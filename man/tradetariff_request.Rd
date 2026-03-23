@@ -4,10 +4,15 @@
 \alias{tradetariff_request}
 \title{Request data from GOV.UK Trade Tariff API}
 \usage{
-tradetariff_request(endpoint)
+tradetariff_request(endpoint, as_of = NULL)
 }
 \arguments{
 \item{endpoint}{Endpoint appended to the base API URL. See details.}
+
+\item{as_of}{Optional date (character \code{"YYYY-MM-DD"} or \code{Date})
+passed as the \code{as_of} query parameter. When supplied, the API returns
+data as it existed on that date, allowing retrieval of commodity codes that
+are no longer valid today.}
 }
 \value{
 Result of API query.
