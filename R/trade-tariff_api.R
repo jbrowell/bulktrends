@@ -66,21 +66,22 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
   }
 
   if (length(comcodes) > 1) {
-    rows <- future.apply::future_lapply(comcodes, comcode_validity_dates)
-    return(do.call(rbind, rows))
+    rows <- future.apply::future_lapply(comcodes, comcode_validity_dates, as_of = as_of, search_to = search_to)
+    return(data.table::rbindlist(rows, fill = TRUE))
   }
 
   if (nchar(comcodes) != 10) {
-    stop("Commodity codes should have 10 digits; '", comcodes, "' has ", nchar(comcodes), ".")
     warning("Commodity codes should have 10 digits; '", comcodes, "' has ", nchar(comcodes), ".")
     return(data.frame(comcode = comcodes, valid_from = as.Date(NA), valid_to = as.Date(NA),
                       stringsAsFactors = FALSE))
   }
 
   try_request <- function(date) {
-    tryCatch(
-      tradetariff_request(paste0("commodities/", comcodes), as_of = date),
-      error = function(e) NULL
+    suppressWarnings(
+      tryCatch(
+        tradetariff_request(paste0("commodities/", comcodes), as_of = date),
+        error = function(e) NULL
+      )
     )
   }
 
