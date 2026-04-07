@@ -32,3 +32,26 @@ of any breaking changes.
 
 - Run `devtools::document()` after adding or changing roxygen2 docs to regenerate `NAMESPACE` and `man/`
 - When you're running package tests, use `devtools::load_all()`. If you encounter namespacing issues, ask me what to do.
+
+## R package development
+
+### Key commands
+
+```
+# To run code
+Rscript -e "devtools::load_all(); code"
+
+# To redocument the package
+Rscript -e "devtools::document()"
+
+# To check the package with R CMD check
+Rscript -e "devtools::check()"
+
+# To format code
+air format .
+```
+
+### Writing
+
+- Use sentence case for headings.
+- Use British English.
