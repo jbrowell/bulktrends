@@ -190,6 +190,8 @@ The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and
 ```{r load-ipaffs-data}
 
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
+#imports_ipaffs <- readRDS(paste0(data_directory,"imports_ipaffs.rds"))
+
 
 ```
 
@@ -236,7 +238,7 @@ The anomaly detection procedure described using the monthly HMRC data can also b
 #| warning: false
 
 ts_data <- extract_ts(imports_ipaffs,
-                      code = "23",
+                      code = "06",
                       quantity = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing=0)
@@ -264,10 +266,10 @@ Here is also an example of using the `detect_anomalies()` function to a selected
 #| eval: false
 #| warning: false
 
-hs2_codes <- unique(substr(imports_ipaffs$COMCODE, 1,2))
+hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
-hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[1:3],
+hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2022-01-01"],
+                                  codes = hs2_codes[4:6],
                                   quantity = "NET_MASS",
                                   scale=T,
                                   cval=5,
@@ -275,7 +277,7 @@ hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs,
                                   freq = "day")
 
 hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[1:3],
+                                  codes = hs2_codes[4:6],
                                   quantity = "volume",
                                   scale=T,
                                   cval=5,

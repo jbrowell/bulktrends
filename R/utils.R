@@ -10,10 +10,16 @@
 detect_date_frequency <- function(dates) {
 
   if (! inherits(dates, "Date") ) {
-    tryCatch(
-      dates <- as.Date(dates),
-      stop("Input not of class \"Date\" and couldn't be converted."))
+    dates <- tryCatch(
+      as.Date(dates),
+      error = function(e) {
+        stop("Input not of class \"Date\" and couldn't be converted.")}
+    )
   }
+   # tryCatch(
+ #     dates <- as.Date(dates),
+ #     stop("Input not of class \"Date\" and couldn't be converted."))
+ # }
 
   # Remove duplicates and sort
   dates <- sort(unique(dates))
@@ -87,8 +93,22 @@ extract_ts <- function (import_data,
     setnames(ts_data,"agg",quantity)
   }
 
+# if (is.null(freq)) {
+ # freq <- detect_date_frequency(ts_data[,get(date_col)])
   if (is.null(freq)) {
-    freq <- detect_date_frequency(ts_data[,get(date_col)])
+    freq <- tryCatch(
+      detect_date_frequency(ts_data[, get(date_col)]),
+      error = function(e) {
+        message(paste("Code", code, "-", e$message))
+        return(NULL)
+      }
+    )
+
+    if (is.null(freq)) {
+      return(NULL)
+    }
+
+
   } else {
     if( !freq %in% c("day","week","month")) {
       stop("\"freq\" must be \"day\",\"week\" or \"month\"")

@@ -30,12 +30,29 @@ detect_anomalies <- function(
 
   for (i in seq_along(codes)){
     #create time series
-    ts_data <- extract_ts(import_data,
-                          code = codes[i],
-                          date_col = date_col,
-                          quantity = quantity,
-                          fill_missing = 0,
-                          freq = freq)
+    #  ts_data <- extract_ts(import_data,
+    #                     code = codes[i],
+    #                     date_col = date_col,
+    ##                     quantity = quantity,
+    #                     fill_missing = 0,
+    #                    freq = freq)
+
+    #if (is.null(ts_data)) {
+    #   message(paste("Skipping code:", code, "- no valid time series data"))
+    # next
+    # }
+
+    ts_data <- tryCatch(extract_ts(import_data,
+                                   code = codes[i],
+                                   date_col = date_col,
+                                   quantity = quantity,
+                                   fill_missing = 0,
+                                   freq = freq),
+                       error = function(e) {message(paste("Skipping", code, "-", e$message))
+                                          return(NULL)})
+
+    if (is.null(ts_data)) next
+
 
     selected_model <- select_best_model(data = ts_data,
                                         response_col = quantity,
