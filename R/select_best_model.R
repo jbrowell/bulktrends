@@ -43,9 +43,21 @@ select_best_model <- function (
 
   if(is.null(formulas)) {
 
-    if(is.null(freq)){
-      freq <- detect_date_frequency(data[[date_col]])
-    }
+    #if(is.null(freq)){
+    #  freq <- detect_date_frequency(data[[date_col]])
+    #}
+
+    if (is.null(freq)) {
+      freq <- tryCatch(detect_date_frequency(data[[date_col]]),
+        error = function(e) {
+          message(paste(e$message))
+          return(NULL)
+        }
+      )}
+
+      if (is.null(freq)) {return(NULL)}
+
+
 
     if(freq=="month"){
 

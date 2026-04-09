@@ -10,16 +10,10 @@
 detect_date_frequency <- function(dates) {
 
   if (! inherits(dates, "Date") ) {
-    dates <- tryCatch(
-      as.Date(dates),
-      error = function(e) {
-        stop("Input not of class \"Date\" and couldn't be converted.")}
-    )
+     tryCatch(
+     dates <- as.Date(dates),
+      stop("Input not of class \"Date\" and couldn't be converted."))
   }
-   # tryCatch(
- #     dates <- as.Date(dates),
- #     stop("Input not of class \"Date\" and couldn't be converted."))
- # }
 
   # Remove duplicates and sort
   dates <- sort(unique(dates))

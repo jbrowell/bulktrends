@@ -29,29 +29,17 @@ detect_anomalies <- function(
   all_outliers <- list()
 
   for (i in seq_along(codes)){
-    #create time series
-    #  ts_data <- extract_ts(import_data,
-    #                     code = codes[i],
-    #                     date_col = date_col,
-    ##                     quantity = quantity,
-    #                     fill_missing = 0,
-    #                    freq = freq)
 
-    #if (is.null(ts_data)) {
-    #   message(paste("Skipping code:", code, "- no valid time series data"))
-    # next
-    # }
+    ts_data <- extract_ts(import_data,
+                          code = codes[i],
+                          date_col = date_col,
+                          quantity = quantity,
+                          fill_missing = 0,
+                          freq = freq)
 
-    ts_data <- tryCatch(extract_ts(import_data,
-                                   code = codes[i],
-                                   date_col = date_col,
-                                   quantity = quantity,
-                                   fill_missing = 0,
-                                   freq = freq),
-                       error = function(e) {message(paste("Skipping", code, "-", e$message))
-                                          return(NULL)})
-
-    if (is.null(ts_data)) next
+   ##if(inherits(ts_data, "try-error")){message(paste("Skipping", codes[i]))
+   #                  next}
+   #if (is.null(ts_data)) next
 
 
     selected_model <- select_best_model(data = ts_data,
@@ -83,7 +71,7 @@ detect_anomalies <- function(
       #store outliers data produced
       new_outliers <- as.data.table(detect_anomaly$outliers)
       new_outliers[, code := codes[i]]
-      new_outliers[, model_formula := deparse(selected_model$formula)]
+      new_outliers[, model_formula := paste(deparse(selected_model$formula), collapse = " ")]
 
       new_outliers[, time := ts_data$DATE_START[ind]]
 
