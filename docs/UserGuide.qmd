@@ -279,7 +279,7 @@ hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_STAR
                                   freq = "day")
 
 hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[4:6],
+                                  codes = hs2_codes[1:6],
                                   quantity = "volume",
                                   scale=T,
                                   cval=5,
