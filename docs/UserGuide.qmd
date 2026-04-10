@@ -238,7 +238,7 @@ The anomaly detection procedure described using the monthly HMRC data can also b
 #| warning: false
 
 ts_data <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
-                      code = "39",
+                      code = "06",
                       quantity = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing=0)
@@ -269,7 +269,7 @@ Here is also an example of using the `detect_anomalies()` function to a selected
 hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
 hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2022-01-01"],
-                                  codes = hs2_codes[1:6],
+                                  codes = hs2_codes[4:6],
                                   quantity = "NET_MASS",
                                   scale=T,
                                   cval=5,
