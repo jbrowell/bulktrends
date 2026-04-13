@@ -87,20 +87,20 @@ extract_ts <- function (import_data,
     setnames(ts_data,"agg",quantity)
   }
 
-# if (is.null(freq)) {
- # freq <- detect_date_frequency(ts_data[,get(date_col)])
-  if (is.null(freq)) {
-    freq <- tryCatch(
-      detect_date_frequency(ts_data[, get(date_col)]),
-      error = function(e) {
-        message(paste("Code", code, "-", e$message))
-        return(NULL)
-      }
-    )
+ if (is.null(freq)) {
+ freq <- detect_date_frequency(ts_data[[date_col]])
+#  if (is.null(freq)) {
+#    freq <- tryCatch(
+#      detect_date_frequency(ts_data[, get(date_col)]),
+ #     error = function(e) {
+ #       message(paste("Code", code, "-", e$message))
+ #       return(NULL)
+#      }
+#    )
 
-    if (is.null(freq)) {
-      return(NULL)
-    }
+ #   if (is.null(freq)) {
+ #     return(NULL)
+ #   }
 
 
   } else {

@@ -247,8 +247,8 @@ selected_model <- select_best_model(ts_data, response_col = "NET_MASS", scale_ts
 
 detect_anomaly <- tso(y = as.ts(scale(ts_data[["NET_MASS"]])),
                       cval=5,
-                      maxit.iloop = 10,
-                      maxit.oloop = 10,
+                      maxit.iloop = 20,
+                      maxit.oloop = 20,
                       types = c("AO", "LS", "TC", "IO"),
                       xreg = if(ncol(selected_model$xreg)>0) {
                               selected_model$xreg} else {NULL})
@@ -269,7 +269,7 @@ Here is also an example of using the `detect_anomalies()` function to a selected
 hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
 hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2022-01-01"],
-                                  codes = hs2_codes[4:6],
+                                  codes = hs2_codes[1:6],
                                   quantity = "NET_MASS",
                                   scale=T,
                                   cval=5,
