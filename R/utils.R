@@ -2,7 +2,7 @@
 #'
 #' This function detects the frequency of a time series.
 #'
-#' @param dates A vector of dates or name of column containing timestamps.
+#' @param dates A vector of dates
 #'
 #' @return A character string indicating the detected date frequency: "day", "week", or "month".
 #'
@@ -10,9 +10,7 @@
 detect_date_frequency <- function(dates) {
 
   if (! inherits(dates, "Date") ) {
-     tryCatch(
-     dates <- as.Date(dates),
-      stop("Input not of class \"Date\" and couldn't be converted."))
+     dates <- as.Date(dates)
   }
 
   # Remove duplicates and sort
@@ -87,22 +85,8 @@ extract_ts <- function (import_data,
     setnames(ts_data,"agg",quantity)
   }
 
- if (is.null(freq)) {
- freq <- detect_date_frequency(ts_data[[date_col]])
-#  if (is.null(freq)) {
-#    freq <- tryCatch(
-#      detect_date_frequency(ts_data[, get(date_col)]),
- #     error = function(e) {
- #       message(paste("Code", code, "-", e$message))
- #       return(NULL)
-#      }
-#    )
-
- #   if (is.null(freq)) {
- #     return(NULL)
- #   }
-
-
+  if (is.null(freq)) {
+    freq <- detect_date_frequency(ts_data[[date_col]])
   } else {
     if( !freq %in% c("day","week","month")) {
       stop("\"freq\" must be \"day\",\"week\" or \"month\"")

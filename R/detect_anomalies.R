@@ -36,27 +36,26 @@ detect_anomalies <- function(
                           quantity = quantity,
                           fill_missing = 0,
                           freq = freq),
-                          error = function(e){
-                           message(paste("Skipping code", codes[i], "- error in detect_date_frequency:", e$message))
-                           return(NULL)})
-    message(paste("Output: ", codes[i], class(ts_data)))
-    #print(ts_data)
-   #if(inherits(ts_data, "try-error")){message(paste("Skipping code", codes[i]))
-    #               next}
-   if (is.null(ts_data)){next}
+                          error = function(e) e)
+
+    if(inherits(ts_data, "error")){
+      message(paste("Skipping code", codes[i], ":", ts_data))
+      next
+    }
 
     selected_model <- tryCatch(select_best_model(data = ts_data,
                                         response_col = quantity,
                                         date_col = date_col,
                                         metric = model_selection_metric,
                                         scale_ts = scale_ts),
-                               error = function(e){
-                                       message(paste("Skipping code", codes[i], "- detect_date_frequency error:", e$message))
-                                       return(NULL)})
-    message(paste("Output: ", codes[i], selected_model$formula))
-    if (is.null(selected_model)) next
+                               error = function(e) e)
 
-    detect_anomaly <- try(
+    if(inherits(selected_model, "error")){
+      message(paste("Skipping code", codes[i], ":", selected_model))
+      next
+    }
+
+    detect_anomaly <- tryCatch(
       tso(
         y = if(scale_ts){
           as.ts(scale(ts_data[[quantity]]))
@@ -67,10 +66,10 @@ detect_anomalies <- function(
           selected_model$xreg
         } else {NULL},
         ...),
-      silent=T)
-    message(paste("Output: ", codes[i], class(detect_anomaly)))
-    if ("try-error" %in% class(detect_anomaly)){
-      message("Anomaly detection failed for code: ", codes[i])
+      error = function(e) e)
+
+    if(inherits(detect_anomaly, "error")){
+      message(paste("Skipping code", codes[i], ":", detect_anomaly))
       next
     }
 
