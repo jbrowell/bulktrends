@@ -285,8 +285,9 @@ hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
                                   cval=5,
                                   types = c("AO", "LS", "TC", "IO"),
                                   freq = "day")
-head(hs2_anomalies_netmass)
-head(hs2_anomalies_volume)
+
+head(hs2_anomalies_netmass$outliers)
+head(hs2_anomalies_volume$outliers)
 
 ```
 

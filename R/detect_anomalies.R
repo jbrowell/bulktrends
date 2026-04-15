@@ -29,9 +29,10 @@ detect_anomalies <- function(
   all_outliers <- list()
   tso_output <- list()
 
+  ts_prep <- list()
   for (i in seq_along(codes)){
 
-    ts_data <- tryCatch(extract_ts(import_data,
+    ts_prep[[i]] <- tryCatch(extract_ts(import_data,
                           code = codes[i],
                           date_col = date_col,
                           quantity = quantity,
@@ -39,10 +40,13 @@ detect_anomalies <- function(
                           freq = freq),
                           error = function(e) e)
 
-    if(inherits(ts_data, "error")){
-      message(paste("Skipping code", codes[i], ":", ts_data))
+    if(inherits(ts_prep, "error")){
+      message(paste("Skipping code", code, ":", ts_prep))
       next
     }
+  }
+
+  process_ts <- function(ts_data, code) {
 
     selected_model <- tryCatch(select_best_model(data = ts_data,
                                         response_col = quantity,
@@ -52,8 +56,8 @@ detect_anomalies <- function(
                                error = function(e) e)
 
     if(inherits(selected_model, "error")){
-      message(paste("Skipping code", codes[i], ":", selected_model))
-      next
+      message(paste("Skipping code", code, ":", selected_model))
+      return(NULL)
     }
 
     detect_anomaly <- tryCatch(
@@ -70,31 +74,41 @@ detect_anomalies <- function(
       error = function(e) e)
 
     if(inherits(detect_anomaly, "error")){
-      message(paste("Skipping code", codes[i], ":", detect_anomaly))
-      next
+      message(paste("Skipping code", code, ":", detect_anomaly))
+      return(NULL)
     }
 
     #storing all tso output
-    tso_output[[codes[i]]] <- list(tso=detect_anomaly,
-                                y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
-                                time_index=ts_data[[date_col]])
+    tso_entry <- setNames(
+      list(list(tso=detect_anomaly,
+                y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
+                time_index=ts_data[[date_col]])),
+      code
+    )
 
     if (nrow(detect_anomaly$outliers)>0){
 
       #store outliers data produced
       new_outliers <- as.data.table(detect_anomaly$outliers)
-      new_outliers[, code := codes[i]]
+      new_outliers[, code := code]
       new_outliers[, model_formula := paste(deparse(selected_model$formula), collapse = " ")]
 
       new_outliers[, time := ts_data$DATE_START[ind]]
 
-      all_outliers[[i]] <- new_outliers
+      outliers_entry <- new_outliers
     } else {
-      all_outliers[[i]] <- data.table(code = codes[i],
-                                      model_formula = deparse(selected_model$formula))
+      outliers_entry <- data.table(code = code,
+                                   model_formula = deparse(selected_model$formula))
     }
 
+    list(outliers = outliers_entry, tso = tso_entry)
   }
+
+  results <- future.apply::future_mapply(process_ts, ts_prep, codes, SIMPLIFY = FALSE)
+  results <- Filter(Negate(is.null), results)
+
+  all_outliers <- lapply(results, `[[`, "outliers")
+  tso_output <- do.call(c, lapply(results, `[[`, "tso"))
 
   return(list(outliers=rbindlist(all_outliers, fill = TRUE),
          tso_output=tso_output))
