@@ -27,6 +27,7 @@ detect_anomalies <- function(
 ){
 
   all_outliers <- list()
+  tso_output <- list()
 
   for (i in seq_along(codes)){
 
@@ -74,6 +75,11 @@ detect_anomalies <- function(
       next
     }
 
+    #storing all tso output
+    tso_output[[codes[i]]] <- list(tso=detect_anomaly,
+                                y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
+                                time_index=ts_data[[date_col]])
+
     if (nrow(detect_anomaly$outliers)>0){
 
       #store outliers data produced
@@ -91,6 +97,7 @@ detect_anomalies <- function(
 
   }
 
-  return(rbindlist(all_outliers, fill = TRUE))
+  return(list(outliers=rbindlist(all_outliers, fill = TRUE),
+         tso_output=tso_output))
 
 }
