@@ -12,6 +12,7 @@ detect_anomalies(
   model_selection_metric = "aic",
   scale_ts = FALSE,
   freq = NULL,
+  verbose = FALSE,
   ...
 )
 }
@@ -30,10 +31,13 @@ detect_anomalies(
 
 \item{freq}{See `?extract_ts()`}
 
+\item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
+
 \item{...}{Additional arguments passed to `tso()`}
 }
 \value{
-A table of detected outliers.
+A table of detected outliers and a list containing
+the original time series and its corresponding outlier regressors.
 }
 \description{
 This function loops over a list of commodity codes, selects a regression model,

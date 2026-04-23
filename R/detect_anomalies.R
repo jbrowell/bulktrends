@@ -10,9 +10,11 @@
 #' @param model_selection_metric Selection criteria passed to `select_best_model()`
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param freq See `?extract_ts()`
+#' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
 #' @param ... Additional arguments passed to `tso()`
 #'
-#' @returns A table of detected outliers.
+#' @returns A table of detected outliers and a list containing
+#' the original time series and its corresponding outlier regressors.
 #'
 #' @export
 detect_anomalies <- function(
@@ -28,7 +30,7 @@ detect_anomalies <- function(
 ){
 
   all_outliers <- list()
-  tso_output <- list()
+#  tso_output <- list()
   ts_prep <- list()
   list_of_ts <- list()
 
@@ -127,8 +129,8 @@ detect_anomalies <- function(
     } else {xreg<- NULL}
 
     ts_entry <-  setNames(list(list(y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
-                     xreg_outliers = xreg_outliers)),
-                     code)
+                                    xreg_outliers = xreg_outliers)),
+                          code)
 
     if (nrow(detect_anomaly$outliers)>0){
 
