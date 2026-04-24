@@ -124,14 +124,21 @@ detect_anomalies <- function(
     #ts_table <- data.table(ts_data, xreg[, outlier_cols, drop=F])
 
      if (length(outlier_cols) > 0) {
-     xreg_outliers <- xreg[, outlier_cols, drop = F]
+     xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
     } else {xreg_outliers <- NULL}
 
     } else {xreg<- NULL}
 
-    ts_entry <-  setNames(list(list(y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
-                                    xreg_outliers = xreg_outliers)),
-                          code)
+    ts_entry <-  data.table(code = code,
+                            time = ts_data[[date_col]],
+                            y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])})
+
+    ts_entry  <- cbind(ts_entry, xreg_outliers)
+
+
+      #setNames(list(list(y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
+       #                             xreg_outliers = xreg_outliers)),
+        #                  code)
 
     if (nrow(detect_anomaly$outliers)>0){
 

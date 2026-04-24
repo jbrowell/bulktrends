@@ -260,7 +260,7 @@ plot.tsoutliers(detect_anomaly)
 ```
 
 
-Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection. Based on data availability, the function has been updated to skip time series that are too short or incomplete. A verbose option is also provided, when set to `TRUE`, progress messages are displayed to help track execution steps.
+Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection. Based on data availability, the function has been updated to skip time series that are too short or incomplete. A verbose option is also provided, when set to `TRUE`, progress messages are displayed to help track execution steps. The function returns (i) a table of all detected anomalies across all codes, and (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
 
 ```{r}
 #| eval: false
@@ -269,7 +269,7 @@ Here is also an example of using the `detect_anomalies()` function to a selected
 hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
 hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2023-01-01"],
-                                  codes = hs2_codes[1:36],
+                                  codes = hs2_codes[1:10],
                                   quantity = "NET_MASS",
                                   scale=T,
                                   cval=5,
