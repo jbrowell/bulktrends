@@ -39,7 +39,7 @@ detect_anomalies <- function(
 
   for (i in seq_along(codes)){
 
-   # if (verbose) message("Starting code:", codes[i])
+    #if (verbose) message(sprintf("Running ts_prep for code %s", codes))
 
     ts_prep[[i]] <- tryCatch(extract_ts(import_data,
                           code = codes[i],
@@ -55,17 +55,18 @@ detect_anomalies <- function(
       next
     }
   }
-  #if (verbose) message("ts_prep for", codes[i])
+
   process_ts <- function(ts_data, code) {
 
     sparse_rate <- mean(ts_data[[quantity]] == 0)
-   # n_ts_data <- length(unique(ts_data[[quantity]]))
 
-    if (sparse_rate > 0.4) {
-      message(paste("Skipping code", code, ":", round(sparse_rate * 100,2), "% zeros"))
+    if (!is.na(sparse_rate) && sparse_rate > 0.4) {
+      message(paste("Skipping code", code, ":", round(sparse_rate * 100, 2), "% zeros"))
       p(sprintf("Skipped %s", code))
       return(NULL)
     }
+
+    if (verbose) message(sprintf("Running selected_model for %s", code))
 
     selected_model <- tryCatch(select_best_model(data = ts_data,
                                         response_col = quantity,
@@ -80,7 +81,7 @@ detect_anomalies <- function(
       return(NULL)
     }
 
-   # if (verbose) message("selected_model for", codes[i])
+    if (verbose) message(sprintf("Running detect_anomaly for %s", code))
 
     detect_anomaly <- tryCatch(
       tso(
