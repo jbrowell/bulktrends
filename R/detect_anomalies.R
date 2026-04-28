@@ -30,16 +30,10 @@ detect_anomalies <- function(
 ){
 
   all_outliers <- list()
-#  tso_output <- list()
   ts_prep <- list()
   list_of_ts <- list()
 
-  with_progress({
-  p <- progressor(along = codes)
-
   for (i in seq_along(codes)){
-
-    #if (verbose) message(sprintf("Running ts_prep for code %s", codes))
 
     ts_prep[[i]] <- tryCatch(extract_ts(import_data,
                           code = codes[i],
@@ -58,7 +52,7 @@ detect_anomalies <- function(
 
   process_ts <- function(ts_data, code) {
 
-    sparse_rate <- mean(ts_data[[quantity]] == 0)
+    sparse_rate <- mean(ts_data[[quantity]] == 0, na.rm=T)
 
     if (!is.na(sparse_rate) && sparse_rate > 0.4) {
       message(paste("Skipping code", code, ":", round(sparse_rate * 100, 2), "% zeros"))
@@ -101,17 +95,8 @@ detect_anomalies <- function(
       p(sprintf("Skipped %s", code))
       return(NULL)
     }
-    Sys.sleep(2)
-    p(sprintf("Processing code %s", code))
-    #if (verbose) message("Finished code: ", code)
 
-    #storing all tso output
-   # tso_entry <- setNames(
-    #  list(list(tso=detect_anomaly,
-     #           y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
-      #         time_index=ts_data[[date_col]])),
-      #code
-    #)
+    p(sprintf("Processing code %s", code))
 
     xreg <- detect_anomaly$fit$xreg
 
@@ -121,7 +106,6 @@ detect_anomalies <- function(
     #identify outlier columns
     outlier_cols <- colnames(xreg)
     outlier_cols <- outlier_cols[substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")]
-    #ts_table <- data.table(ts_data, xreg[, outlier_cols, drop=F])
 
      if (length(outlier_cols) > 0) {
      xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
@@ -131,14 +115,11 @@ detect_anomalies <- function(
 
     ts_entry <-  data.table(code = code,
                             time = ts_data[[date_col]],
-                            y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])})
+                            y=if(scale_ts){as.numeric(scale(ts_data[[quantity]]))} else{as.numeric(ts_data[[quantity]])})
 
     ts_entry  <- cbind(ts_entry, xreg_outliers)
-
-
-      #setNames(list(list(y=if(scale_ts){as.ts(scale(ts_data[[quantity]]))} else{as.ts(ts_data[[quantity]])},
-       #                             xreg_outliers = xreg_outliers)),
-        #                  code)
+    ts_entry <- list(ts_entry)
+    names(ts_entry) <- code
 
     if (nrow(detect_anomaly$outliers)>0){
 
@@ -155,19 +136,18 @@ detect_anomalies <- function(
                                    model_formula = deparse(selected_model$formula))
     }
 
-    list(outliers = outliers_entry, #tso = tso_entry,
-         list_of_ts = ts_entry)
+    list(outliers = outliers_entry, list_of_ts = ts_entry)
   }
 
-  results <- future.apply::future_mapply(process_ts, ts_prep, codes, SIMPLIFY = FALSE)
-  results <- Filter(Negate(is.null), results)
+  with_progress({
+    p <- progressor(along = codes)
+    results <- future.apply::future_mapply(process_ts, ts_prep, codes, SIMPLIFY = FALSE)
+    results <- Filter(Negate(is.null), results)
 
-  all_outliers <- lapply(results, `[[`, "outliers")
-  list_of_ts <- lapply(results, `[[`, "list_of_ts")
- # tso_output <- do.call(c, lapply(results, `[[`, "tso"))
+    all_outliers <- lapply(results, `[[`, "outliers")
+    list_of_ts <- lapply(results, `[[`, "list_of_ts")
 })
   return(list(outliers=rbindlist(all_outliers, fill = TRUE),
               list_of_ts = list_of_ts))
-         #tso_output=tso_output),
 
 }
