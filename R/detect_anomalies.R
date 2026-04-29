@@ -52,7 +52,7 @@ detect_anomalies <- function(
 
   process_ts <- function(ts_data, code) {
 
-    sparse_rate <- mean(ts_data[[quantity]] == 0, na.rm=T)
+    sparse_rate <- mean(ts_data[[quantity]] == 0, na.rm = T)
 
     if (!is.na(sparse_rate) && sparse_rate > 0.4) {
       message(paste("Skipping code", code, ":", round(sparse_rate * 100, 2), "% zeros"))
