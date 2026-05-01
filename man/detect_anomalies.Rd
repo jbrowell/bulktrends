@@ -36,8 +36,8 @@ detect_anomalies(
 \item{...}{Additional arguments passed to `tso()`}
 }
 \value{
-A table of detected outliers and a list containing
-the original time series and its corresponding outlier regressors.
+A list containing a 1. table of detected outliers and 2. a list
+of time series data with regressors, including outlier effects.
 }
 \description{
 This function loops over a list of commodity codes, selects a regression model,

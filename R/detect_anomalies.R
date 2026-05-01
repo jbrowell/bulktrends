@@ -13,8 +13,8 @@
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
 #' @param ... Additional arguments passed to `tso()`
 #'
-#' @returns A table of detected outliers and a list containing
-#' the original time series and its corresponding outlier regressors.
+#' @returns A list containing a 1. table of detected outliers and 2. a list
+#' of time series data with regressors, including outlier effects.
 #'
 #' @export
 detect_anomalies <- function(
