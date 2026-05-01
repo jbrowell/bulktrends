@@ -29,26 +29,24 @@ detect_anomalies <- function(
     ...
 ){
 
-  all_outliers <- list()
   ts_prep <- list()
-  list_of_ts <- list()
-
   for (i in seq_along(codes)){
 
     ts_prep[[i]] <- tryCatch(extract_ts(import_data,
-                          code = codes[i],
-                          date_col = date_col,
-                          quantity = quantity,
-                          fill_missing = 0,
-                          freq = freq),
-                          error = function(e) e)
+                                        code = codes[i],
+                                        date_col = date_col,
+                                        quantity = quantity,
+                                        fill_missing = 0,
+                                        freq = freq),
+                             error = function(e) e)
 
     if(inherits(ts_prep, "error")){
       message(paste("Skipping code", code, ":", ts_prep))
-      p(sprintf("Skipped %s", code))
       next
     }
   }
+
+  p <- progressr::progressor(along = codes)
 
   process_ts <- function(ts_data, code) {
 
@@ -63,10 +61,10 @@ detect_anomalies <- function(
     if (verbose) message(sprintf("Running selected_model for %s", code))
 
     selected_model <- tryCatch(select_best_model(data = ts_data,
-                                        response_col = quantity,
-                                        date_col = date_col,
-                                        metric = model_selection_metric,
-                                        scale_ts = scale_ts),
+                                                 response_col = quantity,
+                                                 date_col = date_col,
+                                                 metric = model_selection_metric,
+                                                 scale_ts = scale_ts),
                                error = function(e) e)
 
     if(inherits(selected_model, "error")){
@@ -96,30 +94,21 @@ detect_anomalies <- function(
       return(NULL)
     }
 
-    p(sprintf("Processing code %s", code))
-
     xreg <- detect_anomaly$fit$xreg
 
     if (!is.null(xreg)) {
-    xreg <- as.matrix(xreg)
+      xreg <- as.matrix(xreg)
 
-    #identify outlier columns
-    outlier_cols <- colnames(xreg)
-    outlier_cols <- outlier_cols[substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")]
+      #identify outlier columns
+      outlier_cols <- colnames(xreg)
+      outlier_cols <- outlier_cols[substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")]
 
-     if (length(outlier_cols) > 0) {
-     xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
-    } else {xreg_outliers <- NULL}
+      if (length(outlier_cols) > 0) {
+        xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
+        ts_data  <- cbind(ts_data, xreg_outliers)
+      }
 
-    } else {xreg<- NULL}
-
-    ts_entry <-  data.table(code = code,
-                            time = ts_data[[date_col]],
-                            y=if(scale_ts){as.numeric(scale(ts_data[[quantity]]))} else{as.numeric(ts_data[[quantity]])})
-
-    ts_entry  <- cbind(ts_entry, xreg_outliers)
-    ts_entry <- list(ts_entry)
-    names(ts_entry) <- code
+    }
 
     if (nrow(detect_anomaly$outliers)>0){
 
@@ -136,17 +125,19 @@ detect_anomalies <- function(
                                    model_formula = deparse(selected_model$formula))
     }
 
-    list(outliers = outliers_entry, list_of_ts = ts_entry)
+    p(sprintf("Completed code %s", code))
+    return(list(outliers = outliers_entry, list_of_ts = ts_data))
   }
 
-  with_progress({
-    p <- progressor(along = codes)
-    results <- future.apply::future_mapply(process_ts, ts_prep, codes, SIMPLIFY = FALSE)
-    results <- Filter(Negate(is.null), results)
+  results <- future.apply::future_mapply(
+    process_ts, ts_prep, codes,
+    SIMPLIFY = FALSE,
+    future.globals = c("ts_prep","codes"))
 
-    all_outliers <- lapply(results, `[[`, "outliers")
-    list_of_ts <- lapply(results, `[[`, "list_of_ts")
-})
+  results <- Filter(Negate(is.null), results)
+  all_outliers <- lapply(results, `[[`, "outliers")
+  list_of_ts <- lapply(results, `[[`, "list_of_ts")
+  names(list_of_ts) <- codes
   return(list(outliers=rbindlist(all_outliers, fill = TRUE),
               list_of_ts = list_of_ts))
 
