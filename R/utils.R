@@ -68,6 +68,9 @@ extract_ts <- function (import_data,
                         freq = NULL
 ) {
 
+  if (!inherits(import_data,"data.table")){
+    import_data <- as.data.table(import_data)
+  }
 
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
@@ -121,6 +124,10 @@ extract_ts <- function (import_data,
 #'
 #' @export
 add_date_features <- function(data, date_col) {
+
+  if (!inherits(data,"data.table")){
+    data <- as.data.table(data)
+  }
 
   # Ensure the date column is Date type
   if (! inherits(data[[date_col]], "Date") ) {
