@@ -30,22 +30,26 @@ detect_anomalies <- function(
 ){
 
   ts_prep <- list()
-  for (i in seq_along(codes)){
+  for (code in codes){
 
-    ts_prep[[i]] <- tryCatch(extract_ts(import_data,
-                                        code = codes[i],
-                                        date_col = date_col,
-                                        quantity = quantity,
-                                        fill_missing = 0,
-                                        freq = freq),
-                             error = function(e) e)
+    ts_data <- tryCatch(extract_ts(import_data,
+                                   code = code,
+                                   date_col = date_col,
+                                   quantity = quantity,
+                                   fill_missing = 0,
+                                   freq = freq),
+                        error = function(e) e)
 
-    if(inherits(ts_prep, "error")){
-      message(paste("Skipping code", code, ":", ts_prep))
+    if(inherits(ts_data, "error")){
+      message(paste("Skipping code", code, ":", ts_data))
       next
+    } else {
+      ts_prep[[code]] <- ts_data
     }
   }
 
+  rm(ts_data)
+  codes <- names(ts_prep)
   p <- progressr::progressor(along = codes)
 
   process_ts <- function(ts_data, code) {
@@ -126,18 +130,18 @@ detect_anomalies <- function(
     }
 
     p(sprintf("Completed code %s", code))
-    return(list(outliers = outliers_entry, list_of_ts = ts_data))
+    return(list(outliers = outliers_entry, list_of_ts = ts_data, code=code))
   }
 
   results <- future.apply::future_mapply(
     process_ts, ts_prep, codes,
     SIMPLIFY = FALSE,
-    future.globals = c("ts_prep","codes"))
+    future.globals = list())
 
   results <- Filter(Negate(is.null), results)
   all_outliers <- lapply(results, `[[`, "outliers")
   list_of_ts <- lapply(results, `[[`, "list_of_ts")
-  names(list_of_ts) <- codes
+  names(list_of_ts) <- lapply(results, `[[`, "code")
   return(list(outliers=rbindlist(all_outliers, fill = TRUE),
               list_of_ts = list_of_ts))
 

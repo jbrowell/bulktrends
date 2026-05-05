@@ -41,7 +41,7 @@ data_directory <- "../data/Rbuildignore/"
 
 Parallel computation is supported in `bullktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan".
 ```{r future_setup}
-future::plan("multisession")
+future::plan("multicore")
 ```
 To view progress bars, ask `progressr` to handle them.
 ```{r progressr_setup}
