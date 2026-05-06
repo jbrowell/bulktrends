@@ -11,12 +11,16 @@
 #' @export
 comcode_description <- function(code, lookup_table) {
   lookup_table <- as.data.table(lookup_table)
-  meta <- lookup_table[Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code]
+  meta <- lookup_table[
+    Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code
+  ]
 
-  desc <- list(Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
-               Hs4 = paste(meta$Hs4Code[1], " — ", meta$Hs4Description[1]),
-               Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
-               Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1]))
+  desc <- list(
+    Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
+    Hs4 = paste(meta$Hs4Code[1], " — ", meta$Hs4Description[1]),
+    Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
+    Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1])
+  )
 
   # structured format
   cat("\nHierarchical Description for Code:", code, "\n")
@@ -27,5 +31,3 @@ comcode_description <- function(code, lookup_table) {
   cat("Commodity code (Cn8):   ", desc$Cn8, "\n")
   cat("---------------------------------------------\n\n")
 }
-
-
