@@ -7,7 +7,7 @@
 detect_date_frequency(dates)
 }
 \arguments{
-\item{dates}{A vector of dates or name of column containing timestamps.}
+\item{dates}{A vector of dates}
 }
 \value{
 A character string indicating the detected date frequency: "day", "week", or "month".

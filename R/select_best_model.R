@@ -29,6 +29,10 @@ select_best_model <- function (
     freq = NULL
 ){
 
+  if (!inherits(data,"data.table")){
+    data <- as.data.table(data)
+  }
+
   if(is.null(formulas) & is.null(response_col)) {
     stop("Must supply either formulas or response_col.")
   }
@@ -44,8 +48,20 @@ select_best_model <- function (
   if(is.null(formulas)) {
 
     if(is.null(freq)){
-      freq <- detect_date_frequency(data[[date_col]])
+    freq <- detect_date_frequency(data[[date_col]])
     }
+
+   # if (is.null(freq)) {
+   # #  freq <- tryCatch(detect_date_frequency(data[[date_col]]),
+     #   error = function(e) {
+     #     message(paste(e$message))
+     #     return(NULL)
+     #   }
+     # )}
+
+     # if (is.null(freq)) {return(NULL)}
+
+
 
     if(freq=="month"){
 
@@ -66,7 +82,7 @@ select_best_model <- function (
       data[, annual_cos := cos(2*pi*day_of_year/365)]
 
 
-    } else if(detect_date_frequency(data[[date_col]])=="day"){
+    } else if(freq=="day"){
 
       formulas <- list(~ -1,
                        ~ 1,

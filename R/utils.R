@@ -2,7 +2,7 @@
 #'
 #' This function detects the frequency of a time series.
 #'
-#' @param dates A vector of dates or name of column containing timestamps.
+#' @param dates A vector of dates
 #'
 #' @return A character string indicating the detected date frequency: "day", "week", or "month".
 #'
@@ -10,9 +10,7 @@
 detect_date_frequency <- function(dates) {
 
   if (! inherits(dates, "Date") ) {
-    tryCatch(
-      dates <- as.Date(dates),
-      stop("Input not of class \"Date\" and couldn't be converted."))
+     dates <- as.Date(dates)
   }
 
   # Remove duplicates and sort
@@ -70,6 +68,9 @@ extract_ts <- function (import_data,
                         freq = NULL
 ) {
 
+  if (!inherits(import_data,"data.table")){
+    import_data <- as.data.table(import_data)
+  }
 
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
@@ -88,7 +89,7 @@ extract_ts <- function (import_data,
   }
 
   if (is.null(freq)) {
-    freq <- detect_date_frequency(ts_data[,get(date_col)])
+    freq <- detect_date_frequency(ts_data[[date_col]])
   } else {
     if( !freq %in% c("day","week","month")) {
       stop("\"freq\" must be \"day\",\"week\" or \"month\"")
@@ -123,6 +124,10 @@ extract_ts <- function (import_data,
 #'
 #' @export
 add_date_features <- function(data, date_col) {
+
+  if (!inherits(data,"data.table")){
+    data <- as.data.table(data)
+  }
 
   # Ensure the date column is Date type
   if (! inherits(data[[date_col]], "Date") ) {

@@ -4,6 +4,8 @@ format:
   html:
     embed-resources: true
     output-file: index.html
+execute:
+  freeze: auto
 ---
 
 ```{r install-package}
@@ -37,9 +39,14 @@ library(bulktrends)
 data_directory <- "../data/Rbuildignore/"
 ```
 
-Parallel computation is supported in `bullktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan"...
-```{r}
-future::plan("multisession")
+Parallel computation is supported in `bullktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan".
+```{r future_setup}
+future::plan("multicore")
+```
+To view progress bars, ask `progressr` to handle them.
+```{r progressr_setup}
+#| eval: false
+progressr::handlers(global = TRUE)
 ```
 
 ## Monthly UK Trade Info Data
@@ -48,7 +55,7 @@ future::plan("multisession")
 
 This package has been developed to work with HMRC Monthly Import data. For more details, see the package [README](https://github.com/jbrowell/bulktrends/). We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an `.rds` for quicker loading in the future.
 
-```{r load-trade-data}
+```{r load-trade-data-hidden}
 #| include: false
 if ( !exists("imports") ){
   if (file.exists(paste0(data_directory,"imports.rds"))) {
@@ -60,7 +67,7 @@ if ( !exists("imports") ){
 }
 ```
 
-```{r}
+```{r read-trade-data-not-run}
 #| eval: false
 imports <- read_uktradeinfo(path = paste0(data_directory,"imports/"))
 saveRDS(imports, file = paste0(data_directory,"imports.rds"))
@@ -68,7 +75,8 @@ saveRDS(imports, file = paste0(data_directory,"imports.rds"))
 ```
 
 
-```{r}
+```{r head_imports}
+#| paged-print: true
 head(imports)
 ```
 
@@ -106,6 +114,7 @@ Commodity <- uktrades_request(endpoint = "Commodity")$value
 ```
 
 ```{r}
+#| paged-print: true
 head(Commodity)
 ```
 
@@ -149,7 +158,7 @@ head(imports[COMCODE %in% comcode_groups$animal_SPS])
 
 For a given commodity and quantity, a series of helper functions extract an aggregated time series by summing all commodities with the specified code by time period, and a regression model is automatically selected from a pool of candidates. Finally, an outlier detection algorithm is run to detect outliers of various types ("AO" additive outliers, "LS" level shifts, "TC" temporary changes, "IO" innovative outliers and "SLS" seasonal level shifts).
 
-```{r}
+```{r tso_example}
 #| warning: false
 
 ts_data <- extract_ts(imports, "01", quantity="NET_MASS")
@@ -166,10 +175,11 @@ plot.tsoutliers(detect_anomaly)
 
 ```
 
-This procedure is performed for a list of commodity codes...
+This procedure is performed for a list of commodity codes using the `detect_anomalies()` function. It returns (i) a table of all detected anomalies across all codes, and (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
 
-```{r}
+```{r detect_anomalies_example}
 #| warning: false
+#| paged-print: true
 hs2_codes <- unique(substr(imports$COMCODE, 1,2))
 
 hs2_anomalies <- detect_anomalies(import_data = imports,
@@ -178,7 +188,7 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
                                   cval=5,
                                   types = c("AO", "LS", "TC", "IO"))
 
-print(hs2_anomalies)
+print(hs2_anomalies$outliers)
 ```
 
 ## Daily IPAFFS Data
@@ -188,8 +198,9 @@ print(hs2_anomalies)
 The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and Feed System (IPAFFS) data public which we can also analyse with `bulktrends`. The data files contain daily data of high-risk products of animal origin and high-risk food of non-animal origin imported into the United Kingdom via approved designated ports (see the [FSA](https://www.food.gov.uk/our-work/imports-intelligence-hub) website for more information). We can load a single csv file or all csv files in a directory (and subdirectories) using `read_ipaffs()`.
 
 ```{r load-ipaffs-data}
-
+#| warning: false
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
+#imports_ipaffs <- readRDS(paste0(data_directory,"imports_ipaffs.rds"))
 
 ```
 
@@ -232,11 +243,11 @@ plot(ts_data)
 The anomaly detection procedure described using the monthly HMRC data can also be applied to the daily IPAFFS data. This involves using the same functions, such as, `extract_ts` to obtain the time series of a given commodity code, `select_best_model` to select an appropriate model from a set of candidate models and using the outlier detection algorithm to identify the various types of outliers.
 
 ```{r}
-#| eval: false
+#| eval: true
 #| warning: false
 
-ts_data <- extract_ts(imports_ipaffs,
-                      code = "23",
+ts_data <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
+                      code = "07",
                       quantity = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing=0)
@@ -246,7 +257,7 @@ selected_model <- select_best_model(ts_data, response_col = "NET_MASS", scale_ts
 detect_anomaly <- tso(y = as.ts(scale(ts_data[["NET_MASS"]])),
                       cval=5,
                       maxit.iloop = 20,
-                      maxit.oloop = 50,
+                      maxit.oloop = 20,
                       types = c("AO", "LS", "TC", "IO"),
                       xreg = if(ncol(selected_model$xreg)>0) {
                               selected_model$xreg} else {NULL})
@@ -258,32 +269,34 @@ plot.tsoutliers(detect_anomaly)
 ```
 
 
-Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection:
+Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection. Based on IPAFFS data availability, the function has been updated to skip time series that are too short or incomplete. A verbose option is also provided, when set to `TRUE`, progress messages are displayed to help track execution steps. The function returns (i) a table of all detected anomalies across all codes, and (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
 
 ```{r}
 #| eval: false
 #| warning: false
 
-hs2_codes <- unique(substr(imports_ipaffs$COMCODE, 1,2))
+hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
-hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[1:3],
+hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2023-01-01"],
+                                  codes = hs2_codes[1:10],
                                   quantity = "NET_MASS",
                                   scale=T,
                                   cval=5,
                                   types = c("AO", "LS", "TC", "IO"),
-                                  freq = "day")
+                                  freq = "day",
+                                  verbose=F)
 
 hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[1:3],
+                                  codes = hs2_codes[1:6],
                                   quantity = "volume",
                                   scale=T,
                                   cval=5,
                                   types = c("AO", "LS", "TC", "IO"),
                                   freq = "day")
-head(hs2_anomalies_netmass)
-head(hs2_anomalies_volume)
+
+head(hs2_anomalies_netmass$outliers)
+head(hs2_anomalies_volume$outliers)
 
 ```
 
-Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded in the current version of the userguide.
+Note: The above anomaly detection procedures for daily data work but can take a while to run so their output has been excluded.
