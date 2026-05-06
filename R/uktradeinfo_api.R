@@ -10,9 +10,7 @@
 #'
 #' @export
 uktrades_request <- function(endpoint) {
-
-  request <- paste0("https://api.uktradeinfo.com/",endpoint)
+  request <- paste0("https://api.uktradeinfo.com/", endpoint)
 
   return(jsonlite::fromJSON(request))
-
 }

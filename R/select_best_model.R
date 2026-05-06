@@ -19,62 +19,41 @@
 #' model and the related model formula.
 #'
 #' @export
-select_best_model <- function (
-    data,
-    date_col = "DATE_START",
-    formulas = NULL,
-    response_col = NULL,
-    metric = "aic",
-    scale_ts = FALSE,
-    freq = NULL
-){
+select_best_model <- function(
+  data,
+  date_col = "DATE_START",
+  formulas = NULL,
+  response_col = NULL,
+  metric = "aic",
+  scale_ts = FALSE,
+  freq = NULL
+) {
+  if (!inherits(data, "data.table")) {
+    data <- as.data.table(data)
+  }
 
-  if(is.null(formulas) & is.null(response_col)) {
+  if (is.null(formulas) & is.null(response_col)) {
     stop("Must supply either formulas or response_col.")
   }
 
-  if(is.null(response_col)){
+  if (is.null(response_col)) {
     f <- formulas[[1]]
     response_col <- all.vars(f)[attr(terms(f), "response")]
   }
 
-  # Check completeness!
-
-
-  if(is.null(formulas)) {
-
-    if(is.null(freq)){
+  if (is.null(formulas)) {
+    if (is.null(freq)) {
       freq <- detect_date_frequency(data[[date_col]])
     }
 
-    if(freq=="month"){
-
-      formulas <- list(~ -1,
-                       ~ 1,
-                       ~ linear_trend,
-                       ~ annual_sin + annual_cos,
-                       ~ linear_trend + annual_sin + annual_cos)
-
-      formulas <- lapply(formulas, function(f) {
-        rhs <- f[[2]]
-        as.formula(paste(response_col, "~", deparse(rhs)))
-      })
-
-      data[, linear_trend := .I]
-      data[, day_of_year := as.integer(format(data[[date_col]],"%j"))]
-      data[, annual_sin := sin(2*pi*day_of_year/365)]
-      data[, annual_cos := cos(2*pi*day_of_year/365)]
-
-
-    } else if(detect_date_frequency(data[[date_col]])=="day"){
-
-      formulas <- list(~ -1,
-                       ~ 1,
-                       ~ linear_trend,
-                       ~ annual_sin + annual_cos,
-                       ~ linear_trend + annual_sin + annual_cos,
-                       ~ linear_trend + annual_sin + annual_cos + day_of_week,
-                       ~ linear_trend + annual_sin + annual_cos + day_of_week + is_uk_holiday)
+    if (freq == "month") {
+      formulas <- list(
+        ~ -1,
+        ~1,
+        ~linear_trend,
+        ~ annual_sin + annual_cos,
+        ~ linear_trend + annual_sin + annual_cos
+      )
 
       formulas <- lapply(formulas, function(f) {
         rhs <- f[[2]]
@@ -82,8 +61,27 @@ select_best_model <- function (
       })
 
       data[, linear_trend := .I]
-      data <- add_date_features(data,date_col)
+      data[, day_of_year := as.integer(format(data[[date_col]], "%j"))]
+      data[, annual_sin := sin(2 * pi * day_of_year / 365)]
+      data[, annual_cos := cos(2 * pi * day_of_year / 365)]
+    } else if (freq == "day") {
+      formulas <- list(
+        ~ -1,
+        ~1,
+        ~linear_trend,
+        ~ annual_sin + annual_cos,
+        ~ linear_trend + annual_sin + annual_cos,
+        ~ linear_trend + annual_sin + annual_cos + day_of_week,
+        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_uk_holiday
+      )
 
+      formulas <- lapply(formulas, function(f) {
+        rhs <- f[[2]]
+        as.formula(paste(response_col, "~", deparse(rhs)))
+      })
+
+      data[, linear_trend := .I]
+      data <- add_date_features(data, date_col)
     } else {
       stop("\"formulas=NULL\" and data isn't daily or monthly.")
     }
@@ -93,26 +91,35 @@ select_best_model <- function (
   metric_values <- rep(Inf, length(formulas))
 
   for (i in seq_along(formulas)) {
+    is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
 
-    is_empty_model <- deparse(formulas[[i]][[3]])=="-1"
-
-    if( !is_empty_model ) {
+    if (!is_empty_model) {
       X <- model.matrix(formulas[[i]], data = data)
     }
 
     model_fit <- try(
       forecast::auto.arima(
-        if(scale_ts){scale(data[[response_col]])}else{data[[response_col]]},
-        xreg = if(is_empty_model){NULL}else{X},
+        if (scale_ts) {
+          scale(data[[response_col]])
+        } else {
+          data[[response_col]]
+        },
+        xreg = if (is_empty_model) {
+          NULL
+        } else {
+          X
+        },
         max.p = 5,
         max.d = 1,
         max.q = 5,
         seasonal = F,
-        allowmean = F),
-      silent=T)
+        allowmean = F
+      ),
+      silent = T
+    )
 
-    if ("try-error" %in% class(model_fit)){
-      warning("Model failed: ", deparse(formulas[[i]]),"\n")
+    if ("try-error" %in% class(model_fit)) {
+      warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
     } else {
       model[[i]] <- model_fit
@@ -121,9 +128,12 @@ select_best_model <- function (
   }
 
   best_metric <- which.min(metric_values)
-  return( list(
-    xreg = if( formulas[[best_metric]]==formula(~-1) ){NULL}else{
-      model.matrix(formulas[[best_metric]], data = data)},
-    formula = formulas[[best_metric]])
-  )
+  return(list(
+    xreg = if (formulas[[best_metric]] == formula(~ -1)) {
+      NULL
+    } else {
+      model.matrix(formulas[[best_metric]], data = data)
+    },
+    formula = formulas[[best_metric]]
+  ))
 }
