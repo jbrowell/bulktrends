@@ -136,7 +136,8 @@ detect_anomalies <- function(
   results <- future.apply::future_mapply(
     process_ts, ts_prep, codes,
     SIMPLIFY = FALSE,
-    future.globals = list())
+    future.globals = list(),
+    future.packages = c("bulktrends"))
 
   results <- Filter(Negate(is.null), results)
   all_outliers <- lapply(results, `[[`, "outliers")
