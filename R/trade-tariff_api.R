@@ -14,7 +14,6 @@
 #'
 #' @export
 tradetariff_request <- function(endpoint, as_of = NULL) {
-
   url <- paste0("https://www.trade-tariff.service.gov.uk/api/v2/", endpoint)
 
   if (!is.null(as_of)) {
@@ -22,7 +21,6 @@ tradetariff_request <- function(endpoint, as_of = NULL) {
   }
 
   return(jsonlite::fromJSON(url))
-
 }
 
 
@@ -68,45 +66,75 @@ tradetariff_request <- function(endpoint, as_of = NULL) {
 #'
 #' @export
 comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
-
   if (!is.character(comcodes)) {
-    stop("'comcodes' must be a character vector. Numeric values may silently drop leading zeros.")
+    stop(
+      "'comcodes' must be a character vector. Numeric values may silently drop leading zeros."
+    )
   }
 
   if (length(comcodes) > 1) {
-    rows <- future.apply::future_lapply(comcodes, comcode_validity_dates, as_of = as_of, search_to = search_to)
+    rows <- future.apply::future_lapply(
+      comcodes,
+      comcode_validity_dates,
+      as_of = as_of,
+      search_to = search_to
+    )
     return(data.table::rbindlist(rows, fill = TRUE))
   }
 
   if (nchar(comcodes) == 8) {
     # Use tariff_commodities to find candidate 10-digit codes, then query each via the API
-    matches <- tariff_commodities[substr(tariff_commodities$comcode, 1, 8) == comcodes, ]
-    primary  <- c("00", "10", "99", "90")
+    matches <- tariff_commodities[
+      substr(tariff_commodities$comcode, 1, 8) == comcodes,
+    ]
+    primary <- c("00", "10", "99", "90")
     suffixes <- if (nrow(matches) > 0) {
       candidates <- substr(matches$comcode, 9, 10)
-      c(intersect(primary, candidates),
+      c(
+        intersect(primary, candidates),
         setdiff(candidates, primary),
         setdiff(primary, candidates),
-        setdiff(sprintf("%02d", 0:99), union(candidates, primary)))
+        setdiff(sprintf("%02d", 0:99), union(candidates, primary))
+      )
     } else {
       c(primary, setdiff(sprintf("%02d", 0:99), primary))
     }
     for (suffix in suffixes) {
-      result <- comcode_validity_dates(paste0(comcodes, suffix), as_of = as_of, search_to = search_to)
+      result <- comcode_validity_dates(
+        paste0(comcodes, suffix),
+        as_of = as_of,
+        search_to = search_to
+      )
       if (!is.na(result$valid_from) || !is.na(result$valid_to)) {
         result$comcode <- comcodes
         return(result)
       }
     }
     message("Skipping '", comcodes, "': no valid 10-digit expansion found.")
-    return(data.frame(comcode = comcodes, comcode_10 = NA_character_, valid_from = as.Date(NA),
-                      valid_to = as.Date(NA), stringsAsFactors = FALSE))
+    return(data.frame(
+      comcode = comcodes,
+      comcode_10 = NA_character_,
+      valid_from = as.Date(NA),
+      valid_to = as.Date(NA),
+      stringsAsFactors = FALSE
+    ))
   }
 
   if (nchar(comcodes) != 10) {
-    warning("Commodity codes should be 8 or 10 digits; '", comcodes, "' has ", nchar(comcodes), ".")
-    return(data.frame(comcode = comcodes, comcode_10 = NA_character_, valid_from = as.Date(NA),
-                      valid_to = as.Date(NA), stringsAsFactors = FALSE))
+    warning(
+      "Commodity codes should be 8 or 10 digits; '",
+      comcodes,
+      "' has ",
+      nchar(comcodes),
+      "."
+    )
+    return(data.frame(
+      comcode = comcodes,
+      comcode_10 = NA_character_,
+      valid_from = as.Date(NA),
+      valid_to = as.Date(NA),
+      stringsAsFactors = FALSE
+    ))
   }
 
   try_request <- function(date) {
@@ -121,7 +149,11 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
   result <- try_request(as_of)
 
   if (is.null(result) && is.null(as_of)) {
-    years <- seq(as.integer(format(Sys.Date(), "%Y")) - 1L, as.integer(search_to), by = -1L)
+    years <- seq(
+      as.integer(format(Sys.Date(), "%Y")) - 1L,
+      as.integer(search_to),
+      by = -1L
+    )
     for (yr in years) {
       result <- try_request(paste0(yr, "-01-01"))
       if (!is.null(result)) break
@@ -129,24 +161,30 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
   }
 
   if (is.null(result)) {
-    return(data.frame(comcode = comcodes, comcode_10 = NA_character_, valid_from = as.Date(NA),
-                      valid_to = as.Date(NA), stringsAsFactors = FALSE))
+    return(data.frame(
+      comcode = comcodes,
+      comcode_10 = NA_character_,
+      valid_from = as.Date(NA),
+      valid_to = as.Date(NA),
+      stringsAsFactors = FALSE
+    ))
   }
 
   attrs <- result$data$attributes
 
   data.frame(
-    comcode    = comcodes,
+    comcode = comcodes,
     comcode_10 = comcodes,
     valid_from = as.Date(substr(attrs$validity_start_date, 1, 10)),
-    valid_to   = if (is.null(attrs$validity_end_date) || is.na(attrs$validity_end_date)) {
+    valid_to = if (
+      is.null(attrs$validity_end_date) || is.na(attrs$validity_end_date)
+    ) {
       as.Date(NA)
     } else {
       as.Date(substr(attrs$validity_end_date, 1, 10))
     },
     stringsAsFactors = FALSE
   )
-
 }
 
 
@@ -167,7 +205,6 @@ comcode_validity_dates <- function(comcodes, as_of = NULL, search_to = 1990L) {
 #'
 #' @keywords internal
 update_tariff_commodities <- function() {
-
   url <- paste0(
     "https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/",
     "latest/tables/commodities/data?format=csv&download"
@@ -176,16 +213,21 @@ update_tariff_commodities <- function() {
   raw <- utils::read.csv(url, stringsAsFactors = FALSE)
 
   tariff_commodities <- data.frame(
-    comcode    = formatC(trimws(raw$item_id), width = 10, flag = "0"),
-    valid_from = as.Date(ifelse(raw$validity_start %in% c("", "NULL", "#NA", NA),
-                                NA, raw$validity_start)),
-    valid_to   = as.Date(ifelse(raw$validity_end   %in% c("", "NULL", "#NA", NA),
-                                NA, raw$validity_end)),
+    comcode = formatC(trimws(raw$item_id), width = 10, flag = "0"),
+    valid_from = as.Date(ifelse(
+      raw$validity_start %in% c("", "NULL", "#NA", NA),
+      NA,
+      raw$validity_start
+    )),
+    valid_to = as.Date(ifelse(
+      raw$validity_end %in% c("", "NULL", "#NA", NA),
+      NA,
+      raw$validity_end
+    )),
     stringsAsFactors = FALSE
   )
 
   save(tariff_commodities, file = "data/tariff_commodities.rda")
 
   invisible(tariff_commodities)
-
 }
