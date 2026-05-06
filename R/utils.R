@@ -8,9 +8,8 @@
 #'
 #' @export
 detect_date_frequency <- function(dates) {
-
-  if (! inherits(dates, "Date") ) {
-     dates <- as.Date(dates)
+  if (!inherits(dates, "Date")) {
+    dates <- as.Date(dates)
   }
 
   # Remove duplicates and sort
@@ -31,7 +30,6 @@ detect_date_frequency <- function(dates) {
   } else {
     stop("Couldn't detect date frequency.")
   }
-
 }
 
 #' Extract of monthly or daily time series for a given commodity code
@@ -60,53 +58,58 @@ detect_date_frequency <- function(dates) {
 #'
 #'
 #' @export
-extract_ts <- function (import_data,
-                        code,
-                        date_col = "DATE_START",
-                        quantity = "NET_MASS",
-                        fill_missing = NA,
-                        freq = NULL
+extract_ts <- function(
+  import_data,
+  code,
+  date_col = "DATE_START",
+  quantity = "NET_MASS",
+  fill_missing = NA,
+  freq = NULL
 ) {
-
-  if (!inherits(import_data,"data.table")){
+  if (!inherits(import_data, "data.table")) {
     import_data <- as.data.table(import_data)
   }
 
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
-  if( import_data[,any(is.na(get(date_col)))] ) {
+  if (import_data[, any(is.na(get(date_col)))]) {
     import_data <- import_data[!is.na(get(date_col))]
     warning("Some timestamps are NA and have been omitted.")
   }
 
-
-  if( quantity=="volume") {
-    ts_data <-  import_data[, .(volume=.N), by=date_col]
+  if (quantity == "volume") {
+    ts_data <- import_data[, .(volume = .N), by = date_col]
   } else {
-    ts_data <-  import_data[, .(agg = sum(get(quantity), na.rm = T)),
-                            by=date_col]
-    setnames(ts_data,"agg",quantity)
+    ts_data <- import_data[,
+      .(agg = sum(get(quantity), na.rm = T)),
+      by = date_col
+    ]
+    setnames(ts_data, "agg", quantity)
   }
 
   if (is.null(freq)) {
     freq <- detect_date_frequency(ts_data[[date_col]])
   } else {
-    if( !freq %in% c("day","week","month")) {
+    if (!freq %in% c("day", "week", "month")) {
       stop("\"freq\" must be \"day\",\"week\" or \"month\"")
     }
   }
 
   complete_seq <- ts_data[,
-                          seq(
-                            min(get(date_col)),
-                            max(get(date_col)),
-                            by = freq)]
+    seq(
+      min(get(date_col)),
+      max(get(date_col)),
+      by = freq
+    )
+  ]
 
   missing_data <- data.table()
-  missing_data[, (date_col) := complete_seq[!complete_seq %in% ts_data[,get(date_col)]]]
+  missing_data[,
+    (date_col) := complete_seq[!complete_seq %in% ts_data[, get(date_col)]]
+  ]
   missing_data[, (quantity) := fill_missing]
 
-  ts_data <- rbind(ts_data,missing_data)
+  ts_data <- rbind(ts_data, missing_data)
 
   return(ts_data[order(get(date_col))])
 }
@@ -124,13 +127,12 @@ extract_ts <- function (import_data,
 #'
 #' @export
 add_date_features <- function(data, date_col) {
-
-  if (!inherits(data,"data.table")){
+  if (!inherits(data, "data.table")) {
     data <- as.data.table(data)
   }
 
   # Ensure the date column is Date type
-  if (! inherits(data[[date_col]], "Date") ) {
+  if (!inherits(data[[date_col]], "Date")) {
     stop("Input must be of class \"Date\".")
   }
 
@@ -144,39 +146,61 @@ add_date_features <- function(data, date_col) {
   # https://github.com/alphagov/calendars/blob/master/lib/data/bank-holidays.json
 
   make_holidays <- function(years) {
-
     fixed <- c(
-      setNames(as.Date(as.character(timeDate::GoodFriday(years))),    rep("Good Friday",        length(years))),
-      setNames(as.Date(as.character(timeDate::EasterMonday(years))),  rep("Easter Monday",      length(years))),
-      setNames(as.Date(as.character(timeDate::ChristmasDay(years))),  rep("Christmas Day",      length(years))),
-      setNames(as.Date(as.character(timeDate::BoxingDay(years))),     rep("Boxing Day",         length(years))),
-      setNames(as.Date(as.character(timeDate::NewYearsDay(years))),   rep("New Year's Day",     length(years)))
+      setNames(
+        as.Date(as.character(timeDate::GoodFriday(years))),
+        rep("Good Friday", length(years))
+      ),
+      setNames(
+        as.Date(as.character(timeDate::EasterMonday(years))),
+        rep("Easter Monday", length(years))
+      ),
+      setNames(
+        as.Date(as.character(timeDate::ChristmasDay(years))),
+        rep("Christmas Day", length(years))
+      ),
+      setNames(
+        as.Date(as.character(timeDate::BoxingDay(years))),
+        rep("Boxing Day", length(years))
+      ),
+      setNames(
+        as.Date(as.character(timeDate::NewYearsDay(years))),
+        rep("New Year's Day", length(years))
+      )
     )
 
     find_monday <- function(y, month, start_day, label) {
-      d <- seq(as.Date(paste0(y, "-", month, "-", start_day)),
-               as.Date(paste0(y, "-", month, "-", start_day))+6, by = "day")
+      d <- seq(
+        as.Date(paste0(y, "-", month, "-", start_day)),
+        as.Date(paste0(y, "-", month, "-", start_day)) + 6,
+        by = "day"
+      )
       setNames(d[weekdays(d) == "Monday"][1], label)
     }
 
-    variable <- do.call(c, lapply(years, function(y) c(
-      find_monday(y, "05", "01", "Early May Bank Holiday"),
-      find_monday(y, "05", "25", "Spring Bank Holiday"),
-      find_monday(y, "08", "25", "Summer Bank Holiday")
-    )))
+    variable <- do.call(
+      c,
+      lapply(years, function(y) {
+        c(
+          find_monday(y, "05", "01", "Early May Bank Holiday"),
+          find_monday(y, "05", "25", "Spring Bank Holiday"),
+          find_monday(y, "08", "25", "Summer Bank Holiday")
+        )
+      })
+    )
 
     c(fixed, variable)
   }
   warning("One-off bank holidays missing. Update required...")
   holiday_lookup <- make_holidays(years)
 
-  data$day_of_week   <- weekdays(dates)
-  data$day_of_year   <- as.integer(format(dates, "%j"))
-  data$uk_holiday    <- names(holiday_lookup)[match(dates, holiday_lookup)]
+  data$day_of_week <- weekdays(dates)
+  data$day_of_year <- as.integer(format(dates, "%j"))
+  data$uk_holiday <- names(holiday_lookup)[match(dates, holiday_lookup)]
   data$is_uk_holiday <- !is.na(data$uk_holiday)
 
-  data[, annual_sin := sin(2*pi*day_of_year/365)]
-  data[, annual_cos := cos(2*pi*day_of_year/365)]
+  data[, annual_sin := sin(2 * pi * day_of_year / 365)]
+  data[, annual_cos := cos(2 * pi * day_of_year / 365)]
 
   return(data)
 }
@@ -188,18 +212,16 @@ add_date_features <- function(data, date_col) {
 #' @param path Optional. Path to specific instance of `UserGuide.html`. If `NULL`, it will be retrieved from the current installation of `bulktrends`.
 #'
 #' @export
-open_userguide <- function(path=NULL) {
-
-  if( is.null(path) ) {
+open_userguide <- function(path = NULL) {
+  if (is.null(path)) {
     path <- try(
       system.file("docs", "index.html", package = "bulktrends")
     )
   }
 
-  if( file.exists(path) ){
+  if (file.exists(path)) {
     browseURL(path)
   } else {
     stop("Couldn't find UserGuide.html")
   }
-
 }

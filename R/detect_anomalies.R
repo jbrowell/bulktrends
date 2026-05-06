@@ -18,29 +18,31 @@
 #'
 #' @export
 detect_anomalies <- function(
-    import_data,
-    codes,
-    quantity = "NET_MASS",
-    date_col = "DATE_START",
-    model_selection_metric = "aic",
-    scale_ts = FALSE,
-    freq = NULL,
-    verbose = FALSE,
-    ...
-){
-
+  import_data,
+  codes,
+  quantity = "NET_MASS",
+  date_col = "DATE_START",
+  model_selection_metric = "aic",
+  scale_ts = FALSE,
+  freq = NULL,
+  verbose = FALSE,
+  ...
+) {
   ts_prep <- list()
-  for (code in codes){
+  for (code in codes) {
+    ts_data <- tryCatch(
+      extract_ts(
+        import_data,
+        code = code,
+        date_col = date_col,
+        quantity = quantity,
+        fill_missing = 0,
+        freq = freq
+      ),
+      error = function(e) e
+    )
 
-    ts_data <- tryCatch(extract_ts(import_data,
-                                   code = code,
-                                   date_col = date_col,
-                                   quantity = quantity,
-                                   fill_missing = 0,
-                                   freq = freq),
-                        error = function(e) e)
-
-    if(inherits(ts_data, "error")){
+    if (inherits(ts_data, "error")) {
       message(paste("Skipping code", code, ":", ts_data))
       next
     } else {
@@ -53,46 +55,63 @@ detect_anomalies <- function(
   p <- progressr::progressor(along = codes)
 
   process_ts <- function(ts_data, code) {
-
     sparse_rate <- mean(ts_data[[quantity]] == 0, na.rm = T)
 
     if (!is.na(sparse_rate) && sparse_rate > 0.4) {
-      message(paste("Skipping code", code, ":", round(sparse_rate * 100, 2), "% zeros"))
+      message(paste(
+        "Skipping code",
+        code,
+        ":",
+        round(sparse_rate * 100, 2),
+        "% zeros"
+      ))
       p(sprintf("Skipped %s", code))
       return(NULL)
     }
 
-    if (verbose) message(sprintf("Running selected_model for %s", code))
+    if (verbose) {
+      message(sprintf("Running selected_model for %s", code))
+    }
 
-    selected_model <- tryCatch(select_best_model(data = ts_data,
-                                                 response_col = quantity,
-                                                 date_col = date_col,
-                                                 metric = model_selection_metric,
-                                                 scale_ts = scale_ts),
-                               error = function(e) e)
+    selected_model <- tryCatch(
+      select_best_model(
+        data = ts_data,
+        response_col = quantity,
+        date_col = date_col,
+        metric = model_selection_metric,
+        scale_ts = scale_ts
+      ),
+      error = function(e) e
+    )
 
-    if(inherits(selected_model, "error")){
+    if (inherits(selected_model, "error")) {
       message(paste("Skipping code", code, ":", selected_model))
       p(sprintf("Skipped %s", code))
       return(NULL)
     }
 
-    if (verbose) message(sprintf("Running detect_anomaly for %s", code))
+    if (verbose) {
+      message(sprintf("Running detect_anomaly for %s", code))
+    }
 
     detect_anomaly <- tryCatch(
       tso(
-        y = if(scale_ts){
+        y = if (scale_ts) {
           as.ts(scale(ts_data[[quantity]]))
         } else {
           as.ts(ts_data[[quantity]])
         },
-        xreg = if(ncol(selected_model$xreg)>0) {
+        xreg = if (ncol(selected_model$xreg) > 0) {
           selected_model$xreg
-        } else {NULL},
-        ...),
-      error = function(e) e)
+        } else {
+          NULL
+        },
+        ...
+      ),
+      error = function(e) e
+    )
 
-    if(inherits(detect_anomaly, "error")){
+    if (inherits(detect_anomaly, "error")) {
       message(paste("Skipping code", code, ":", detect_anomaly))
       p(sprintf("Skipped %s", code))
       return(NULL)
@@ -105,45 +124,53 @@ detect_anomalies <- function(
 
       #identify outlier columns
       outlier_cols <- colnames(xreg)
-      outlier_cols <- outlier_cols[substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")]
+      outlier_cols <- outlier_cols[
+        substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")
+      ]
 
       if (length(outlier_cols) > 0) {
         xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
-        ts_data  <- cbind(ts_data, xreg_outliers)
+        ts_data <- cbind(ts_data, xreg_outliers)
       }
-
     }
 
-    if (nrow(detect_anomaly$outliers)>0){
-
+    if (nrow(detect_anomaly$outliers) > 0) {
       #store outliers data produced
       new_outliers <- as.data.table(detect_anomaly$outliers)
       new_outliers[, code := code]
-      new_outliers[, model_formula := paste(deparse(selected_model$formula), collapse = " ")]
+      new_outliers[,
+        model_formula := paste(deparse(selected_model$formula), collapse = " ")
+      ]
 
       new_outliers[, time := ts_data$DATE_START[ind]]
 
       outliers_entry <- new_outliers
     } else {
-      outliers_entry <- data.table(code = code,
-                                   model_formula = deparse(selected_model$formula))
+      outliers_entry <- data.table(
+        code = code,
+        model_formula = deparse(selected_model$formula)
+      )
     }
 
     p(sprintf("Completed code %s", code))
-    return(list(outliers = outliers_entry, list_of_ts = ts_data, code=code))
+    return(list(outliers = outliers_entry, list_of_ts = ts_data, code = code))
   }
 
   results <- future.apply::future_mapply(
-    process_ts, ts_prep, codes,
+    process_ts,
+    ts_prep,
+    codes,
     SIMPLIFY = FALSE,
     future.globals = list(),
-    future.packages = c("bulktrends"))
+    future.packages = c("bulktrends")
+  )
 
   results <- Filter(Negate(is.null), results)
   all_outliers <- lapply(results, `[[`, "outliers")
   list_of_ts <- lapply(results, `[[`, "list_of_ts")
   names(list_of_ts) <- lapply(results, `[[`, "code")
-  return(list(outliers=rbindlist(all_outliers, fill = TRUE),
-              list_of_ts = list_of_ts))
-
+  return(list(
+    outliers = rbindlist(all_outliers, fill = TRUE),
+    list_of_ts = list_of_ts
+  ))
 }

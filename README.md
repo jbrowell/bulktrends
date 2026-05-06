@@ -84,6 +84,11 @@ The following instructions aim to clone and run the package using the appropriat
 
 All development work should be done on a dedicated branch for each new feature. When ready, submit a pull request and request a review from another developer.
 
+Use the `air` auto-formatter to apply the tidyverse style guide. See [here](https://posit-dev.github.io/air/) for set-up instructions.
+```bash
+...\bulktrends>air format .
+```
+
 ### Useful References for Contributors
 
 The following resources are recommended for anyone contributing to this repository:
