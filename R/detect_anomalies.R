@@ -13,7 +13,7 @@
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
 #' @param ... Additional arguments passed to `tso()`
 #'
-#' @returns A list containing a 1. table of detected outliers and 2. a list
+#' @return A list containing a 1. table of detected outliers and 2. a list
 #' of time series data with regressors, including outlier effects.
 #'
 #' @export
