@@ -94,6 +94,24 @@ detect_anomalies <- function(
       message(sprintf("Running detect_anomaly for %s", code))
     }
 
+    xreg_breaks <- detect_breaks(ts_data, selected_model$formula)
+    if (!is.null(xreg_breaks)) {
+      #ts_data <- cbind(ts_data, xreg_breaks)
+      xreg_all <- selected_model$xreg
+      xreg_all <- cbind(xreg_all, xreg_breaks)
+      updated_formula <- as.formula(paste(
+        deparse(selected_model$formula),
+        "+",
+        paste(colnames(xreg_breaks))
+      ))
+    }
+
+    model_formula <- if (!is.null(updated_formula)) {
+      updated_formula
+    } else {
+      selected_model$formula
+    }
+
     detect_anomaly <- tryCatch(
       tso(
         y = if (scale_ts) {

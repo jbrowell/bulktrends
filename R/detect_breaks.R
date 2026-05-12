@@ -1,10 +1,10 @@
-# Extract model matrix of breakpoint covariates of a time series with structural breaks
+# Extract column of breakpoint segments of a time series with structural breaks
 
-detect_breaks <- function(data, selected_model) {
-  xreg_breaks <- list()
+detect_breaks <- function(data, formula) {
+  #xreg_breaks <- list()
 
   bp <- breakpoints(
-    selected_model$formula,
+    formula,
     data = data,
     breaks = "BIC",
     het.err = FALSE
@@ -14,10 +14,10 @@ detect_breaks <- function(data, selected_model) {
     breaks <- bp$breakpoints
 
     if (length(breaks) > 0) {
-      segments <- breakfactor(bp)
-      xreg_breaks <- model.matrix(~segments)[, -1, drop = FALSE]
-      colnames(xreg_breaks) <- paste0("BP_SEG_", seq_len(ncol(xreg_breaks)))
+      segments <- as.matrix(breakfactor(bp))
+      #xreg_breaks <- model.matrix(~segments)[, -1, drop = FALSE]
+      colnames(segments) <- paste0("segments")
     }
   }
-  return(xreg_breaks)
+  return(segments)
 }
