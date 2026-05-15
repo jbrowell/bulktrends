@@ -4,12 +4,20 @@
 \alias{add_date_features}
 \title{Add date features}
 \usage{
-add_date_features(data, date_col)
+add_date_features(data, date_col, division = "england-and-wales",
+  holidays = NULL)
 }
 \arguments{
 \item{data}{A `data.table` containing trade data.}
 
 \item{date_col}{Name of column containing timestamps.}
+
+\item{division}{UK division for bank holiday lookup. One of
+\code{"england-and-wales"} (default), \code{"scotland"}, or \code{"northern-ireland"}.}
+
+\item{holidays}{A `data.frame` or `data.table` of bank holidays with at least
+\code{date} and \code{title} columns, as returned by \code{\link{get_uk_bank_holidays}}.
+Defaults to the bundled \code{\link{uk_bank_holidays}} dataset.}
 }
 \value{
 A `data.table` with the original data and additional calendar features, including
@@ -17,4 +25,13 @@ day of week, day of year, UK holiday indicators etc.
 }
 \description{
 A function that identifies the features (bank holidays) of dates provided.
+}
+\details{
+Bank holiday data is sourced from the bundled \code{\link{uk_bank_holidays}} dataset,
+which was compiled from the official gov.uk published data
+(\url{https://www.gov.uk/bank-holidays.json}).  The stored dataset includes
+substitute days and one-off special bank holidays.
+
+To use the latest published data call \code{\link{get_uk_bank_holidays}} and pass the
+result via the \code{holidays} argument.
 }
