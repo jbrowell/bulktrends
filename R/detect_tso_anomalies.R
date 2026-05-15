@@ -1,3 +1,5 @@
+# detection of tso outliers
+
 detect_tso_anomalies <- function(
   data,
   date_col = "DATE_START",
@@ -17,7 +19,7 @@ detect_tso_anomalies <- function(
         as.ts(data[[quantity]])
       },
 
-      xreg = if (!is.null(xreg) && ncol(xreg) > 0) {
+      xreg = if (!is.null(xreg)) {
         xreg
       } else {
         NULL
@@ -44,7 +46,7 @@ detect_tso_anomalies <- function(
 
     if (length(outlier_cols) > 0) {
       xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
-      ts_data <- cbind(ts_data, xreg_outliers)
+      data <- cbind(data, xreg_outliers)
     }
   }
 
@@ -66,7 +68,7 @@ detect_tso_anomalies <- function(
   #     model_formula = deparse(model_formula)
   #   )
   # }
-  ####
+  # ####
 
   return(list(
     #tso = run_tso,

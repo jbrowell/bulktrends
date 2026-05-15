@@ -94,23 +94,34 @@ detect_anomalies <- function(
       message(sprintf("Running detect_anomaly for %s", code))
     }
 
+    if (!is.null(selected_model$xreg) && ncol(selected_model$xreg) > 0) {
+      ts_data <- cbind(ts_data, selected_model$xreg)
+    }
+
     xreg_breaks <- detect_breaks(ts_data, selected_model$formula)
     if (!is.null(xreg_breaks)) {
-      #ts_data <- cbind(ts_data, xreg_breaks)
-      xreg_all <- selected_model$xreg
-      xreg_all <- cbind(xreg_all, xreg_breaks)
+      ts_data <- cbind(ts_data, xreg_breaks)
       updated_formula <- as.formula(paste(
         deparse(selected_model$formula),
         "+",
         paste(colnames(xreg_breaks))
       ))
+      xreg_all <- model.matrix(updated_formula, data = ts_data)
+      #xreg_all <- cbind(as.matrix(selected_model$xreg), xreg_breaks)
+      model_formula <- updated_formula
+    } else {
+      ts_data <- ts_data
+      xreg_all <- selected_model$xreg
+      model_formula <- selected_model$formula
     }
 
-    model_formula <- if (!is.null(updated_formula)) {
-      updated_formula
-    } else {
-      selected_model$formula
-    }
+    # detect_anomaly <- detect_tso_anomalies(data= ts_data,
+    #                                        code = code,
+    #                                        quantity= "NET_MASS",
+    #                                        model_formula = model_formula,
+    #                                        types = c("AO", "LS", "TC", "IO"),
+    #                                        scale_ts = F,
+    #                                        xreg = xreg_all)
 
     detect_anomaly <- tryCatch(
       tso(
@@ -119,8 +130,8 @@ detect_anomalies <- function(
         } else {
           as.ts(ts_data[[quantity]])
         },
-        xreg = if (ncol(selected_model$xreg) > 0) {
-          selected_model$xreg
+        xreg = if (!is.null(xreg_all) && ncol(xreg_all) > 0) {
+          xreg_all
         } else {
           NULL
         },
@@ -157,7 +168,7 @@ detect_anomalies <- function(
       new_outliers <- as.data.table(detect_anomaly$outliers)
       new_outliers[, code := code]
       new_outliers[,
-        model_formula := paste(deparse(selected_model$formula), collapse = " ")
+        model_formula := paste(deparse(model_formula), collapse = " ")
       ]
 
       new_outliers[, time := ts_data$DATE_START[ind]]
@@ -166,7 +177,7 @@ detect_anomalies <- function(
     } else {
       outliers_entry <- data.table(
         code = code,
-        model_formula = deparse(selected_model$formula)
+        model_formula = deparse(model_formula)
       )
     }
 

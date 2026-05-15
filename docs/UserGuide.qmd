@@ -161,7 +161,7 @@ For a given commodity and quantity, a series of helper functions extract an aggr
 ```{r tso_example}
 #| warning: false
 
-ts_data <- extract_ts(imports, "01", quantity="NET_MASS")
+ts_data <- extract_ts(imports, "08", quantity="NET_MASS")
 
 selected_model <- select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
 
