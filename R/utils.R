@@ -167,14 +167,14 @@ add_date_features <- function(
   div_filter <- division
   div_holidays <- holidays[holidays$division == div_filter, ]
 
-  # Build a named vector: date -> holiday title
-  holiday_lookup <- setNames(div_holidays$date, div_holidays$title)
+  # Build a named vector: date (as character) -> holiday title
+  holiday_lookup <- setNames(div_holidays$title, as.character(div_holidays$date))
 
   dates <- data[[date_col]]
 
   data$day_of_week <- weekdays(dates)
   data$day_of_year <- as.integer(format(dates, "%j"))
-  data$uk_holiday <- names(holiday_lookup)[match(dates, holiday_lookup)]
+  data$uk_holiday <- unname(holiday_lookup[as.character(dates)])
   data$is_uk_holiday <- !is.na(data$uk_holiday)
 
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
