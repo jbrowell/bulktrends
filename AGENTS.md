@@ -6,7 +6,7 @@ uktradeinfo and GOV.UK Trade Tariff APIs, plus time series utilities.
 You are situated inside an R package source directory. The subdirectory `R/`
 contains source files.
 
-The package under development and does not have many users; however, notify me
+The package is under development and does not have many users; however, notify me
 of any breaking changes.
 
 
