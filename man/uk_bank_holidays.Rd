@@ -34,12 +34,18 @@ bank holidays (e.g. the Queen's Platinum Jubilee 2022, King's Coronation
 2023).
 }
 \details{
-Coverage:
+Coverage of the bundled dataset (as shipped with the package):
 \itemize{
   \item England and Wales: 2010--2026
   \item Scotland: 2015--2026
   \item Northern Ireland: 2015--2026
 }
+
+\strong{Note:} When regenerating via \code{data-raw/uk_bank_holidays.R}, the
+2015--2021 data for Scotland and Northern Ireland is sourced from the
+alphagov/calendars repository (requires internet access).  If neither the
+gov.uk API nor alphagov is accessible, only the manually compiled 2022--2026
+data will be included for those two divisions.
 
 Use \code{\link{get_uk_bank_holidays}} to fetch up-to-date data directly from
 \url{https://www.gov.uk/bank-holidays.json}.
