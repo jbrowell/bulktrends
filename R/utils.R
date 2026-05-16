@@ -128,7 +128,7 @@ extract_ts <- function(
 #'   Defaults to the bundled [uk_bank_holidays] dataset.
 #'
 #' @return A `data.table` with the original data and additional calendar features, including
-#' day of week, day of year, UK holiday indicators etc.
+#' day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
 #'
 #' @details
 #' Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
@@ -171,11 +171,20 @@ add_date_features <- function(
   dates <- data[[date_col]]
   coverage_min <- min(div_holidays$date)
   coverage_max <- max(div_holidays$date)
-  out_of_range <- dates[!is.na(dates) & (dates < coverage_min | dates > coverage_max)]
+  out_of_range <- dates[
+    !is.na(dates) & (dates < coverage_min | dates > coverage_max)
+  ]
   if (length(out_of_range) > 0) {
     warning(
-      length(out_of_range), " date(s) in `data` fall outside the coverage of the ",
-      "holidays dataset for '", division, "' (", coverage_min, " to ", coverage_max, "). ",
+      length(out_of_range),
+      " date(s) in `data` fall outside the coverage of the ",
+      "holidays dataset for '",
+      division,
+      "' (",
+      coverage_min,
+      " to ",
+      coverage_max,
+      "). ",
       "UK holidays will be marked NA for those dates. ",
       "Use get_uk_bank_holidays() to fetch up-to-date data and pass it via the ",
       "`holidays` argument.",
@@ -184,12 +193,15 @@ add_date_features <- function(
   }
 
   # Build a named vector: date (as character) -> holiday title
-  holiday_lookup <- setNames(div_holidays$title, as.character(div_holidays$date))
+  holiday_lookup <- setNames(
+    div_holidays$title,
+    as.character(div_holidays$date)
+  )
 
   data$day_of_week <- weekdays(dates)
   data$day_of_year <- as.integer(format(dates, "%j"))
-  data$uk_holiday <- unname(holiday_lookup[as.character(dates)])
-  data$is_uk_holiday <- !is.na(data$uk_holiday)
+  data$holiday <- unname(holiday_lookup[as.character(dates)])
+  data$is_holiday <- !is.na(data$holiday)
 
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
@@ -203,8 +215,8 @@ add_date_features <- function(
 #' (\url{https://www.gov.uk/bank-holidays.json}) and returns them as a
 #' `data.table` in the same format as the bundled [uk_bank_holidays] dataset.
 #'
-#' @return A `data.table` with columns `date`, `title`, `notes`, `bunting`,
-#'   and `division`.  Rows are ordered by `division` then `date`.
+#' @return A `data.table` with columns `date`, `title`, `notes`, and `division`.
+#'   Rows are ordered by `division` then `date`.
 #'
 #' @details
 #' The function requires an internet connection.  If the request fails (e.g.
@@ -229,9 +241,12 @@ get_uk_bank_holidays <- function() {
     jsonlite::fromJSON(url, simplifyVector = FALSE),
     error = function(e) {
       stop(
-        "Could not fetch bank holidays from ", url, ".\n",
+        "Could not fetch bank holidays from ",
+        url,
+        ".\n",
         "Check your internet connection or use the bundled `uk_bank_holidays` ",
-        "dataset instead.\nOriginal error: ", conditionMessage(e),
+        "dataset instead.\nOriginal error: ",
+        conditionMessage(e),
         call. = FALSE
       )
     }
@@ -243,10 +258,9 @@ get_uk_bank_holidays <- function() {
     if (!is.null(div_data$events)) {
       for (ev in div_data$events) {
         records[[length(records) + 1]] <- data.frame(
-          date     = as.Date(ev$date),
-          title    = ev$title,
-          notes    = if (is.null(ev$notes)) "" else ev$notes,
-          bunting  = if (is.null(ev$bunting)) NA else ev$bunting,
+          date = as.Date(ev$date),
+          title = ev$title,
+          notes = if (is.null(ev$notes)) "" else ev$notes,
           division = div,
           stringsAsFactors = FALSE
         )

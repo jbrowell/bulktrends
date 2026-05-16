@@ -8,14 +8,13 @@
 ## `uk_bank_holidays`
 A `data.table` with the following columns:
 \describe{
-  \item{date}{Date of the bank holiday (\code{Date})}
-  \item{title}{Name of the bank holiday (\code{character})}
-  \item{notes}{Additional notes, e.g. \code{"Substitute day"} or \code{"Extra bank holiday"} (\code{character})}
-  \item{bunting}{Whether bunting is typically displayed (\code{logical})}
-  \item{division}{UK division: \code{"england-and-wales"}, \code{"scotland"}, or \code{"northern-ireland"} (\code{character})}
+  \item{date}{Date of the bank holiday (`Date`)}
+  \item{title}{Name of the bank holiday (`character`)}
+  \item{notes}{Additional notes, e.g. `"Substitute day"` or `"Extra bank holiday"` (`character`)}
+  \item{division}{UK division: `"england-and-wales"`, `"scotland"`, or `"northern-ireland"` (`character`)}
 }
-The dataset also carries a \code{created_at} attribute (a \code{character} string in
-\code{"YYYY-MM-DD"} format) recording the date on which \code{data-raw/uk_bank_holidays.R}
+The dataset also carries a `created_at` attribute (a `character` string in
+`"YYYY-MM-DD"` format) recording the date on which `data-raw/uk_bank_holidays.R`
 was last run to generate this file.
 }
 \source{
@@ -41,13 +40,23 @@ Coverage of the bundled dataset (as shipped with the package):
   \item Northern Ireland: 2015--2026
 }
 
-\strong{Note:} When regenerating via \code{data-raw/uk_bank_holidays.R}, the
-2015--2021 data for Scotland and Northern Ireland is sourced from the
-alphagov/calendars repository (requires internet access).  If neither the
-gov.uk API nor alphagov is accessible, only the manually compiled 2022--2026
-data will be included for those two divisions.
+\strong{Sources and priority:} When regenerating via
+\code{data-raw/uk_bank_holidays.R}, all three sources are attempted and
+combined for maximum date coverage.  Where the same date and division
+appears in more than one source, the highest-priority source wins:
+\enumerate{
+  \item \url{https://www.gov.uk/bank-holidays.json} — official API
+        (highest priority; supersedes all other sources)
+  \item alphagov/calendars GitHub repository — extends coverage into
+        date ranges not present in the gov.uk API
+  \item Manually compiled data — backstop for dates not covered by either
+        online source (England & Wales 2010--2014 and 2022--2026;
+        Scotland and Northern Ireland 2022--2026)
+}
+Each source is fetched independently; the script continues if one is
+unavailable.
 
-Use \code{\link{get_uk_bank_holidays}} to fetch up-to-date data directly from
+Use [get_uk_bank_holidays()] to fetch up-to-date data directly from
 \url{https://www.gov.uk/bank-holidays.json}.
 }
 \keyword{datasets}

@@ -4,8 +4,12 @@
 \alias{add_date_features}
 \title{Add date features}
 \usage{
-add_date_features(data, date_col, division = "england-and-wales",
-  holidays = NULL)
+add_date_features(
+  data,
+  date_col,
+  division = "england-and-wales",
+  holidays = NULL
+)
 }
 \arguments{
 \item{data}{A `data.table` containing trade data.}
@@ -13,30 +17,25 @@ add_date_features(data, date_col, division = "england-and-wales",
 \item{date_col}{Name of column containing timestamps.}
 
 \item{division}{UK division for bank holiday lookup. One of
-\code{"england-and-wales"} (default), \code{"scotland"}, or \code{"northern-ireland"}.}
+`"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.}
 
 \item{holidays}{A `data.frame` or `data.table` of bank holidays with at least
-\code{date} and \code{title} columns, as returned by \code{\link{get_uk_bank_holidays}}.
-Defaults to the bundled \code{\link{uk_bank_holidays}} dataset.}
+`date` and `title` columns, as returned by [get_uk_bank_holidays()].
+Defaults to the bundled [uk_bank_holidays] dataset.}
 }
 \value{
 A `data.table` with the original data and additional calendar features, including
-day of week, day of year, UK holiday indicators etc.
+day of week, day of year, \code{holiday} (holiday title or \code{NA}), and \code{is_holiday} (\code{logical}).
 }
 \description{
 A function that identifies the features (bank holidays) of dates provided.
 }
 \details{
-Bank holiday data is sourced from the bundled \code{\link{uk_bank_holidays}} dataset,
+Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
 which was compiled from the official gov.uk published data
 (\url{https://www.gov.uk/bank-holidays.json}).  The stored dataset includes
 substitute days and one-off special bank holidays.
 
-A warning is issued if any dates in \code{data} fall outside the coverage of the
-holidays dataset for the requested \code{division}.  In that case, those dates will
-have \code{uk_holiday = NA} and \code{is_uk_holiday = FALSE}.  Pass fresh data fetched
-via \code{\link{get_uk_bank_holidays}} to the \code{holidays} argument to avoid this.
-
-To use the latest published data call \code{\link{get_uk_bank_holidays}} and pass the
-result via the \code{holidays} argument.
+To use the latest published data call [get_uk_bank_holidays()] and pass the
+result via the `holidays` argument.
 }
