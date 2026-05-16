@@ -30,7 +30,7 @@ selection. Examples are "aic","aicc" or "bic".}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 
-\item{freq}{}
+\item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
 }
 \value{
 A model matrix of the linear_trend and seasonal regressors of the selected
