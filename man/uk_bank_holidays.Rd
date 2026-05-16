@@ -27,31 +27,28 @@ uk_bank_holidays
 }
 \description{
 A dataset of UK bank holidays sourced from the official gov.uk published
-data and the alphagov/calendars GitHub repository.  The dataset covers
-all three UK divisions and includes substitute days and one-off special
-bank holidays (e.g. the Queen's Platinum Jubilee 2022, King's Coronation
-2023).
+data, supplemented by the alphagov/calendars GitHub repository for older
+date ranges.  The dataset covers all three UK divisions and includes
+substitute days and one-off special bank holidays (e.g. the Queen's
+Platinum Jubilee 2022, King's Coronation 2023).
 }
 \details{
-Coverage of the bundled dataset (as shipped with the package):
+Coverage:
 \itemize{
-  \item England and Wales: 2010--2026
-  \item Scotland: 2015--2026
-  \item Northern Ireland: 2015--2026
+  \item England and Wales: 2015 to latest available in the gov.uk API
+  \item Scotland: 2015 to latest available in the gov.uk API
+  \item Northern Ireland: 2015 to latest available in the gov.uk API
 }
 
 \strong{Sources and priority:} When regenerating via
-\code{data-raw/uk_bank_holidays.R}, all three sources are attempted and
-combined for maximum date coverage.  Where the same date and division
-appears in more than one source, the highest-priority source wins:
+\code{data-raw/uk_bank_holidays.R}, both sources are attempted and combined
+for maximum date coverage.  Where the same date and division appears in both
+sources, the higher-priority source wins:
 \enumerate{
   \item \url{https://www.gov.uk/bank-holidays.json} — official API
-        (highest priority; supersedes all other sources)
+        (highest priority; supersedes the alphagov source)
   \item alphagov/calendars GitHub repository — extends coverage into
-        date ranges not present in the gov.uk API
-  \item Manually compiled data — backstop for dates not covered by either
-        online source (England & Wales 2010--2014 and 2022--2026;
-        Scotland and Northern Ireland 2022--2026)
+        older date ranges not present in the gov.uk API
 }
 Each source is fetched independently; the script continues if one is
 unavailable.
