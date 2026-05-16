@@ -80,6 +80,16 @@ The following instructions aim to clone and run the package using the appropriat
 4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
 5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
 
+### Branching Strategy
+
+This package is managed using the [Gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). In summary:
+
+* `main` contains the latest stable release.
+* `develop` is the integration branch for ongoing development.
+* New features should be developed on a `feature/<name>` branch cut from `develop` and merged back via pull request.
+* Releases are prepared on a `release/<version>` branch before being merged into both `main` and `develop`.
+* Urgent fixes to `main` are handled via `hotfix/<name>` branches.
+
 ### General Guidelines
 
 All development work should be done on a dedicated branch for each new feature. When ready, submit a pull request and request a review from another developer.
