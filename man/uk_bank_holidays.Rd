@@ -14,6 +14,9 @@ A `data.table` with the following columns:
   \item{bunting}{Whether bunting is typically displayed (\code{logical})}
   \item{division}{UK division: \code{"england-and-wales"}, \code{"scotland"}, or \code{"northern-ireland"} (\code{character})}
 }
+The dataset also carries a \code{created_at} attribute (a \code{character} string in
+\code{"YYYY-MM-DD"} format) recording the date on which \code{data-raw/uk_bank_holidays.R}
+was last run to generate this file.
 }
 \source{
 \url{https://www.gov.uk/bank-holidays}
@@ -34,8 +37,8 @@ bank holidays (e.g. the Queen's Platinum Jubilee 2022, King's Coronation
 Coverage:
 \itemize{
   \item England and Wales: 2010--2026
-  \item Scotland: 2015--2021
-  \item Northern Ireland: 2015--2021
+  \item Scotland: 2015--2026
+  \item Northern Ireland: 2015--2026
 }
 
 Use \code{\link{get_uk_bank_holidays}} to fetch up-to-date data directly from

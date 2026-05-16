@@ -28,12 +28,15 @@
 #'   \item{bunting}{Whether bunting is typically displayed (`logical`)}
 #'   \item{division}{UK division: `"england-and-wales"`, `"scotland"`, or `"northern-ireland"` (`character`)}
 #' }
+#' The dataset also carries a `created_at` attribute (a `character` string in
+#' `"YYYY-MM-DD"` format) recording the date on which `data-raw/uk_bank_holidays.R`
+#' was last run to generate this file.
 #'
 #' @details Coverage:
 #' \itemize{
 #'   \item England and Wales: 2010--2026
-#'   \item Scotland: 2015--2021
-#'   \item Northern Ireland: 2015--2021
+#'   \item Scotland: 2015--2026
+#'   \item Northern Ireland: 2015--2026
 #' }
 #'
 #' Use [get_uk_bank_holidays()] to fetch up-to-date data directly from

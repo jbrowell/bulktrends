@@ -32,6 +32,11 @@ which was compiled from the official gov.uk published data
 (\url{https://www.gov.uk/bank-holidays.json}).  The stored dataset includes
 substitute days and one-off special bank holidays.
 
+A warning is issued if any dates in \code{data} fall outside the coverage of the
+holidays dataset for the requested \code{division}.  In that case, those dates will
+have \code{uk_holiday = NA} and \code{is_uk_holiday = FALSE}.  Pass fresh data fetched
+via \code{\link{get_uk_bank_holidays}} to the \code{holidays} argument to avoid this.
+
 To use the latest published data call \code{\link{get_uk_bank_holidays}} and pass the
 result via the \code{holidays} argument.
 }

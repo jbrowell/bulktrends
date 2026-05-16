@@ -167,10 +167,24 @@ add_date_features <- function(
   div_filter <- division
   div_holidays <- holidays[holidays$division == div_filter, ]
 
+  # Warn if any dates fall outside the coverage of the holidays dataset
+  dates <- data[[date_col]]
+  coverage_min <- min(div_holidays$date)
+  coverage_max <- max(div_holidays$date)
+  out_of_range <- dates[!is.na(dates) & (dates < coverage_min | dates > coverage_max)]
+  if (length(out_of_range) > 0) {
+    warning(
+      length(out_of_range), " date(s) in `data` fall outside the coverage of the ",
+      "holidays dataset for '", division, "' (", coverage_min, " to ", coverage_max, "). ",
+      "UK holidays will be marked NA for those dates. ",
+      "Use get_uk_bank_holidays() to fetch up-to-date data and pass it via the ",
+      "`holidays` argument.",
+      call. = FALSE
+    )
+  }
+
   # Build a named vector: date (as character) -> holiday title
   holiday_lookup <- setNames(div_holidays$title, as.character(div_holidays$date))
-
-  dates <- data[[date_col]]
 
   data$day_of_week <- weekdays(dates)
   data$day_of_year <- as.integer(format(dates, "%j"))
