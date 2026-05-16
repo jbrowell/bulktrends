@@ -16,7 +16,7 @@ of any breaking changes.
 - Use `::` for all package calls (e.g. `jsonlite::fromJSON()`, `future.apply::future_lapply()`)
 - Do not use `require()` or `library()` inside functions
 - Function names are snake_case
-- Use `future.apply` and `future` where possible 
+- Use `future.apply` and `future` where possible
 
 ## Commodity codes
 
