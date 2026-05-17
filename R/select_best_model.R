@@ -26,6 +26,7 @@ select_best_model <- function(
   response_col = NULL,
   metric = "aic",
   scale_ts = FALSE,
+  #detect_breaks = TRUE
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
@@ -128,6 +129,22 @@ select_best_model <- function(
   }
 
   best_metric <- which.min(metric_values)
+  # formula <- formulas[[best_metric]]
+
+  # if (detect_breaks) {
+  # segments <- detect_breaks(data = data,
+  #                            formula = formula)
+  # data <- cbind(data, segments)
+  # formula <- formula <- as.formula(paste(
+  #                       "(",
+  #                       deparse(formula),
+  #                       ") * segment"))
+
+  #
+  # return(list(formula = formula,
+  #             ts_data = data
+  #  ))
+
   return(list(
     xreg = if (formulas[[best_metric]] == formula(~ -1)) {
       NULL
