@@ -164,8 +164,7 @@ add_date_features <- function(
     c("england-and-wales", "scotland", "northern-ireland")
   )
 
-  div_filter <- division
-  div_holidays <- holidays[holidays$division == div_filter, ]
+  div_holidays <- holidays[holidays$division == division, ]
 
   # Warn if any dates fall outside the coverage of the holidays dataset
   dates <- data[[date_col]]
