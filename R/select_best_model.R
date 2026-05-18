@@ -108,13 +108,10 @@ select_best_model <- function(
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
     } else {
-      # if (model_fit[[metric]] < current_metric) {
-      #   output = list(
-      #     data = cbind(data, segments),
-      #     formula = formulas
-
       model[[i]] <- model_fit
       metric_values[i] <- model_fit[[metric]]
+      # if (model_fit[[metric]] < current_metric) {
+      #     formula = formulas
     }
   }
 
@@ -159,7 +156,7 @@ select_best_model <- function(
     }
   }
 
-  best_metric <- which.min(metric_values)
+  # best_metric <- which.min(metric_values)
   # formula <- formulas[[best_metric]]
 
 
