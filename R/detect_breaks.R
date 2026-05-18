@@ -15,7 +15,6 @@ detect_breaks <- function(data, formula) {
 
     if (length(breaks) > 0) {
       segments <- as.matrix(breakfactor(bp))
-      #xreg_breaks <- model.matrix(~segments)[, -1, drop = FALSE]
       colnames(segments) <- paste0("segments")
     }
   }

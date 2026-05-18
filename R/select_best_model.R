@@ -26,7 +26,7 @@ select_best_model <- function(
   response_col = NULL,
   metric = "aic",
   scale_ts = FALSE,
-  #detect_breaks = TRUE
+  detect_breaks = TRUE,
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
@@ -93,30 +93,14 @@ select_best_model <- function(
 
   current_metric <- Inf
   for (i in seq_along(formulas)) {
-    is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
-
-    if (!is_empty_model) {
-      X <- model.matrix(formulas[[i]], data = data)
-    }
+  #   is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
+  #
+  #   if (!is_empty_model) {
+  #     X <- model.matrix(formulas[[i]], data = data)
+  #   }
 
     model_fit <- try(
-      forecast::auto.arima(
-        if (scale_ts) {
-          scale(data[[response_col]])
-        } else {
-          data[[response_col]]
-        },
-        xreg = if (is_empty_model) {
-          NULL
-        } else {
-          X
-        },
-        max.p = 5,
-        max.d = 1,
-        max.q = 5,
-        seasonal = F,
-        allowmean = F
-      ),
+      lm(formula = formulas, data = data),
       silent = T
     )
 
@@ -124,18 +108,28 @@ select_best_model <- function(
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
     } else {
+      # if (model_fit[[metric]] < current_metric) {
+      #   output = list(
+      #     data = cbind(data, segments),
+      #     formula = formulas
+
       model[[i]] <- model_fit
       metric_values[i] <- model_fit[[metric]]
     }
   }
 
   # detect_breaks loop
-  #add trycatch for detect_breaks
+  # add trycatch for detect_breaks
 
   if (detect_breaks) {
     for (i in seq_along(formulas)) {
-      segments <- detect_breaks(data = data, formula = formulas[[i]])
-      #data <- cbind(data, segments)
+      segments <- try(detect_breaks(data = data, formula = formulas[[i]]),
+                      silent = T
+      )
+      if ("try-error" %in% segments) {
+        warning("Breaks detection failed", "\n")
+        next
+
       fmla <- as.formula(paste(
         "(",
         deparse(formulas[[i]]),
@@ -168,19 +162,6 @@ select_best_model <- function(
   best_metric <- which.min(metric_values)
   # formula <- formulas[[best_metric]]
 
-  # if (detect_breaks) {
-  # segments <- detect_breaks(data = data,
-  #                            formula = formula)
-  # data <- cbind(data, segments)
-  # formula <- formula <- as.formula(paste(
-  #                       "(",
-  #                       deparse(formula),
-  #                       ") * segment"))
-
-  #
-  # return(list(formula = formula,
-  #             ts_data = data
-  #  ))
 
   # list formulas only if new metric is. better than old metric
   return(output)
