@@ -94,10 +94,11 @@ detect_anomalies <- function(
       message(sprintf("Running detect_anomaly for %s", code))
     }
 
-    if (!is.null(selected_model$xreg) && ncol(selected_model$xreg) > 0) {
-      ts_data <- cbind(ts_data, selected_model$xreg)
-    }
+    #if (!is.null(selected_model$xreg) && ncol(selected_model$xreg) > 0) {
+    #  ts_data <- cbind(ts_data, selected_model$xreg)
+    #  }
 
+    #issue with detect_breaks with interactions
     xreg_breaks <- detect_breaks(ts_data, selected_model$formula)
     if (!is.null(xreg_breaks)) {
       ts_data <- cbind(ts_data, xreg_breaks)
@@ -106,7 +107,7 @@ detect_anomalies <- function(
         "+",
         paste(colnames(xreg_breaks))
       ))
-      xreg_all <- model.matrix(updated_formula, data = ts_data)
+      #xreg_all <- model.matrix(updated_formula, data = ts_data)
       #xreg_all <- cbind(as.matrix(selected_model$xreg), xreg_breaks)
       model_formula <- updated_formula
     } else {

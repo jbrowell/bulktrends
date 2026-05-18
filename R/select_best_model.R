@@ -91,6 +91,7 @@ select_best_model <- function(
   model <- list()
   metric_values <- rep(Inf, length(formulas))
 
+  current_metric <- Inf
   for (i in seq_along(formulas)) {
     is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
 
@@ -128,6 +129,42 @@ select_best_model <- function(
     }
   }
 
+  # detect_breaks loop
+  #add trycatch for detect_breaks
+
+  if (detect_breaks) {
+    for (i in seq_along(formulas)) {
+      segments <- detect_breaks(data = data, formula = formulas[[i]])
+      #data <- cbind(data, segments)
+      fmla <- as.formula(paste(
+        "(",
+        deparse(formulas[[i]]),
+        ") * segment"
+      ))
+
+      model_fit <- try(
+        lm(formula = fmla, data = cbind(data, segments)),
+        silent = T
+      )
+
+      if ("try-error" %in% class(model_fit)) {
+        warning("Model failed: ", deparse(fmla), "\n")
+        next
+      } else {
+        if (model_fit[[metric]] < current_metric) {
+          output = list(
+            data = cbind(data, segments),
+            formula = fmla
+          )
+        }
+        # model[[length(model)+1]] <- model_fit
+        # metric_values[length(metric_values)+1] <- model_fit[[metric]]
+        # # store new formulas
+        # formulas[[length(forumulas)+1]] <- fmla
+      }
+    }
+  }
+
   best_metric <- which.min(metric_values)
   # formula <- formulas[[best_metric]]
 
@@ -145,12 +182,6 @@ select_best_model <- function(
   #             ts_data = data
   #  ))
 
-  return(list(
-    xreg = if (formulas[[best_metric]] == formula(~ -1)) {
-      NULL
-    } else {
-      model.matrix(formulas[[best_metric]], data = data)
-    },
-    formula = formulas[[best_metric]]
-  ))
+  # list formulas only if new metric is. better than old metric
+  return(output)
 }
