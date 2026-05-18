@@ -72,7 +72,7 @@ select_best_model <- function(
         ~ annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos + day_of_week,
-        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_uk_holiday
+        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_holiday
       )
 
       formulas <- lapply(formulas, function(f) {
