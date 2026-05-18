@@ -13,9 +13,9 @@
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
-#' @param freq
+#' @param freq Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').
 #'
-#' @returns A model matrix of the linear_trend and seasonal regressors of the selected
+#' @return A model matrix of the linear_trend and seasonal regressors of the selected
 #' model and the related model formula.
 #'
 #' @export
@@ -73,7 +73,7 @@ select_best_model <- function(
         ~ annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos + day_of_week,
-        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_uk_holiday
+        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_holiday
       )
 
       formulas <- lapply(formulas, function(f) {
