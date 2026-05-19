@@ -175,8 +175,6 @@ download_uktradeinfo_bulk <- function(
     return(invisible(character(0)))
   }
 
-  warn_duplicate_coverage(matched_links)
-
   message("Found ", length(matched_links), " file(s) to download.")
 
   downloaded <- character(0)
@@ -219,6 +217,18 @@ download_uktradeinfo_bulk <- function(
   }
 
   message("Downloaded ", length(downloaded), " file(s) to ", dest_dir)
+
+  dups <- check_bulk_coverage(dest_dir)
+  if (nrow(dups) > 0L && interactive()) {
+    ans <- readline("Delete redundant monthly files (recommended)? [y/N]: ")
+    if (tolower(trimws(ans)) %in% c("y", "yes")) {
+      to_delete <- unique(file.path(dest_dir, dups$monthly_file))
+      to_delete <- to_delete[file.exists(to_delete)]
+      file.remove(to_delete)
+      message("Deleted ", length(to_delete), " file(s).")
+    }
+  }
+
   invisible(downloaded)
 }
 
@@ -268,30 +278,27 @@ extract_file_coverage <- function(fname) {
   )
 
   # Semi-annual: _mon-monYY[archive].zip
-  m <- regmatches(
+  parts <- regmatches(
     fname,
-    regexpr(
+    regexec(
       "_([a-zA-Z]{3})-([a-zA-Z]{3})(\\d{2})(?:archive)?\\.zip$",
       fname,
       perl = TRUE
     )
-  )
-  if (length(m) > 0L) {
-    parts <- regmatches(m, gregexpr("[a-zA-Z]{3}|\\d{2}", m))[[1L]]
-    if (length(parts) == 3L) {
-      m1 <- mon_lookup[tolower(parts[1L])]
-      m2 <- mon_lookup[tolower(parts[2L])]
-      yy <- as.integer(parts[3L])
-      if (!is.na(m1) && !is.na(m2)) {
-        yyyy <- 2000L + yy
-        from <- as.Date(sprintf("%04d-%02d-01", yyyy, m1))
-        to <- if (m2 == 12L) {
-          as.Date(sprintf("%04d-12-31", yyyy))
-        } else {
-          as.Date(sprintf("%04d-%02d-01", yyyy, m2 + 1L)) - 1L
-        }
-        return(list(from = from, to = to))
+  )[[1L]]
+  if (length(parts) == 4L) {
+    m1 <- mon_lookup[tolower(parts[2L])]
+    m2 <- mon_lookup[tolower(parts[3L])]
+    yy <- as.integer(parts[4L])
+    if (!is.na(m1) && !is.na(m2)) {
+      yyyy <- 2000L + yy
+      from <- as.Date(sprintf("%04d-%02d-01", yyyy, m1))
+      to <- if (m2 == 12L) {
+        as.Date(sprintf("%04d-12-31", yyyy))
+      } else {
+        as.Date(sprintf("%04d-%02d-01", yyyy, m2 + 1L)) - 1L
       }
+      return(list(from = from, to = to))
     }
   }
 
@@ -311,8 +318,13 @@ extract_file_coverage <- function(fname) {
     yy <- as.integer(substr(digits_str, 1L, 2L))
     mm <- as.integer(substr(digits_str, 3L, 4L))
     if (mm >= 1L && mm <= 12L) {
-      d <- as.Date(sprintf("20%02d-%02d-01", yy, mm))
-      return(list(from = d, to = d))
+      from <- as.Date(sprintf("20%02d-%02d-01", yy, mm))
+      to <- if (mm == 12L) {
+        as.Date(sprintf("20%02d-12-31", yy))
+      } else {
+        as.Date(sprintf("20%02d-%02d-01", yy, mm + 1L)) - 1L
+      }
+      return(list(from = from, to = to))
     } else {
       yyyy <- as.integer(digits_str)
       return(list(
@@ -333,40 +345,72 @@ extract_file_coverage <- function(fname) {
   na_result
 }
 
-# Warn when a monthly file's period is fully contained within an archive file's period.
-warn_duplicate_coverage <- function(links) {
-  fnames <- basename(links)
-  coverage <- lapply(fnames, extract_file_coverage)
+# Open a ZIP and return its actual date coverage from internal filenames.
+# Internal files follow YYMM naming (e.g. BDSImp2601.csv → Jan 2026).
+# Returns list(from = min_date, to = max_date), or NAs if none are parseable.
+extract_zip_coverage <- function(zip_path) {
+  na_result <- list(from = as.Date(NA), to = as.Date(NA))
+  contents <- tryCatch(
+    unzip(zip_path, list = TRUE)$Name,
+    error = function(e) NULL
+  )
+  if (is.null(contents) || length(contents) == 0L) {
+    return(na_result)
+  }
+
+  parse_yymm <- function(fname) {
+    m <- regmatches(basename(fname), regexpr("\\d{4}", basename(fname)))
+    if (length(m) == 0L) {
+      return(as.Date(NA))
+    }
+    yy <- as.integer(substr(m, 1L, 2L))
+    mm <- as.integer(substr(m, 3L, 4L))
+    if (mm < 1L || mm > 12L) {
+      return(as.Date(NA))
+    }
+    as.Date(sprintf("20%02d-%02d-01", yy, mm))
+  }
+
+  dates <- vapply(contents, parse_yymm, as.Date(NA))
+  dates <- dates[!is.na(dates)]
+  if (length(dates) == 0L) {
+    return(na_result)
+  }
+  list(from = min(dates), to = max(dates))
+}
+
+# Returns a data.frame(monthly_file, archive_file) of duplicate-coverage pairs.
+# zip_paths must be full file paths; basenames are used in the returned data frame.
+find_duplicate_coverage <- function(zip_paths) {
+  fnames <- basename(zip_paths)
+  coverage <- lapply(zip_paths, extract_zip_coverage)
   file_from <- vapply(coverage, `[[`, as.Date(NA), "from")
   file_to <- vapply(coverage, `[[`, as.Date(NA), "to")
 
   is_monthly <- !is.na(file_from) & (file_from == file_to)
   is_archive <- !is.na(file_from) & (file_from != file_to)
 
-  if (!any(is_monthly) || !any(is_archive)) {
-    return(invisible(NULL))
-  }
-
-  msgs <- character(0)
+  rows <- list()
   for (i in which(is_monthly)) {
     for (j in which(is_archive)) {
       if (file_from[i] >= file_from[j] && file_to[i] <= file_to[j]) {
-        msgs <- c(
-          msgs,
-          paste0("  ", fnames[i], "  (covered by ", fnames[j], ")")
+        rows[[length(rows) + 1L]] <- data.frame(
+          monthly_file = fnames[i],
+          archive_file = fnames[j],
+          stringsAsFactors = FALSE
         )
       }
     }
   }
 
-  if (length(msgs) > 0L) {
-    warning(
-      "The following individual month files may duplicate data already present ",
-      "in an archive file:\n",
-      paste(msgs, collapse = "\n"),
-      call. = FALSE
-    )
+  if (length(rows) == 0L) {
+    return(data.frame(
+      monthly_file = character(),
+      archive_file = character(),
+      stringsAsFactors = FALSE
+    ))
   }
+  do.call(rbind, rows)
 }
 
 filter_links_by_date <- function(links, from_date, to_date) {
@@ -409,4 +453,84 @@ filter_links_by_date <- function(links, from_date, to_date) {
   }
 
   links[keep]
+}
+
+
+#' Check downloaded bulk data files for duplicate coverage
+#'
+#' Scans a directory of downloaded UK Trade Info bulk data ZIP files and
+#' identifies individual monthly files whose data is already contained in a
+#' broader archive file (annual or semi-annual). Optionally deletes the
+#' redundant monthly files.
+#'
+#' A monthly file (e.g. `BDSImp2602.zip`) is considered redundant when an
+#' archive file present in the same directory is found to contain the same
+#' month's data. Coverage is determined by inspecting the filenames inside each
+#' ZIP, so partially-built archives (e.g. a `jan-jun` file that currently only
+#' contains January and February) are handled correctly.
+#'
+#' @param dest_dir Path to the directory containing downloaded ZIP files.
+#' @param delete Logical. If `TRUE`, redundant monthly files are deleted and
+#'   the archive files are retained. Defaults to `FALSE` (report only).
+#'
+#' @return Invisibly returns a data frame with columns \code{monthly_file} and
+#'   \code{archive_file} identifying each duplicate pair. Returns an empty
+#'   data frame if no duplicates are found.
+#'
+#' @seealso [download_uktradeinfo_bulk()]
+#'
+#' @export
+check_bulk_coverage <- function(dest_dir, delete = FALSE) {
+  if (!file_test("-d", dest_dir)) {
+    stop("'dest_dir' does not exist: ", dest_dir, call. = FALSE)
+  }
+
+  zip_paths <- list.files(
+    dest_dir,
+    pattern = "\\.zip$",
+    ignore.case = TRUE,
+    full.names = TRUE
+  )
+
+  if (length(zip_paths) == 0L) {
+    message("No ZIP files found in ", dest_dir)
+    return(invisible(
+      data.frame(
+        monthly_file = character(),
+        archive_file = character(),
+        stringsAsFactors = FALSE
+      )
+    ))
+  }
+
+  dups <- find_duplicate_coverage(zip_paths)
+
+  if (nrow(dups) == 0L) {
+    message("No duplicate coverage found in ", dest_dir)
+    return(invisible(dups))
+  }
+
+  message("Found ", nrow(dups), " file(s) with duplicate coverage:")
+  for (i in seq_len(nrow(dups))) {
+    message(
+      "  ",
+      dups$monthly_file[i],
+      "  (covered by ",
+      dups$archive_file[i],
+      ")"
+    )
+  }
+
+  if (delete) {
+    to_delete <- unique(dups$monthly_file)
+    for (f in to_delete) {
+      path <- file.path(dest_dir, f)
+      if (file.exists(path)) {
+        file.remove(path)
+        message("Deleted: ", f)
+      }
+    }
+  }
+
+  invisible(dups)
 }
