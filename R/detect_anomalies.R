@@ -104,7 +104,7 @@ detect_anomalies <- function(
       quantity = "NET_MASS",
       model_formula = selected_model$formula,
       types = c("AO", "LS", "TC", "IO"),
-      scale_ts = F,
+      scale_ts = scale_ts,
       xreg = xreg_all
     )
 
