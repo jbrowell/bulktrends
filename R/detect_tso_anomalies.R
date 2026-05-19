@@ -1,12 +1,12 @@
 # detection of tso outliers
 
 #name to detect_outliers
-detect_tso_anomalies <- function(
+detect_outliers <- function(
   data,
   date_col = "DATE_START",
   code,
   quantity,
-  model_formula = model_formula,
+  model_formula,
   types = c("AO", "LS", "TC", "IO"),
   scale_ts = FALSE,
   xreg = NULL,
@@ -51,29 +51,8 @@ detect_tso_anomalies <- function(
     }
   }
 
-  ####
-  # if (nrow(detect_anomaly$outliers) > 0) {
-  #   #store outliers data produced
-  #   new_outliers <- as.data.table(run_tso$outliers)
-  #   new_outliers[, code := code]
-  #   new_outliers[,
-  #                model_formula := paste(deparse(model_formula), collapse = " ")
-  #   ]
-  #
-  #   new_outliers[, time := data$date_col[ind]]
-  #
-  #   outliers_entry <- new_outliers
-  # } else {
-  #   outliers_entry <- data.table(
-  #     code = code,
-  #     model_formula = deparse(model_formula)
-  #   )
-  # }
-  # ####
-
   return(list(
-    #tso = run_tso,
-    list_of_ts = ts_data,
+    #list_of_ts = ts_data,
     outliers = run_tso$outliers
   ))
 }

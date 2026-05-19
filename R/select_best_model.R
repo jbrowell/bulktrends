@@ -90,8 +90,9 @@ select_best_model <- function(
   model <- list()
   output <- list()
   metric_values <- rep(Inf, length(formulas))
-
   current_metric <- Inf
+
+  #base models
   for (i in seq_along(formulas)) {
     #   is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
     #
@@ -109,7 +110,6 @@ select_best_model <- function(
       next
     } else {
       model[[i]] <- model_fit
-      #metric_values[i] <- model_fit[[metric]]
       metric_values[i] <- metric(model_fit)
       if (metric_values[i] < current_metric) {
         current_metric <- metric_values[i]
@@ -119,8 +119,6 @@ select_best_model <- function(
   }
 
   # detect_breaks loop
-  # add trycatch for detect_breaks
-
   if (break_detection) {
     for (i in seq_along(formulas)) {
       segments <- try(
