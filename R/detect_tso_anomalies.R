@@ -1,5 +1,6 @@
 # detection of tso outliers
 
+#name to detect_outliers
 detect_tso_anomalies <- function(
   data,
   date_col = "DATE_START",
