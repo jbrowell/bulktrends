@@ -4,7 +4,13 @@
 \alias{download_uktradeinfo_bulk}
 \title{Download UK Trade Info bulk data sets}
 \usage{
-download_uktradeinfo_bulk(dest_dir, type = "imports", overwrite = FALSE)
+download_uktradeinfo_bulk(
+  dest_dir,
+  type = "imports",
+  from_date = NULL,
+  to_date = NULL,
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{dest_dir}{Path to an existing directory where files will be saved.}
@@ -13,6 +19,14 @@ download_uktradeinfo_bulk(dest_dir, type = "imports", overwrite = FALSE)
 `"imports"`, `"exports"`, `"control"`, `"importer_details"`,
 `"exporter_details"`, `"preference"`. Defaults to `"imports"`.}
 
+\item{from_date}{Optional lower bound on the file month. A `Date` object or
+a character string in `"YYYY-MM"` format. `NULL` (default) means no lower
+bound.}
+
+\item{to_date}{Optional upper bound on the file month. A `Date` object or a
+character string in `"YYYY-MM"` format. `NULL` (default) means no upper
+bound.}
+
 \item{overwrite}{Logical. If `FALSE` (default), files already present in
 `dest_dir` are skipped.}
 }
@@ -20,12 +34,18 @@ download_uktradeinfo_bulk(dest_dir, type = "imports", overwrite = FALSE)
 Invisibly returns a character vector of paths to downloaded files.
 }
 \description{
-Scrapes the UK Trade Info bulk data sets archive page and downloads
-matching ZIP files to a local directory.
+Scrapes the UK Trade Info latest bulk data sets page and archive page, then
+downloads matching ZIP files to a local directory.
 }
 \details{
-Files are sourced from
-\url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/}.
+ZIP files are collected from two pages:
+\itemize{
+  \item \url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/}
+        — carries the most recent files before they appear in the archive.
+  \item \url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/}
+        — historical archive.
+}
+Duplicate links across the two pages are removed before downloading.
 
 File name patterns used to identify data types:
 \itemize{
@@ -37,18 +57,31 @@ File name patterns used to identify data types:
   \item `"preference"` — import data by trade preference/regime (`BDSPref`)
 }
 
+Date filtering uses the YYMM suffix embedded in HMRC filenames
+(e.g. `BDSImp2401.zip` → January 2024). Files whose dates cannot be parsed
+from the filename are always kept.
+
 Requires the \pkg{rvest} package. Install it with
 `install.packages("rvest")` if needed.
 }
 \examples{
 \dontrun{
-# Download import archives to a local folder
+# Download all available import archives
 download_uktradeinfo_bulk(dest_dir = "~/trade_data", type = "imports")
 
-# Download both imports and the control file
+# Download imports for 2024 only
 download_uktradeinfo_bulk(
   dest_dir = "~/trade_data",
-  type = c("imports", "control")
+  type = "imports",
+  from_date = "2024-01",
+  to_date = "2024-12"
+)
+
+# Download imports and the control file from 2023 onwards
+download_uktradeinfo_bulk(
+  dest_dir = "~/trade_data",
+  type = c("imports", "control"),
+  from_date = "2023-01"
 )
 }
 

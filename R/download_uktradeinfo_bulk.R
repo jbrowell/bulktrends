@@ -95,7 +95,7 @@ download_uktradeinfo_bulk <- function(
   )
 
   from_date <- parse_yearmon(from_date, "'from_date'")
-  to_date   <- parse_yearmon(to_date,   "'to_date'")
+  to_date <- parse_yearmon(to_date, "'to_date'")
 
   if (!is.null(from_date) && !is.null(to_date) && from_date > to_date) {
     stop("'from_date' must not be later than 'to_date'.", call. = FALSE)
@@ -105,40 +105,52 @@ download_uktradeinfo_bulk <- function(
     stop("'dest_dir' does not exist: ", dest_dir, call. = FALSE)
   }
 
-  base_url    <- "https://www.uktradeinfo.com"
-  latest_url  <- paste0(base_url, "/trade-data/latest-bulk-data-sets/")
-  archive_url <- paste0(base_url, "/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/")
+  base_url <- "https://www.uktradeinfo.com"
+  latest_url <- paste0(base_url, "/trade-data/latest-bulk-data-sets/")
+  archive_url <- paste0(
+    base_url,
+    "/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/"
+  )
 
   collect_zip_hrefs <- function(url, required = TRUE) {
     page <- tryCatch(
       rvest::read_html(url),
       error = function(e) {
         msg <- paste0(
-          "Could not fetch page from ", url, ".\n",
+          "Could not fetch page from ",
+          url,
+          ".\n",
           "Check your internet connection.\nOriginal error: ",
           conditionMessage(e)
         )
-        if (required) stop(msg, call. = FALSE) else { warning(msg, call. = FALSE); return(NULL) }
+        if (required) {
+          stop(msg, call. = FALSE)
+        } else {
+          warning(msg, call. = FALSE)
+          return(NULL)
+        }
       }
     )
-    if (is.null(page)) return(character(0))
+    if (is.null(page)) {
+      return(character(0))
+    }
     hrefs <- rvest::html_attr(rvest::html_elements(page, "a"), "href")
     hrefs[!is.na(hrefs) & grepl("\\.zip$", hrefs, ignore.case = TRUE)]
   }
 
   zip_hrefs <- unique(c(
-    collect_zip_hrefs(latest_url,  required = FALSE),
+    collect_zip_hrefs(latest_url, required = FALSE),
     collect_zip_hrefs(archive_url, required = TRUE)
   ))
   all_links <- paste0(base_url, zip_hrefs)
 
   patterns <- list(
-    imports          = "(?i)bdsimp(?!det)",
-    exports          = "(?i)bdsexp(?!det)",
-    control          = "(?i)smka12",
+    imports = "(?i)bdsimp(?!det)",
+    exports = "(?i)bdsexp(?!det)",
+    control = "(?i)smka12",
     importer_details = "(?i)bdsimpdet",
     exporter_details = "(?i)bdsexpdet",
-    preference       = "(?i)bdspref"
+    preference = "(?i)bdspref"
   )
 
   combined_pattern <- paste(unname(unlist(patterns[type])), collapse = "|")
@@ -147,7 +159,10 @@ download_uktradeinfo_bulk <- function(
   ]
 
   if (length(matched_links) == 0) {
-    message("No matching files found for type(s): ", paste(type, collapse = ", "))
+    message(
+      "No matching files found for type(s): ",
+      paste(type, collapse = ", ")
+    )
     return(invisible(character(0)))
   }
 
@@ -167,7 +182,7 @@ download_uktradeinfo_bulk <- function(
   downloaded <- character(0)
 
   for (url in matched_links) {
-    fname     <- basename(url)
+    fname <- basename(url)
     dest_path <- file.path(dest_dir, fname)
 
     if (!overwrite && file.exists(dest_path)) {
@@ -178,11 +193,22 @@ download_uktradeinfo_bulk <- function(
     message("Downloading: ", fname)
     result <- tryCatch(
       {
-        utils::download.file(url, destfile = dest_path, mode = "wb", quiet = TRUE)
+        utils::download.file(
+          url,
+          destfile = dest_path,
+          mode = "wb",
+          quiet = TRUE
+        )
         TRUE
       },
       error = function(e) {
-        warning("Failed to download ", fname, ": ", conditionMessage(e), call. = FALSE)
+        warning(
+          "Failed to download ",
+          fname,
+          ": ",
+          conditionMessage(e),
+          call. = FALSE
+        )
         FALSE
       }
     )
@@ -198,14 +224,19 @@ download_uktradeinfo_bulk <- function(
 
 # Parse NULL / Date / "YYYY-MM" → first-of-month Date, or stop()
 parse_yearmon <- function(x, arg) {
-  if (is.null(x)) return(NULL)
-  if (inherits(x, "Date")) return(as.Date(format(x, "%Y-%m-01")))
+  if (is.null(x)) {
+    return(NULL)
+  }
+  if (inherits(x, "Date")) {
+    return(as.Date(format(x, "%Y-%m-01")))
+  }
   if (is.character(x) && length(x) == 1L) {
     d <- tryCatch(as.Date(paste0(x, "-01")), error = function(e) NA)
     if (!is.na(d)) return(d)
   }
   stop(
-    arg, " must be NULL, a Date, or a 'YYYY-MM' string (e.g. \"2024-01\").",
+    arg,
+    " must be NULL, a Date, or a 'YYYY-MM' string (e.g. \"2024-01\").",
     call. = FALSE
   )
 }
@@ -220,14 +251,30 @@ parse_yearmon <- function(x, arg) {
 #
 # Returns list(from = NA_Date, to = NA_Date) when the pattern is not recognised.
 extract_file_coverage <- function(fname) {
-  na_result  <- list(from = as.Date(NA), to = as.Date(NA))
-  mon_lookup <- c(jan=1L,feb=2L,mar=3L,apr=4L,may=5L,jun=6L,
-                  jul=7L,aug=8L,sep=9L,oct=10L,nov=11L,dec=12L)
+  na_result <- list(from = as.Date(NA), to = as.Date(NA))
+  mon_lookup <- c(
+    jan = 1L,
+    feb = 2L,
+    mar = 3L,
+    apr = 4L,
+    may = 5L,
+    jun = 6L,
+    jul = 7L,
+    aug = 8L,
+    sep = 9L,
+    oct = 10L,
+    nov = 11L,
+    dec = 12L
+  )
 
   # Semi-annual: _mon-monYY[archive].zip
   m <- regmatches(
     fname,
-    regexpr("_([a-zA-Z]{3})-([a-zA-Z]{3})(\\d{2})(?:archive)?\\.zip$", fname, perl = TRUE)
+    regexpr(
+      "_([a-zA-Z]{3})-([a-zA-Z]{3})(\\d{2})(?:archive)?\\.zip$",
+      fname,
+      perl = TRUE
+    )
   )
   if (length(m) > 0L) {
     parts <- regmatches(m, gregexpr("[a-zA-Z]{3}|\\d{2}", m))[[1L]]
@@ -238,7 +285,7 @@ extract_file_coverage <- function(fname) {
       if (!is.na(m1) && !is.na(m2)) {
         yyyy <- 2000L + yy
         from <- as.Date(sprintf("%04d-%02d-01", yyyy, m1))
-        to   <- if (m2 == 12L) {
+        to <- if (m2 == 12L) {
           as.Date(sprintf("%04d-12-31", yyyy))
         } else {
           as.Date(sprintf("%04d-%02d-01", yyyy, m2 + 1L)) - 1L
@@ -249,8 +296,13 @@ extract_file_coverage <- function(fname) {
   }
 
   # Numeric suffix: YYMM / YYYY / YY
-  m <- regmatches(fname, regexpr("(\\d+)(?:archive)?\\.zip$", fname, perl = TRUE))
-  if (length(m) == 0L) return(na_result)
+  m <- regmatches(
+    fname,
+    regexpr("(\\d+)(?:archive)?\\.zip$", fname, perl = TRUE)
+  )
+  if (length(m) == 0L) {
+    return(na_result)
+  }
 
   digits_str <- regmatches(m, regexpr("^\\d+", m))
   n <- nchar(digits_str)
@@ -265,7 +317,7 @@ extract_file_coverage <- function(fname) {
       yyyy <- as.integer(digits_str)
       return(list(
         from = as.Date(sprintf("%04d-01-01", yyyy)),
-        to   = as.Date(sprintf("%04d-12-31", yyyy))
+        to = as.Date(sprintf("%04d-12-31", yyyy))
       ))
     }
   }
@@ -274,7 +326,7 @@ extract_file_coverage <- function(fname) {
     yyyy <- 2000L + as.integer(digits_str)
     return(list(
       from = as.Date(sprintf("%04d-01-01", yyyy)),
-      to   = as.Date(sprintf("%04d-12-31", yyyy))
+      to = as.Date(sprintf("%04d-12-31", yyyy))
     ))
   }
 
@@ -283,21 +335,26 @@ extract_file_coverage <- function(fname) {
 
 # Warn when a monthly file's period is fully contained within an archive file's period.
 warn_duplicate_coverage <- function(links) {
-  fnames    <- basename(links)
-  coverage  <- lapply(fnames, extract_file_coverage)
+  fnames <- basename(links)
+  coverage <- lapply(fnames, extract_file_coverage)
   file_from <- vapply(coverage, `[[`, as.Date(NA), "from")
-  file_to   <- vapply(coverage, `[[`, as.Date(NA), "to")
+  file_to <- vapply(coverage, `[[`, as.Date(NA), "to")
 
   is_monthly <- !is.na(file_from) & (file_from == file_to)
   is_archive <- !is.na(file_from) & (file_from != file_to)
 
-  if (!any(is_monthly) || !any(is_archive)) return(invisible(NULL))
+  if (!any(is_monthly) || !any(is_archive)) {
+    return(invisible(NULL))
+  }
 
   msgs <- character(0)
   for (i in which(is_monthly)) {
     for (j in which(is_archive)) {
       if (file_from[i] >= file_from[j] && file_to[i] <= file_to[j]) {
-        msgs <- c(msgs, paste0("  ", fnames[i], "  (covered by ", fnames[j], ")"))
+        msgs <- c(
+          msgs,
+          paste0("  ", fnames[i], "  (covered by ", fnames[j], ")")
+        )
       }
     }
   }
@@ -313,29 +370,40 @@ warn_duplicate_coverage <- function(links) {
 }
 
 filter_links_by_date <- function(links, from_date, to_date) {
-  coverage  <- lapply(basename(links), extract_file_coverage)
+  coverage <- lapply(basename(links), extract_file_coverage)
   file_from <- vapply(coverage, `[[`, as.Date(NA), "from")
-  file_to   <- vapply(coverage, `[[`, as.Date(NA), "to")
+  file_to <- vapply(coverage, `[[`, as.Date(NA), "to")
   parseable <- !is.na(file_from)
-  n_skip    <- sum(!parseable)
+  n_skip <- sum(!parseable)
 
   keep <- rep(TRUE, length(links))
   # Overlap: keep if the file's coverage period intersects [from_date, to_date]
-  if (!is.null(from_date)) keep[parseable] <- keep[parseable] & file_to[parseable]   >= from_date
-  if (!is.null(to_date))   keep[parseable] <- keep[parseable] & file_from[parseable] <= to_date
+  if (!is.null(from_date)) {
+    keep[parseable] <- keep[parseable] & file_to[parseable] >= from_date
+  }
+  if (!is.null(to_date)) {
+    keep[parseable] <- keep[parseable] & file_from[parseable] <= to_date
+  }
 
   bounds <- paste(
     if (!is.null(from_date)) format(from_date, "%Y-%m") else "start",
     "to",
-    if (!is.null(to_date))   format(to_date,   "%Y-%m") else "end"
+    if (!is.null(to_date)) format(to_date, "%Y-%m") else "end"
   )
   message(
-    "Date filter applied (", bounds, "): keeping ",
-    sum(keep), " of ", length(links), " file(s)."
+    "Date filter applied (",
+    bounds,
+    "): keeping ",
+    sum(keep),
+    " of ",
+    length(links),
+    " file(s)."
   )
   if (n_skip > 0L) {
     message(
-      "  Note: ", n_skip, " file(s) kept without date filtering ",
+      "  Note: ",
+      n_skip,
+      " file(s) kept without date filtering ",
       "(date not recognised in filename)."
     )
   }
