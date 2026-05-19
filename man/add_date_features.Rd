@@ -25,7 +25,7 @@ Defaults to the bundled [uk_bank_holidays] dataset.}
 }
 \value{
 A `data.table` with the original data and additional calendar features, including
-day of week, day of year, \code{holiday} (holiday title or \code{NA}), and \code{is_holiday} (\code{logical}).
+day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
 }
 \description{
 A function that identifies the features (bank holidays) of dates provided.
