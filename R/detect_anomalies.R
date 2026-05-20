@@ -79,7 +79,6 @@ detect_anomalies <- function(
         response_col = quantity,
         date_col = date_col,
         metric = model_selection_metric,
-        #scale_ts = scale_ts,
         break_detection = TRUE
       ),
       error = function(e) e
@@ -103,50 +102,12 @@ detect_anomalies <- function(
       code = code,
       quantity = "NET_MASS",
       model_formula = selected_model$formula,
-      types = c("AO", "LS", "TC", "IO"),
+      types = c("AO", "TC", "IO"),
       scale_ts = F,
       xreg = xreg_all
     )
 
-    # detect_anomaly <- tryCatch(
-    #   tso(
-    #     y = if (scale_ts) {
-    #       as.ts(scale(ts_data[[quantity]]))
-    #     } else {
-    #       as.ts(ts_data[[quantity]])
-    #     },
-    #     xreg = if (!is.null(xreg_all) && ncol(xreg_all) > 0) {
-    #       xreg_all
-    #     } else {
-    #       NULL
-    #     },
-    #     ...
-    #   ),
-    #   error = function(e) e
-    # )
-    #
-    # if (inherits(detect_anomaly, "error")) {
-    #   message(paste("Skipping code", code, ":", detect_anomaly))
-    #   p(sprintf("Skipped %s", code))
-    #   return(NULL)
-    # }
-    #
-    # xreg <- detect_anomaly$fit$xreg
-    #
-    # if (!is.null(xreg)) {
-    #   xreg <- as.matrix(xreg)
-    #
-    #   #identify outlier columns
-    #   outlier_cols <- colnames(xreg)
-    #   outlier_cols <- outlier_cols[
-    #     substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")
-    #   ]
-    #
-    #   if (length(outlier_cols) > 0) {
-    #     xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
-    #     ts_data <- cbind(ts_data, xreg_outliers)
-    #   }
-    # }
+    ts_data <- detect_anomaly$data
 
     if (
       !is.null(detect_anomaly$outliers) && nrow(detect_anomaly$outliers) > 0
