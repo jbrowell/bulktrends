@@ -52,7 +52,7 @@ detect_outliers <- function(
   }
 
   return(list(
-    #list_of_ts = ts_data,
+    data = data,
     outliers = run_tso$outliers
   ))
 }

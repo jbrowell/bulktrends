@@ -94,12 +94,6 @@ select_best_model <- function(
 
   #base models
   for (i in seq_along(formulas)) {
-    #   is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
-    #
-    #   if (!is_empty_model) {
-    #     X <- model.matrix(formulas[[i]], data = data)
-    #   }
-
     model_fit <- try(
       lm(formula = formulas[[i]], data = data),
       silent = T
@@ -121,20 +115,24 @@ select_best_model <- function(
   # detect_breaks loop
   if (break_detection) {
     for (i in seq_along(formulas)) {
-      segments <- try(
-        detect_breaks(data = data, formula = formulas[[i]]),
+      breaks <- try(
+        detect_breaks(
+          data = data,
+          date_col = date_col,
+          formula = formulas[[i]]
+        ),
         silent = TRUE
       )
-      if ("try-error" %in% class(segments)) {
+      if ("try-error" %in% class(breaks)) {
         warning("Breaks detection failed", "\n")
         next
       }
-
-      if (is.null(segments)) {
-        warning("No breaks detected")
+      if (is.null(breaks)) {
         next
       }
 
+      segments <- breaks$segments
+      break_entry <- breaks$break_entry
       fmla <- update(formulas[[i]], . ~ . * segments)
 
       model_fit <- try(
@@ -151,7 +149,8 @@ select_best_model <- function(
           current_metric <- metric(model_fit)
           output = list(
             data = cbind(data, segments),
-            formula = fmla
+            formula = fmla,
+            break_entry = breaks$break_entry
           )
         }
       }

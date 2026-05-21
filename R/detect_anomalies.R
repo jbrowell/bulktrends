@@ -95,6 +95,8 @@ detect_anomalies <- function(
     }
 
     ts_data <- selected_model$data
+    break_entry <- selected_model$break_entry
+
     xreg_all <- model.matrix(selected_model$formula, data = ts_data)
 
     detect_anomaly <- detect_outliers(
@@ -112,7 +114,7 @@ detect_anomalies <- function(
     if (
       !is.null(detect_anomaly$outliers) && nrow(detect_anomaly$outliers) > 0
     ) {
-      #store outliers data produced
+      #store tso outliers data produced
       new_outliers <- as.data.table(detect_anomaly$outliers)
       new_outliers[, code := code]
       new_outliers[,
@@ -120,6 +122,7 @@ detect_anomalies <- function(
       ]
 
       new_outliers[, time := ts_data$DATE_START[ind]]
+      new_outliers[, anomaly_type := "Outlier"]
 
       outliers_entry <- new_outliers
     } else {
@@ -127,6 +130,22 @@ detect_anomalies <- function(
         code = code,
         model_formula = deparse(selected_model$formula)
       )
+    }
+
+    #add breaks table
+    if (!is.null(break_entry) && nrow(break_entry) > 0) {
+      break_entry[, code := code]
+      break_entry[,
+        model_formula := paste(deparse(selected_model$formula), collapse = " ")
+      ]
+      break_entry[, anomaly_type := "Break"]
+
+      outliers_entry <- rbindlist(
+        list(outliers_entry, break_entry),
+        fill = TRUE
+      )
+
+      setorder(outliers_entry, time)
     }
 
     p(sprintf("Completed code %s", code))
