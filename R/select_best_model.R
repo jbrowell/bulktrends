@@ -1,8 +1,8 @@
-#' Extract suitable model matrix for a given commodity code
+#' Select the best regression model for a time series
 #'
-#' This function evaluates a set of formulas with linear_trend and seasonal terms
-#' as exogenous variables and selects the ARIMA model with the lowest value
-#' of the selected metric.
+#' This function evaluates a set of candidate regression formulas containing
+#' trend and seasonal regressors and selects the model with the lowest value
+#' of the specified selection metric (for example AIC or BIC).
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
 #' @param date_col Name of column containing timestamps.
@@ -12,11 +12,14 @@
 #' but the column containing the response variable must be specified.
 #' @param metric A character string specifying the criteria for model
 #' selection. Examples are "aic","aicc" or "bic".
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
+#' @param break_detection If `TRUE`, structural break detection is
+#' performed and break-adjusted models are evaluated.
 #' @param freq Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').
 #'
-#' @return A model matrix of the linear_trend and seasonal regressors of the selected
-#' model and the related model formula.
+#' @return @return A list containing (i) the time series' data with any generated regressors
+#' and structural break segment variables, (ii) the optimal selected model formula, and
+#' (iii) a `data.table` describing any detected structural breaks or `NULL` if no breaks were selected
+#'
 #'
 #' @export
 select_best_model <- function(
