@@ -161,17 +161,26 @@ For a given commodity and quantity, a series of helper functions extract an aggr
 ```{r tso_example}
 #| warning: false
 
-ts_data <- extract_ts(imports, "08", quantity="NET_MASS")
+ts_data <- extract_ts(imports, "03", quantity="NET_MASS")
 
-selected_model <- select_best_model(ts_data, response_col = "NET_MASS", scale_ts = T)
+selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_detection = TRUE)
 
-detect_anomaly <- tso(y = ts_data[,as.ts(scale(NET_MASS))],
-                      cval=5,
-                      types = c("AO", "LS", "TC", "IO"),
-                      xreg = if(ncol(selected_model$xreg)>0){selected_model$xreg}else{NULL})
+# detect_anomaly <- tso(y = ts_data[,as.ts(scale(NET_MASS))],
+#                       cval=5,
+#                       types = c("AO", "LS", "TC", "IO"),
+#                       xreg = if(ncol(selected_model$xreg)>0){selected_model$xreg}else{NULL})
 
+detect_anomaly <- detect_outliers(data = selected_model$data,
+                    quantity= "NET_MASS",
+                    types = c("AO", "TC", "IO"),
+                    scale_ts = F,
+                    xreg = model.matrix(selected_model$formula, data = selected_model$data))
+
+print(selected_model$break_entry)
 print(detect_anomaly)
-plot.tsoutliers(detect_anomaly)
+#plot.tsoutliers(detect_anomaly)
+plot.tsoutliers(detect_anomaly$tso)
+
 
 ```
 

@@ -100,9 +100,7 @@ detect_anomalies <- function(
 
     detect_anomaly <- detect_outliers(
       data = ts_data,
-      code = code,
       quantity = "NET_MASS",
-      model_formula = selected_model$formula,
       types = c("AO", "TC", "IO"),
       scale_ts = scale_ts,
       xreg = xreg_all

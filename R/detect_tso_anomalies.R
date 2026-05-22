@@ -5,9 +5,7 @@
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
 #' @param date_col Name of column containing timestamps.
-#' @param code A vector of HS2/HS4/HS6/CN8 codes
 #' @param quantity Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
-#' @param model_formula A formula specifying the regression model for outlier detection.
 #' @param types Outlier types to detect. Typical inputs are: AO (Additive Outlier), TC (Temporary Change),
 #' IO (Innovational Outlier), LS (Level Shift), or SLS(Seasonal Level Shift).
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
@@ -21,10 +19,8 @@
 detect_outliers <- function(
   data,
   date_col = "DATE_START",
-  code,
   quantity,
-  model_formula,
-  types = c("AO", "LS", "TC", "IO"),
+  types = c("AO", "TC", "IO"),
   scale_ts = FALSE,
   xreg = NULL,
   ...
@@ -48,6 +44,7 @@ detect_outliers <- function(
   )
 
   if (inherits(run_tso, "error")) {
+    message(paste("Outlier detection failed"))
     return(NULL)
   }
 
@@ -69,6 +66,7 @@ detect_outliers <- function(
   }
 
   return(list(
+    tso = run_tso,
     data = data,
     outliers = run_tso$outliers
   ))
