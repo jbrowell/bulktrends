@@ -96,7 +96,6 @@ detect_anomalies <- function(
 
     ts_data <- selected_model$data
     break_entry <- selected_model$break_entry
-
     xreg_all <- model.matrix(selected_model$formula, data = ts_data)
 
     detect_anomaly <- detect_outliers(

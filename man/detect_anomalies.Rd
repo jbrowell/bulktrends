@@ -9,7 +9,7 @@ detect_anomalies(
   codes,
   quantity = "NET_MASS",
   date_col = "DATE_START",
-  model_selection_metric = "aic",
+  model_selection_metric = AIC,
   scale_ts = FALSE,
   freq = NULL,
   verbose = FALSE,
@@ -36,7 +36,7 @@ detect_anomalies(
 \item{...}{Additional arguments passed to `tso()`}
 }
 \value{
-A list containing a 1. table of detected outliers and 2. a list
+A list containing a 1. table of detected anomalies and 2. a list
 of time series data with regressors, including outlier effects.
 }
 \description{

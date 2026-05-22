@@ -2,15 +2,15 @@
 % Please edit documentation in R/select_best_model.R
 \name{select_best_model}
 \alias{select_best_model}
-\title{Extract suitable model matrix for a given commodity code}
+\title{Select the best regression model for a time series}
 \usage{
 select_best_model(
   data,
   date_col = "DATE_START",
   formulas = NULL,
   response_col = NULL,
-  metric = "aic",
-  scale_ts = FALSE,
+  metric = AIC,
+  break_detection = TRUE,
   freq = NULL
 )
 }
@@ -28,16 +28,18 @@ but the column containing the response variable must be specified.}
 \item{metric}{A character string specifying the criteria for model
 selection. Examples are "aic","aicc" or "bic".}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+\item{break_detection}{If `TRUE`, structural break detection is
+performed and break-adjusted models are evaluated.}
 
 \item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
 }
 \value{
-A model matrix of the linear_trend and seasonal regressors of the selected
-model and the related model formula.
+@return A list containing (i) the time series' data with any generated regressors
+and structural break segment variables, (ii) the optimal selected model formula, and
+(iii) a `data.table` describing any detected structural breaks or `NULL` if no breaks were selected
 }
 \description{
-This function evaluates a set of formulas with linear_trend and seasonal terms
-as exogenous variables and selects the ARIMA model with the lowest value
-of the selected metric.
+This function evaluates a set of candidate regression formulas containing
+trend and seasonal regressors and selects the model with the lowest value
+of the specified selection metric (for example AIC or BIC).
 }
