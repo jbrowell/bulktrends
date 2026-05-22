@@ -23,8 +23,10 @@ detect_outliers <- function(
   types = c("AO", "TC", "IO"),
   scale_ts = FALSE,
   xreg = NULL,
+  return_tso = FALSE,
   ...
 ) {
+  #change run_tso name
   run_tso <- tryCatch(
     tso(
       y = if (scale_ts) {
@@ -40,11 +42,12 @@ detect_outliers <- function(
       },
       ...
     ),
-    error = function(e) e
+    error = function(e) {
+      message("Outlier detection failed: ", e)
+    }
   )
 
   if (inherits(run_tso, "error")) {
-    message(paste("Outlier detection failed"))
     return(NULL)
   }
 
@@ -64,10 +67,11 @@ detect_outliers <- function(
       data <- cbind(data, xreg_outliers)
     }
   }
+  result <- list(data = data, outliers = run_tso$outliers)
 
-  return(list(
-    tso = run_tso,
-    data = data,
-    outliers = run_tso$outliers
-  ))
+  if (return_tso) {
+    result$tso <- run_tso
+  }
+
+  return(result)
 }
