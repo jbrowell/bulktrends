@@ -1,8 +1,18 @@
-# Extract column of breakpoint segments of a time series with structural breaks
-
+#' Detect structural breaks in a time series
+#'
+#' This function uses a methodology with BIC-based selection to identify
+#' structural breaks in a time series.
+#'
+#' @param data A `data.frame` containing the dependent variable and dates.
+#' @param date_col Name of column containing timestamps.
+#' @param formula A formula specifying the regression model for break detection.
+#'
+#' @return A list containing (i) a `data.table` with identified breakpoints and
+#' their respective timing and, (ii) a matrix of identified segments in the time series.
+#' Returns `NULL` if no breaks are detected.
+#'
+#' @export
 detect_breaks <- function(data, date_col = "DATE_START", formula) {
-  #xreg_breaks <- list()
-
   bp <- breakpoints(
     formula,
     data = data,
@@ -16,9 +26,6 @@ detect_breaks <- function(data, date_col = "DATE_START", formula) {
   if (!is.null(date_col)) {
     time <- data[[date_col]][breaks]
   }
-
-  #table
-  #  output <- data.table(type = "SB", ind = breaks, time = time)
 
   if (length(breaks) > 0) {
     output <- data.table(type = "SB", ind = breaks, time = time)
