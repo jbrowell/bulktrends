@@ -5,21 +5,22 @@
 #' of the specified selection metric (for example AIC or BIC).
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
-#' @param date_col Name of column containing timestamps.
-#' @param formulas A list of formulas specifying candidate models. Covariates
-#' available are `linear_trend` and `month`.
+#' @param date_col Name of column containing timestamps. Default `"DATE_START"`.
+#' @param formulas A list of formulas specifying candidate models. When `NULL`,
+#'  default formulas are generated based on `freq`. Available covariates for
+#'  monthly data are `linear_trend`, `annual_sin`, and `annual_cos`; for daily
+#'  data `day_of_week` and `is_holiday` are also available.
 #' @param response_col If `formulas` not provided, default formulas will be used
 #' but the column containing the response variable must be specified.
-#' @param metric A character string specifying the criteria for model
-#' selection. Examples are "aic","aicc" or "bic".
+#' @param metric  A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.
 #' @param break_detection If `TRUE`, structural break detection is
-#' performed and break-adjusted models are evaluated.
+#' performed and break-adjusted models are also evaluated.
 #' @param freq Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').
 #'
-#' @return @return A list containing (i) the time series' data with any generated regressors
-#' and structural break segment variables, (ii) the optimal selected model formula, and
-#' (iii) a `data.table` describing any detected structural breaks or `NULL` if no breaks were selected
-#'
+#' @return A list containing (i) `data`, the time series' data with any generated regressors
+#' and structural break segment variables, (ii)  `formula`, the optimal selected model formula, and
+#' (iii)  `break_entry`, a `data.table` describing any detected structural breaks
+#' or `NULL` if no breaks were found.
 #'
 #' @export
 select_best_model <- function(

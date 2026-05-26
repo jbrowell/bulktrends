@@ -17,26 +17,28 @@ select_best_model(
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{date_col}{Name of column containing timestamps.}
+\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
 
-\item{formulas}{A list of formulas specifying candidate models. Covariates
-available are `linear_trend` and `month`.}
+\item{formulas}{A list of formulas specifying candidate models. When `NULL`,
+default formulas are generated based on `freq`. Available covariates for
+monthly data are `linear_trend`, `annual_sin`, and `annual_cos`; for daily
+data `day_of_week` and `is_holiday` are also available.}
 
 \item{response_col}{If `formulas` not provided, default formulas will be used
 but the column containing the response variable must be specified.}
 
-\item{metric}{A character string specifying the criteria for model
-selection. Examples are "aic","aicc" or "bic".}
+\item{metric}{A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.}
 
 \item{break_detection}{If `TRUE`, structural break detection is
-performed and break-adjusted models are evaluated.}
+performed and break-adjusted models are also evaluated.}
 
 \item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
 }
 \value{
-@return A list containing (i) the time series' data with any generated regressors
-and structural break segment variables, (ii) the optimal selected model formula, and
-(iii) a `data.table` describing any detected structural breaks or `NULL` if no breaks were selected
+A list containing (i) `data`, the time series' data with any generated regressors
+and structural break segment variables, (ii)  `formula`, the optimal selected model formula, and
+(iii)  `break_entry`, a `data.table` describing any detected structural breaks
+or `NULL` if no breaks were found.
 }
 \description{
 This function evaluates a set of candidate regression formulas containing

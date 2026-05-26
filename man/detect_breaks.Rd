@@ -9,16 +9,17 @@ detect_breaks(data, date_col = "DATE_START", formula)
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{date_col}{Name of column containing timestamps.}
+\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
 
 \item{formula}{A formula specifying the regression model for break detection.}
 }
 \value{
-A list containing (i) a `data.table` with identified breakpoints and
-their respective timing and, (ii) a matrix of identified segments in the time series.
+A list containing (i) `break_entry`, a `data.table` with identified breakpoints and
+their respective timing and, (ii) `segments`, a matrix of segment indicator
+variable for use as a regressor.
 Returns `NULL` if no breaks are detected.
 }
 \description{
-This function uses a methodology with BIC-based selection to identify
-structural breaks in a time series.
+This function uses [strucchange::breakpoints()] with BIC-based selection to identify
+structural breaks in a given time series.
 }

@@ -6,39 +6,37 @@
 \usage{
 detect_outliers(
   data,
-  date_col = "DATE_START",
-  code,
   quantity,
-  model_formula,
-  types = c("AO", "LS", "TC", "IO"),
+  types = c("AO", "TC", "IO"),
   scale_ts = FALSE,
   xreg = NULL,
+  return_tso = FALSE,
   ...
 )
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{date_col}{Name of column containing timestamps.}
-
-\item{code}{A vector of HS2/HS4/HS6/CN8 codes}
-
-\item{quantity}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
-
-\item{model_formula}{A formula specifying the regression model for outlier detection.}
+\item{quantity}{Name of the column containing the time series values,
+e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.}
 
 \item{types}{Outlier types to detect. Typical inputs are: AO (Additive Outlier), TC (Temporary Change),
-IO (Innovational Outlier), LS (Level Shift), or SLS(Seasonal Level Shift).}
+IO (Innovational Outlier), LS (Level Shift), or SLS(Seasonal Level Shift). Default `c("AO", "TC", "IO")`.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 
-\item{xreg}{matrix of external regressors passed to `tso()`.}
+\item{xreg}{matrix of external regressors passed to `tso()`. Default `NULL`.}
+
+\item{return_tso}{If `TRUE`, the full `tso()` output is included in the
+returned list as element `tso`. Default `FALSE`.}
 
 \item{...}{Additional arguments passed directly to `tsoutliers::tso()`.}
 }
 \value{
-A list of (i) the original time series dataset with detected outlier covariates
-columns appended when available, and (ii) the outlier summary table returned by `tso()`.
+A list with elements (i) `data`, the original time series dataset with outlier covariates
+columns appended when detected, and (ii) `outliers`, the outlier summary table returned by `tso()`.
+If `return_tso = TRUE`, a third element `tso` is also included. Returns
+  `NULL` if `tso()` errors.
 }
 \description{
 This function detects temporary outliers in a given time series

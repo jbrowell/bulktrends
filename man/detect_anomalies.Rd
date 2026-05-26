@@ -25,7 +25,8 @@ detect_anomalies(
 
 \item{date_col}{Name of column containing timestamps.}
 
-\item{model_selection_metric}{Selection criteria passed to `select_best_model()`}
+\item{model_selection_metric}{A function used for model selection, e.g. `AIC`
+or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 
@@ -33,11 +34,15 @@ detect_anomalies(
 
 \item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
 
-\item{...}{Additional arguments passed to `tso()`}
+\item{...}{Additional arguments passed to `detect_outliers()`.}
 }
 \value{
-A list containing a 1. table of detected anomalies and 2. a list
-of time series data with regressors, including outlier effects.
+A list with two elements: (i) `outliers`, a `data.table` with one row per
+  detected event (or one row with `anomaly_type = "None"` if nothing was found),
+  and (ii) `list_of_ts`, a named list of `data.table`s — one
+  per commodity code — containing the time series with fitted regressors and
+  outlier effect columns appended. Processing runs in parallel via
+  [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 }
 \description{
 This function loops over a list of commodity codes, selects a regression model,
