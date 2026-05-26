@@ -98,6 +98,11 @@ detect_anomalies <- function(
     break_entry <- selected_model$break_entry
     xreg_all <- model.matrix(selected_model$formula, data = ts_data)
 
+    #for ~ -1 models
+    if (ncol(xreg_all) == 0) {
+      xreg_all <- NULL
+    }
+
     detect_anomaly <- detect_outliers(
       data = ts_data,
       quantity = "NET_MASS",
@@ -123,10 +128,10 @@ detect_anomalies <- function(
 
       outliers_entry <- new_outliers
     } else {
-      outliers_entry <- data.table(
-        code = code,
-        model_formula = deparse(selected_model$formula)
-      )
+      outliers_entry <- data.table()
+      # code = code,
+      # model_formula = deparse(selected_model$formula)
+      #)
     }
 
     #add breaks table
@@ -143,6 +148,17 @@ detect_anomalies <- function(
       )
 
       setorder(outliers_entry, time)
+    } else {
+      break_entry <- data.table()
+    }
+
+    #no break no outlier option
+    if (nrow(outliers_entry) == 0) {
+      outliers_entry <- data.table(
+        code = code,
+        model_formula = paste(deparse(selected_model$formula), collapse = " "),
+        anomaly_type = "None"
+      )
     }
 
     p(sprintf("Completed code %s", code))

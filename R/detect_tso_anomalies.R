@@ -26,6 +26,12 @@ detect_outliers <- function(
   return_tso = FALSE,
   ...
 ) {
+  if (!is.null(xreg)) {
+    xreg <- as.matrix(xreg)
+    if (ncol(xreg) == 0) {
+      xreg <- NULL
+    }
+  }
   #change run_tso name
   run_tso <- tryCatch(
     tso(
@@ -35,11 +41,7 @@ detect_outliers <- function(
         as.ts(data[[quantity]])
       },
 
-      xreg = if (!is.null(xreg)) {
-        xreg
-      } else {
-        NULL
-      },
+      xreg = xreg,
       ...
     ),
     error = function(e) {

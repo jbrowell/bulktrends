@@ -22,12 +22,8 @@ detect_breaks <- function(data, date_col = "DATE_START", formula) {
 
   breaks <- bp$breakpoints
 
-  #time index
-  if (!is.null(date_col)) {
+  if (length(breaks) > 0 && !all(is.na(breaks))) {
     time <- data[[date_col]][breaks]
-  }
-
-  if (length(breaks) > 0) {
     output <- data.table(type = "SB", ind = breaks, time = time)
     segments <- as.matrix(breakfactor(bp))
     colnames(segments) <- paste0("segments")

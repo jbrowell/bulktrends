@@ -135,6 +135,7 @@ select_best_model <- function(
       }
 
       segments <- breaks$segments
+      #break_entry <- breaks$break_entry
       fmla <- update(formulas[[i]], . ~ . * segments)
 
       model_fit <- try(
