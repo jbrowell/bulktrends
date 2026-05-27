@@ -114,6 +114,7 @@ detect_anomalies <- function(
       types = c("AO", "TC", "IO"),
       scale_ts = scale_ts,
       xreg = xreg_all
+      #...
     )
 
     ts_data <- detect_anomaly$data
