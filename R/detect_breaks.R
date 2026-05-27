@@ -14,7 +14,7 @@
 #'
 #' @export
 detect_breaks <- function(data, date_col = "DATE_START", formula) {
-  bp <- breakpoints(
+  bp <- strucchange::breakpoints(
     formula,
     data = data,
     breaks = "BIC",
@@ -26,7 +26,7 @@ detect_breaks <- function(data, date_col = "DATE_START", formula) {
   if (length(breaks) > 0 && !all(is.na(breaks))) {
     time <- data[[date_col]][breaks]
     output <- data.table(type = "SB", ind = breaks, time = time)
-    segments <- as.matrix(breakfactor(bp))
+    segments <- as.matrix(strucchange::breakfactor(bp))
     colnames(segments) <- paste0("segments")
     return(list(break_entry = output, segments = segments))
   } else {
