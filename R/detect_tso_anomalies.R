@@ -43,7 +43,7 @@ detect_outliers <- function(
       } else {
         as.ts(data[[quantity]])
       },
-
+      types = types,
       xreg = xreg,
       ...
     ),
@@ -64,7 +64,7 @@ detect_outliers <- function(
     #identify outlier columns
     outlier_cols <- colnames(xreg)
     outlier_cols <- outlier_cols[
-      substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")
+      substr(outlier_cols, 1, 2) %in% c("AO", "TC", "IO")
     ]
 
     if (length(outlier_cols) > 0) {

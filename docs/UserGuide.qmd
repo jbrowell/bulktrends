@@ -201,10 +201,10 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
                                   codes = hs2_codes[1:5],
                                   quantity = "NET_MASS",
                                   scale= TRUE,
-                                  cval= 5,
-                                  types = c("AO", "TC", "IO"),
                                   freq = "month",
-                                  verbose = FALSE)
+                                  verbose = FALSE,
+                                  tso_params = list(cval= 3.5,
+                                                    types = c("AO", "TC", "IO")))
 
 print(hs2_anomalies$outliers)
 ```
@@ -297,22 +297,22 @@ Similarly, the function returns (i) a table of all detected anomalies (breaks an
 hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
 hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2023-01-01"],
-                                  codes = hs2_codes[1:10],
+                                  codes = hs2_codes[1:5],
                                   quantity = "NET_MASS",
                                   scale= TRUE,
-                                  cval= 5,
-                                  types = c("AO", "TC", "IO"),
                                   freq = "day",
-                                  verbose = FALSE)
+                                  verbose = FALSE,
+                                  tso_params = list(cval= 3.5,
+                                                    types = c("AO", "TC", "IO")))
 
 hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
                                   codes = hs2_codes[1:5],
                                   quantity = "volume",
                                   scale= TRUE,
-                                  cval= 5,
-                                  types = c("AO", "TC", "IO"),
                                   freq = "day",
-                                  verbose = FALSE)
+                                  verbose = FALSE,
+                                  tso_params = list(cval= 3.5,
+                                                    types = c("AO", "TC", "IO")))
 
 head(hs2_anomalies_netmass$outliers)
 head(hs2_anomalies_volume$outliers)

@@ -31,6 +31,7 @@ detect_anomalies <- function(
   scale_ts = FALSE,
   freq = NULL,
   verbose = FALSE,
+  tso_params = list(),
   ...
 ) {
   ts_prep <- list()
@@ -108,22 +109,32 @@ detect_anomalies <- function(
       xreg_all <- NULL
     }
 
-    detect_anomaly <- detect_outliers(
-      data = ts_data,
-      quantity = quantity,
-      types = c("AO", "TC", "IO"),
-      scale_ts = scale_ts,
-      xreg = xreg_all
-      #...
+    tso_args <- modifyList(
+      list(
+        data = ts_data,
+        quantity = "NET_MASS",
+        types = c("AO", "TC", "IO"),
+        scale_ts = scale_ts,
+        xreg = xreg_all
+      ),
+      tso_params
     )
 
-    ts_data <- detect_anomaly$data
+    outliers <- do.call(detect_outliers, tso_args)
+    # outliers <- detect_outliers(
+    #   data = ts_data,
+    #   quantity = quantity,
+    #   types = c("AO", "TC", "IO"),
+    #   scale_ts = scale_ts,
+    #   xreg = xreg_all
+    #   #...
+    # )
 
-    if (
-      !is.null(detect_anomaly$outliers) && nrow(detect_anomaly$outliers) > 0
-    ) {
+    ts_data <- outliers$data
+
+    if (!is.null(outliers$outliers) && nrow(outliers$outliers) > 0) {
       #store tso outliers data produced
-      new_outliers <- as.data.table(detect_anomaly$outliers)
+      new_outliers <- as.data.table(outliers$outliers)
       new_outliers[, code := code]
       new_outliers[,
         model_formula := paste(deparse(selected_model$formula), collapse = " ")
