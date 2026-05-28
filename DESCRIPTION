@@ -20,6 +20,6 @@ Depends:
     lubridate (>= 1.8.0),
     future.apply (>= 1.20.0),
     progressr (>= 0.18.0),
-    strucchange (>= 1.5.0)
+    strucchangeRcpp (>= 1.5.0)
 Suggests:
     usethis (>= 2.1.0)
