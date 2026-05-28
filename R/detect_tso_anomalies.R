@@ -49,10 +49,11 @@ detect_outliers <- function(
     ),
     error = function(e) {
       message("Outlier detection failed: ", e)
+      return(NULL)
     }
   )
 
-  if (inherits(tso_outliers, "error")) {
+  if (is.null(tso_outliers)) {
     return(NULL)
   }
 
