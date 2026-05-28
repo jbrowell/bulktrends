@@ -279,6 +279,7 @@ detect_anomaly <- detect_outliers(data = selected_model$data,
                     return_tso = TRUE,
                     xreg = model.matrix(selected_model$formula, data = selected_model$data))
 
+print(selected_model$break_entry)
 print(detect_anomaly)
 plot.tsoutliers(detect_anomaly$tso)
 
