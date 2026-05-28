@@ -124,14 +124,6 @@ detect_anomalies <- function(
     )
 
     outliers <- do.call(detect_outliers, tso_args)
-    # outliers <- detect_outliers(
-    #   data = ts_data,
-    #   quantity = quantity,
-    #   types = c("AO", "TC", "IO"),
-    #   scale_ts = scale_ts,
-    #   xreg = xreg_all
-    #   #...
-    # )
 
     ts_data <- outliers$data
 
@@ -149,9 +141,6 @@ detect_anomalies <- function(
       outliers_entry <- new_outliers
     } else {
       outliers_entry <- data.table()
-      # code = code,
-      # model_formula = deparse(selected_model$formula)
-      #)
     }
 
     #add breaks table

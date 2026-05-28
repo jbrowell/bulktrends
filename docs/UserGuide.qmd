@@ -203,7 +203,7 @@ hs2_anomalies <- detect_anomalies(import_data = imports,
                                   scale= TRUE,
                                   freq = "month",
                                   verbose = FALSE,
-                                  tso_params = list(cval= 3.5,
+                                  tso_params = list(cval= 4,
                                                     types = c("AO", "TC", "IO")))
 
 print(hs2_anomalies$outliers)
@@ -218,7 +218,6 @@ The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and
 ```{r load-ipaffs-data}
 #| warning: false
 imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
-#imports_ipaffs <- readRDS(paste0(data_directory,"imports_ipaffs.rds"))
 
 ```
 
@@ -303,7 +302,7 @@ hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_STAR
                                   scale= TRUE,
                                   freq = "day",
                                   verbose = FALSE,
-                                  tso_params = list(cval= 3.5,
+                                  tso_params = list(cval= 4,
                                                     types = c("AO", "TC", "IO")))
 
 hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
@@ -312,7 +311,7 @@ hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
                                   scale= TRUE,
                                   freq = "day",
                                   verbose = FALSE,
-                                  tso_params = list(cval= 3.5,
+                                  tso_params = list(cval= 4,
                                                     types = c("AO", "TC", "IO")))
 
 head(hs2_anomalies_netmass$outliers)
