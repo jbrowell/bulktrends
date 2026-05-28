@@ -20,6 +20,6 @@ variable for use as a regressor.
 Returns `NULL` if no breaks are detected.
 }
 \description{
-This function uses [strucchange::breakpoints()] with BIC-based selection to identify
+This function uses [strucchangeRcpp::breakpoints()] with BIC-based selection to identify
 structural breaks in a given time series.
 }

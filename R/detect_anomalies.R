@@ -12,7 +12,10 @@
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param freq See `?extract_ts()`
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
-#' @param ... Additional arguments passed to `detect_outliers()`.
+#' @param tso_params A named list of additional arguments passed to
+#'   [detect_outliers()] and forwarded to [tsoutliers::tso()], e.g.
+#'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
+#'   Default `list()`.
 #'
 #' @return A list with two elements: (i) `outliers`, a `data.table` with one row per
 #'   detected event (or one row with `anomaly_type = "None"` if nothing was found),

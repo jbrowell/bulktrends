@@ -13,6 +13,7 @@ detect_anomalies(
   scale_ts = FALSE,
   freq = NULL,
   verbose = FALSE,
+  tso_params = list(),
   ...
 )
 }
@@ -34,7 +35,10 @@ or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 
 \item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
 
-\item{...}{Additional arguments passed to `detect_outliers()`.}
+\item{tso_params}{A named list of additional arguments passed to
+[detect_outliers()] and forwarded to [tsoutliers::tso()], e.g.
+`list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
+Default `list()`.}
 }
 \value{
 A list with two elements: (i) `outliers`, a `data.table` with one row per
