@@ -91,8 +91,7 @@ select_best_model <- function(
     }
   }
 
-  output <- list(data = data,
-                 formula = NULL)
+  output <- list(data = data, formula = NULL)
 
   current_metric <- Inf
 

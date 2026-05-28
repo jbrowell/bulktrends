@@ -12,8 +12,7 @@
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param freq See `?extract_ts()`
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
-#' @param tso_params A named list of additional arguments passed to
-#'   [detect_outliers()] and forwarded to [tsoutliers::tso()], e.g.
+#' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
 #'
@@ -34,8 +33,7 @@ detect_anomalies <- function(
   scale_ts = FALSE,
   freq = NULL,
   verbose = FALSE,
-  tso_params = list(),
-  ...
+  tso_params = list()
 ) {
   ts_prep <- list()
   for (code in codes) {
@@ -112,18 +110,13 @@ detect_anomalies <- function(
       xreg_all <- NULL
     }
 
-    tso_args <- modifyList(
-      list(
-        data = ts_data,
-        quantity = "NET_MASS",
-        types = c("AO", "TC", "IO"),
-        scale_ts = scale_ts,
-        xreg = xreg_all
-      ),
-      tso_params
+    outliers <- detect_outliers(
+      data = ts_data,
+      quantity = "NET_MASS",
+      scale_ts = scale_ts,
+      xreg = xreg_all,
+      tso_params = tso_params
     )
-
-    outliers <- do.call(detect_outliers, tso_args)
 
     ts_data <- outliers$data
 

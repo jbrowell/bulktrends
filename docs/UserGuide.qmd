@@ -174,7 +174,6 @@ selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_de
 
 detect_anomaly <- detect_outliers(data = selected_model$data,
                     quantity= "NET_MASS",
-                    types = c("AO", "TC", "IO"),
                     scale_ts = FALSE,
                     return_tso = TRUE,
                     xreg = model.matrix(selected_model$formula, data = selected_model$data))
@@ -273,7 +272,6 @@ selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_de
 
 detect_anomaly <- detect_outliers(data = selected_model$data,
                     quantity= "NET_MASS",
-                    types = c("AO", "TC", "IO"),
                     scale_ts = FALSE,
                     return_tso = TRUE,
                     xreg = model.matrix(selected_model$formula, data = selected_model$data))

@@ -23,11 +23,10 @@
 detect_outliers <- function(
   data,
   quantity,
-  types = c("AO", "TC", "IO"),
   scale_ts = FALSE,
   xreg = NULL,
   return_tso = FALSE,
-  ...
+  tso_params = list()
 ) {
   if (!is.null(xreg)) {
     xreg <- as.matrix(xreg)
@@ -36,17 +35,22 @@ detect_outliers <- function(
     }
   }
 
-  tso_outliers <- tryCatch(
-    tso(
+  tso_params <- modifyList(
+    list(
       y = if (scale_ts) {
         as.ts(scale(data[[quantity]]))
       } else {
         as.ts(data[[quantity]])
       },
-      types = types,
       xreg = xreg,
-      ...
+      types = c("AO", "TC"),
+      cval = 5
     ),
+    tso_params
+  )
+
+  tso_outliers <- tryCatch(
+    do.call(tso, tso_params),
     error = function(e) {
       message("Outlier detection failed: ", e)
       return(NULL)
