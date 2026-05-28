@@ -1,6 +1,6 @@
 #' Detect structural breaks in a time series
 #'
-#' This function uses [strucchange::breakpoints()] with BIC-based selection to identify
+#' This function uses [strucchangeRcpp::breakpoints()] with BIC-based selection to identify
 #' structural breaks in a given time series.
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
@@ -14,7 +14,7 @@
 #'
 #' @export
 detect_breaks <- function(data, date_col = "DATE_START", formula) {
-  bp <- strucchange::breakpoints(
+  bp <- strucchangeRcpp::breakpoints(
     formula,
     data = data,
     breaks = "BIC",
@@ -26,7 +26,7 @@ detect_breaks <- function(data, date_col = "DATE_START", formula) {
   if (length(breaks) > 0 && !all(is.na(breaks))) {
     time <- data[[date_col]][breaks]
     output <- data.table(type = "SB", ind = breaks, time = time)
-    segments <- as.matrix(strucchange::breakfactor(bp))
+    segments <- as.matrix(strucchangeRcpp::breakfactor(bp))
     colnames(segments) <- paste0("segments")
     return(list(break_entry = output, segments = segments))
   } else {
