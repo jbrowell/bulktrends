@@ -49,7 +49,7 @@ detect_outliers <- function(
   )
 
   tso_outliers <- tryCatch(
-    do.call(tso, tso_params),
+    do.call(tsoutliers::tso, tso_params),
     error = function(e) {
       message("Outlier detection failed: ", e)
       return(NULL)
