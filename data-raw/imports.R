@@ -5,26 +5,27 @@
 library(bulktrends)
 
 future::plan("multicore")
-data_dir <- "data/Rbuildignore/"
+data_dir <- "data/Rbuildignore"
+dir.create(file.path(data_dir, "imports_hmrc/"), showWarnings = FALSE)
 
 # Download latest data
 download_uktradeinfo_bulk(
-  dest_dir = paste0(data_dir, "imports_hmrc/"),
+  dest_dir = file.path(data_dir, "imports_hmrc/"),
   type = "imports",
   overwrite = FALSE
 )
 
 # Update existing dataset or create if it doesn't exist.
-if (file.exists(paste0(data_dir, "imports.rds"))) {
-  imports <- readRDS(paste0(data_dir, "imports.rds"))
+if (file.exists(file.path(data_dir, "imports.gz"))) {
+  imports <- fread(file.path(data_dir, "imports.gz"))
   update_uktradeinfo(
     existing = imports,
-    path = paste0(data_dir, "imports_hmrc/")
+    path = file.path(data_dir, "imports_hmrc/")
   )
 } else {
-  imports <- read_uktradeinfo(path = paste0(data_dir, "imports_hmrc/"))
+  imports <- read_uktradeinfo(path = file.path(data_dir, "imports_hmrc/"))
 }
 
 # Check dups and save
 imports <- imports[!duplicated(imports)]
-saveRDS(imports, file = paste0(data_dir, "imports.rds"))
+fwrite(imports, file.path(data_dir, "imports.gz"))
