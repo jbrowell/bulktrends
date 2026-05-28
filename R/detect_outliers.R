@@ -6,13 +6,12 @@
 #' @param data A `data.frame` containing the dependent variable and dates.
 #' @param quantity Name of the column containing the time series values,
 #'  e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.
-#' @param types Outlier types to detect. Typical inputs are: AO (Additive Outlier), TC (Temporary Change),
-#' IO (Innovational Outlier), LS (Level Shift), or SLS(Seasonal Level Shift). Default `c("AO", "TC", "IO")`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param xreg matrix of external regressors passed to `tso()`. Default `NULL`.
 #' @param return_tso If `TRUE`, the full `tso()` output is included in the
 #'   returned list as element `tso`. Default `FALSE`.
-#' @param ... Additional arguments passed directly to `tsoutliers::tso()`.
+#' @param tso_params A named list of additional arguments passed directly to `tsoutliers::tso()`,
+#'   e.g. `list(cval = 5, types = c("AO", "TC", "IO"))`. Default `list()`.
 #'
 #' @return A list with elements (i) `data`, the original time series dataset with outlier covariates
 #' columns appended when detected, and (ii) `outliers`, the outlier summary table returned by `tso()`.
