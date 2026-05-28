@@ -91,7 +91,9 @@ select_best_model <- function(
     }
   }
 
-  output <- list()
+  output <- list(data = data,
+                 formula = NULL)
+
   current_metric <- Inf
 
   # base models
@@ -156,5 +158,10 @@ select_best_model <- function(
       }
     }
   }
+
+  if (is.null(output$formula)) {
+    warning("No valid model found. Returning original data with NULL formula.")
+  }
+
   return(output)
 }
