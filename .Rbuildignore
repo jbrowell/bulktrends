@@ -3,3 +3,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^data/Rbuildignore/.+$
+^data-raw$
+^AGENTS\.md$

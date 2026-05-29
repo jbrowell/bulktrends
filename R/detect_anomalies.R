@@ -7,14 +7,21 @@
 #' @param codes A vector of HS2/HS4/HS6/CN8 codes
 #' @param quantity Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
-#' @param model_selection_metric Selection criteria passed to `select_best_model()`
+#' @param model_selection_metric A function used for model selection, e.g. `AIC`
+#'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param freq See `?extract_ts()`
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
-#' @param ... Additional arguments passed to `tso()`
+#' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
+#'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
+#'   Default `list()`.
 #'
-#' @returns A list containing a 1. table of detected outliers and 2. a list
-#' of time series data with regressors, including outlier effects.
+#' @return A list with two elements: (i) `outliers`, a `data.table` with one row per
+#'   detected event (or one row with `anomaly_type = "None"` if nothing was found),
+#'   and (ii) `list_of_ts`, a named list of `data.table`s — one
+#'   per commodity code — containing the time series with fitted regressors and
+#'   outlier effect columns appended. Processing runs in parallel via
+#'   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 #'
 #' @export
 detect_anomalies <- function(
@@ -22,11 +29,11 @@ detect_anomalies <- function(
   codes,
   quantity = "NET_MASS",
   date_col = "DATE_START",
-  model_selection_metric = "aic",
+  model_selection_metric = AIC,
   scale_ts = FALSE,
   freq = NULL,
   verbose = FALSE,
-  ...
+  tso_params = list()
 ) {
   ts_prep <- list()
   for (code in codes) {
@@ -79,7 +86,7 @@ detect_anomalies <- function(
         response_col = quantity,
         date_col = date_col,
         metric = model_selection_metric,
-        scale_ts = scale_ts
+        break_detection = TRUE
       ),
       error = function(e) e
     )
@@ -94,61 +101,65 @@ detect_anomalies <- function(
       message(sprintf("Running detect_anomaly for %s", code))
     }
 
-    detect_anomaly <- tryCatch(
-      tso(
-        y = if (scale_ts) {
-          as.ts(scale(ts_data[[quantity]]))
-        } else {
-          as.ts(ts_data[[quantity]])
-        },
-        xreg = if (ncol(selected_model$xreg) > 0) {
-          selected_model$xreg
-        } else {
-          NULL
-        },
-        ...
-      ),
-      error = function(e) e
+    ts_data <- selected_model$data
+    break_entry <- selected_model$break_entry
+    xreg_all <- model.matrix(selected_model$formula, data = ts_data)
+
+    #for ~ -1 models
+    if (ncol(xreg_all) == 0) {
+      xreg_all <- NULL
+    }
+
+    outliers <- detect_outliers(
+      data = ts_data,
+      quantity = "NET_MASS",
+      scale_ts = scale_ts,
+      xreg = xreg_all,
+      tso_params = tso_params
     )
 
-    if (inherits(detect_anomaly, "error")) {
-      message(paste("Skipping code", code, ":", detect_anomaly))
-      p(sprintf("Skipped %s", code))
-      return(NULL)
-    }
+    ts_data <- outliers$data
 
-    xreg <- detect_anomaly$fit$xreg
-
-    if (!is.null(xreg)) {
-      xreg <- as.matrix(xreg)
-
-      #identify outlier columns
-      outlier_cols <- colnames(xreg)
-      outlier_cols <- outlier_cols[
-        substr(outlier_cols, 1, 2) %in% c("AO", "LS", "TC", "IO")
-      ]
-
-      if (length(outlier_cols) > 0) {
-        xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
-        ts_data <- cbind(ts_data, xreg_outliers)
-      }
-    }
-
-    if (nrow(detect_anomaly$outliers) > 0) {
-      #store outliers data produced
-      new_outliers <- as.data.table(detect_anomaly$outliers)
+    if (!is.null(outliers$outliers) && nrow(outliers$outliers) > 0) {
+      #store tso outliers data produced
+      new_outliers <- as.data.table(outliers$outliers)
       new_outliers[, code := code]
       new_outliers[,
         model_formula := paste(deparse(selected_model$formula), collapse = " ")
       ]
 
       new_outliers[, time := ts_data$DATE_START[ind]]
+      new_outliers[, anomaly_type := "Outlier"]
 
       outliers_entry <- new_outliers
     } else {
+      outliers_entry <- data.table()
+    }
+
+    #add breaks table
+    if (!is.null(break_entry) && nrow(break_entry) > 0) {
+      break_entry[, code := code]
+      break_entry[,
+        model_formula := paste(deparse(selected_model$formula), collapse = " ")
+      ]
+      break_entry[, anomaly_type := "Break"]
+
+      outliers_entry <- rbindlist(
+        list(outliers_entry, break_entry),
+        fill = TRUE
+      )
+
+      setorder(outliers_entry, time)
+    } else {
+      break_entry <- data.table()
+    }
+
+    #no break no outlier option
+    if (nrow(outliers_entry) == 0) {
       outliers_entry <- data.table(
         code = code,
-        model_formula = deparse(selected_model$formula)
+        model_formula = paste(deparse(selected_model$formula), collapse = " "),
+        anomaly_type = "None"
       )
     }
 

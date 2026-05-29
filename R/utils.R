@@ -121,12 +121,31 @@ extract_ts <- function(
 #'
 #' @param data A `data.table` containing trade data.
 #' @param date_col Name of column containing timestamps.
+#' @param division UK division for bank holiday lookup. One of
+#'   `"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.
+#' @param holidays A `data.frame` or `data.table` of bank holidays with at least
+#'   `date` and `title` columns, as returned by [get_uk_bank_holidays()].
+#'   Defaults to the bundled [uk_bank_holidays] dataset.
 #'
 #' @return A `data.table` with the original data and additional calendar features, including
-#' day of week, day of year, UK holiday indicators etc.
+#' day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
+#'
+#' @details
+#' Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
+#' which was compiled from the official gov.uk published data
+#' (\url{https://www.gov.uk/bank-holidays.json}).  The stored dataset includes
+#' substitute days and one-off special bank holidays.
+#'
+#' To use the latest published data call [get_uk_bank_holidays()] and pass the
+#' result via the `holidays` argument.
 #'
 #' @export
-add_date_features <- function(data, date_col) {
+add_date_features <- function(
+  data,
+  date_col,
+  division = "england-and-wales",
+  holidays = NULL
+) {
   if (!inherits(data, "data.table")) {
     data <- as.data.table(data)
   }
@@ -136,73 +155,121 @@ add_date_features <- function(data, date_col) {
     stop("Input must be of class \"Date\".")
   }
 
-  dates <- data[[date_col]]
-  years <- as.numeric(unique(format(dates, "%Y")))
-
-  # Build a named vector of date -> holiday name
-  # Would prefer to replace this with function to
-  # get UK Bank Holidays from gov.uk API and github.com/alphagov
-  # https://www.gov.uk/bank-holidays.json
-  # https://github.com/alphagov/calendars/blob/master/lib/data/bank-holidays.json
-
-  make_holidays <- function(years) {
-    fixed <- c(
-      setNames(
-        as.Date(as.character(timeDate::GoodFriday(years))),
-        rep("Good Friday", length(years))
-      ),
-      setNames(
-        as.Date(as.character(timeDate::EasterMonday(years))),
-        rep("Easter Monday", length(years))
-      ),
-      setNames(
-        as.Date(as.character(timeDate::ChristmasDay(years))),
-        rep("Christmas Day", length(years))
-      ),
-      setNames(
-        as.Date(as.character(timeDate::BoxingDay(years))),
-        rep("Boxing Day", length(years))
-      ),
-      setNames(
-        as.Date(as.character(timeDate::NewYearsDay(years))),
-        rep("New Year's Day", length(years))
-      )
-    )
-
-    find_monday <- function(y, month, start_day, label) {
-      d <- seq(
-        as.Date(paste0(y, "-", month, "-", start_day)),
-        as.Date(paste0(y, "-", month, "-", start_day)) + 6,
-        by = "day"
-      )
-      setNames(d[weekdays(d) == "Monday"][1], label)
-    }
-
-    variable <- do.call(
-      c,
-      lapply(years, function(y) {
-        c(
-          find_monday(y, "05", "01", "Early May Bank Holiday"),
-          find_monday(y, "05", "25", "Spring Bank Holiday"),
-          find_monday(y, "08", "25", "Summer Bank Holiday")
-        )
-      })
-    )
-
-    c(fixed, variable)
+  if (is.null(holidays)) {
+    holidays <- uk_bank_holidays
   }
-  warning("One-off bank holidays missing. Update required...")
-  holiday_lookup <- make_holidays(years)
+
+  division <- match.arg(
+    division,
+    c("england-and-wales", "scotland", "northern-ireland")
+  )
+
+  div_holidays <- holidays[holidays$division == division, ]
+
+  # Warn if any dates fall outside the coverage of the holidays dataset
+  dates <- data[[date_col]]
+  coverage_min <- min(div_holidays$date)
+  coverage_max <- max(div_holidays$date)
+  out_of_range <- dates[
+    !is.na(dates) & (dates < coverage_min | dates > coverage_max)
+  ]
+  if (length(out_of_range) > 0) {
+    warning(
+      length(out_of_range),
+      " date(s) in `data` fall outside the coverage of the ",
+      "holidays dataset for '",
+      division,
+      "' (",
+      coverage_min,
+      " to ",
+      coverage_max,
+      "). ",
+      "UK holidays will be marked NA for those dates. ",
+      "Use get_uk_bank_holidays() to fetch up-to-date data and pass it via the ",
+      "`holidays` argument.",
+      call. = FALSE
+    )
+  }
+
+  # Build a named vector: date (as character) -> holiday title
+  holiday_lookup <- setNames(
+    div_holidays$title,
+    as.character(div_holidays$date)
+  )
 
   data$day_of_week <- weekdays(dates)
   data$day_of_year <- as.integer(format(dates, "%j"))
-  data$uk_holiday <- names(holiday_lookup)[match(dates, holiday_lookup)]
-  data$is_uk_holiday <- !is.na(data$uk_holiday)
+  data$holiday <- unname(holiday_lookup[as.character(dates)])
+  data$is_holiday <- !is.na(data$holiday)
 
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
 
   return(data)
+}
+
+#' Get UK Bank Holidays from gov.uk
+#'
+#' Fetches the latest UK bank holidays from the official gov.uk API
+#' (\url{https://www.gov.uk/bank-holidays.json}) and returns them as a
+#' `data.table` in the same format as the bundled [uk_bank_holidays] dataset.
+#'
+#' @return A `data.table` with columns `date`, `title`, `notes`, and `division`.
+#'   Rows are ordered by `division` then `date`.
+#'
+#' @details
+#' The function requires an internet connection.  If the request fails (e.g.
+#' when offline), an informative error is raised and you can fall back to the
+#' bundled [uk_bank_holidays] dataset instead.
+#'
+#' The returned data can be passed to [add_date_features()] via its `holidays`
+#' argument, or used to refresh the package dataset with
+#' `usethis::use_data(get_uk_bank_holidays(), overwrite = TRUE)`.
+#'
+#' @examples
+#' \dontrun{
+#' holidays <- get_uk_bank_holidays()
+#' head(holidays)
+#' }
+#'
+#' @export
+get_uk_bank_holidays <- function() {
+  url <- "https://www.gov.uk/bank-holidays.json"
+
+  raw <- tryCatch(
+    jsonlite::fromJSON(url, simplifyVector = FALSE),
+    error = function(e) {
+      stop(
+        "Could not fetch bank holidays from ",
+        url,
+        ".\n",
+        "Check your internet connection or use the bundled `uk_bank_holidays` ",
+        "dataset instead.\nOriginal error: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+
+  records <- list()
+  for (div in names(raw)) {
+    div_data <- raw[[div]]
+    if (!is.null(div_data$events)) {
+      for (ev in div_data$events) {
+        records[[length(records) + 1]] <- data.frame(
+          date = as.Date(ev$date),
+          title = ev$title,
+          notes = if (is.null(ev$notes)) "" else ev$notes,
+          division = div,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+
+  result <- rbindlist(records)
+  setorder(result, division, date)
+  result
 }
 
 #' View User Guide
