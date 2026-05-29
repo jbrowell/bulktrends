@@ -1,22 +1,26 @@
-#' Extract suitable model matrix for a given commodity code
+#' Select the best regression model for a time series
 #'
-#' This function evaluates a set of formulas with linear_trend and seasonal terms
-#' as exogenous variables and selects the ARIMA model with the lowest value
-#' of the selected metric.
+#' This function evaluates a set of candidate regression formulas containing
+#' trend and seasonal regressors and selects the model with the lowest value
+#' of the specified selection metric (for example AIC or BIC).
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
-#' @param date_col Name of column containing timestamps.
-#' @param formulas A list of formulas specifying candidate models. Covariates
-#' available are `linear_trend` and `month`.
+#' @param date_col Name of column containing timestamps. Default `"DATE_START"`.
+#' @param formulas A list of formulas specifying candidate models. When `NULL`,
+#'  default formulas are generated based on `freq`. Available covariates for
+#'  monthly data are `linear_trend`, `annual_sin`, and `annual_cos`; for daily
+#'  data `day_of_week` and `is_holiday` are also available.
 #' @param response_col If `formulas` not provided, default formulas will be used
 #' but the column containing the response variable must be specified.
-#' @param metric A character string specifying the criteria for model
-#' selection. Examples are "aic","aicc" or "bic".
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
+#' @param metric  A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.
+#' @param break_detection If `TRUE`, structural break detection is
+#' performed and break-adjusted models are also evaluated.
 #' @param freq Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').
 #'
-#' @return A model matrix of the linear_trend and seasonal regressors of the selected
-#' model and the related model formula.
+#' @return A list containing (i) `data`, the time series' data with any generated regressors
+#' and structural break segment variables, (ii)  `formula`, the optimal selected model formula, and
+#' (iii)  `break_entry`, a `data.table` describing any detected structural breaks
+#' or `NULL` if no breaks were found.
 #'
 #' @export
 select_best_model <- function(
@@ -24,8 +28,8 @@ select_best_model <- function(
   date_col = "DATE_START",
   formulas = NULL,
   response_col = NULL,
-  metric = "aic",
-  scale_ts = FALSE,
+  metric = AIC,
+  break_detection = TRUE,
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
@@ -72,7 +76,7 @@ select_best_model <- function(
         ~ annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos + day_of_week,
-        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_uk_holiday
+        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_holiday
       )
 
       formulas <- lapply(formulas, function(f) {
@@ -87,34 +91,14 @@ select_best_model <- function(
     }
   }
 
-  model <- list()
-  metric_values <- rep(Inf, length(formulas))
+  output <- list(data = data, formula = NULL)
 
+  current_metric <- Inf
+
+  # base models
   for (i in seq_along(formulas)) {
-    is_empty_model <- deparse(formulas[[i]][[3]]) == "-1"
-
-    if (!is_empty_model) {
-      X <- model.matrix(formulas[[i]], data = data)
-    }
-
     model_fit <- try(
-      forecast::auto.arima(
-        if (scale_ts) {
-          scale(data[[response_col]])
-        } else {
-          data[[response_col]]
-        },
-        xreg = if (is_empty_model) {
-          NULL
-        } else {
-          X
-        },
-        max.p = 5,
-        max.d = 1,
-        max.q = 5,
-        seasonal = F,
-        allowmean = F
-      ),
+      lm(formula = formulas[[i]], data = data),
       silent = T
     )
 
@@ -122,18 +106,61 @@ select_best_model <- function(
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
     } else {
-      model[[i]] <- model_fit
-      metric_values[i] <- model_fit[[metric]]
+      new_metric <- metric(model_fit)
+      if (new_metric < current_metric) {
+        current_metric <- new_metric
+        output <- list(data = data, formula = formulas[[i]])
+      }
     }
   }
 
-  best_metric <- which.min(metric_values)
-  return(list(
-    xreg = if (formulas[[best_metric]] == formula(~ -1)) {
-      NULL
-    } else {
-      model.matrix(formulas[[best_metric]], data = data)
-    },
-    formula = formulas[[best_metric]]
-  ))
+  # detect_breaks loop
+  if (break_detection) {
+    for (i in seq_along(formulas)) {
+      breaks <- try(
+        detect_breaks(
+          data = data,
+          date_col = date_col,
+          formula = formulas[[i]]
+        ),
+        silent = TRUE
+      )
+      if ("try-error" %in% class(breaks)) {
+        warning("Breaks detection failed", "\n")
+        next
+      }
+      if (is.null(breaks)) {
+        next
+      }
+
+      segments <- breaks$segments
+      fmla <- update(formulas[[i]], . ~ . * segments)
+
+      model_fit <- try(
+        lm(formula = fmla, data = cbind(data, segments)),
+        silent = T
+      )
+
+      if ("try-error" %in% class(model_fit)) {
+        warning("Model failed: ", deparse(fmla), "\n")
+        next
+      } else {
+        new_metric <- metric(model_fit)
+        if (new_metric < current_metric) {
+          current_metric <- new_metric
+          output = list(
+            data = cbind(data, segments),
+            formula = fmla,
+            break_entry = breaks$break_entry
+          )
+        }
+      }
+    }
+  }
+
+  if (is.null(output$formula)) {
+    warning("No valid model found. Returning original data with NULL formula.")
+  }
+
+  return(output)
 }

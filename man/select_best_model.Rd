@@ -2,42 +2,46 @@
 % Please edit documentation in R/select_best_model.R
 \name{select_best_model}
 \alias{select_best_model}
-\title{Extract suitable model matrix for a given commodity code}
+\title{Select the best regression model for a time series}
 \usage{
 select_best_model(
   data,
   date_col = "DATE_START",
   formulas = NULL,
   response_col = NULL,
-  metric = "aic",
-  scale_ts = FALSE,
+  metric = AIC,
+  break_detection = TRUE,
   freq = NULL
 )
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{date_col}{Name of column containing timestamps.}
+\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
 
-\item{formulas}{A list of formulas specifying candidate models. Covariates
-available are `linear_trend` and `month`.}
+\item{formulas}{A list of formulas specifying candidate models. When `NULL`,
+default formulas are generated based on `freq`. Available covariates for
+monthly data are `linear_trend`, `annual_sin`, and `annual_cos`; for daily
+data `day_of_week` and `is_holiday` are also available.}
 
 \item{response_col}{If `formulas` not provided, default formulas will be used
 but the column containing the response variable must be specified.}
 
-\item{metric}{A character string specifying the criteria for model
-selection. Examples are "aic","aicc" or "bic".}
+\item{metric}{A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+\item{break_detection}{If `TRUE`, structural break detection is
+performed and break-adjusted models are also evaluated.}
 
 \item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
 }
 \value{
-A model matrix of the linear_trend and seasonal regressors of the selected
-model and the related model formula.
+A list containing (i) `data`, the time series' data with any generated regressors
+and structural break segment variables, (ii)  `formula`, the optimal selected model formula, and
+(iii)  `break_entry`, a `data.table` describing any detected structural breaks
+or `NULL` if no breaks were found.
 }
 \description{
-This function evaluates a set of formulas with linear_trend and seasonal terms
-as exogenous variables and selects the ARIMA model with the lowest value
-of the selected metric.
+This function evaluates a set of candidate regression formulas containing
+trend and seasonal regressors and selects the model with the lowest value
+of the specified selection metric (for example AIC or BIC).
 }
