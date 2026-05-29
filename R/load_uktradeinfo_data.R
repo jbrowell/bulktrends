@@ -92,7 +92,7 @@ read_uktradeinfo <- function(path) {
       fill = FALSE
     )
 
-    data.table::setorder(BDS_all,DATE_START)
+    data.table::setorder(BDS_all, DATE_START)
 
     return(BDS_all)
   } else {
