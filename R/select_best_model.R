@@ -91,12 +91,11 @@ select_best_model <- function(
     }
   }
 
-  model <- list()
-  output <- list()
-  metric_values <- rep(Inf, length(formulas))
+  output <- list(data = data, formula = NULL)
+
   current_metric <- Inf
 
-  #base models
+  # base models
   for (i in seq_along(formulas)) {
     model_fit <- try(
       lm(formula = formulas[[i]], data = data),
@@ -107,10 +106,9 @@ select_best_model <- function(
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
     } else {
-      model[[i]] <- model_fit
-      metric_values[i] <- metric(model_fit)
-      if (metric_values[i] < current_metric) {
-        current_metric <- metric_values[i]
+      new_metric <- metric(model_fit)
+      if (new_metric < current_metric) {
+        current_metric <- new_metric
         output <- list(data = data, formula = formulas[[i]])
       }
     }
@@ -136,7 +134,6 @@ select_best_model <- function(
       }
 
       segments <- breaks$segments
-      #break_entry <- breaks$break_entry
       fmla <- update(formulas[[i]], . ~ . * segments)
 
       model_fit <- try(
@@ -148,9 +145,9 @@ select_best_model <- function(
         warning("Model failed: ", deparse(fmla), "\n")
         next
       } else {
-        if (metric(model_fit) < current_metric) {
-          # current_metric <- model_fit[[metric]]
-          current_metric <- metric(model_fit)
+        new_metric <- metric(model_fit)
+        if (new_metric < current_metric) {
+          current_metric <- new_metric
           output = list(
             data = cbind(data, segments),
             formula = fmla,
@@ -160,5 +157,10 @@ select_best_model <- function(
       }
     }
   }
+
+  if (is.null(output$formula)) {
+    warning("No valid model found. Returning original data with NULL formula.")
+  }
+
   return(output)
 }

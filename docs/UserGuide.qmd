@@ -39,7 +39,7 @@ library(bulktrends)
 data_directory <- "../data/Rbuildignore/"
 ```
 
-Parallel computation is supported in `bullktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan".
+Parallel computation is supported in `bulktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan".
 ```{r future_setup}
 future::plan("multicore")
 ```
@@ -174,7 +174,6 @@ selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_de
 
 detect_anomaly <- detect_outliers(data = selected_model$data,
                     quantity= "NET_MASS",
-                    types = c("AO", "TC", "IO"),
                     scale_ts = FALSE,
                     return_tso = TRUE,
                     xreg = model.matrix(selected_model$formula, data = selected_model$data))
@@ -200,7 +199,7 @@ hs2_codes <- unique(substr(imports$COMCODE, 1,2))
 hs2_anomalies <- detect_anomalies(import_data = imports,
                                   codes = hs2_codes[1:5],
                                   quantity = "NET_MASS",
-                                  scale= TRUE,
+                                  scale_ts = TRUE,
                                   freq = "month",
                                   verbose = FALSE,
                                   tso_params = list(cval= 4,
@@ -273,7 +272,6 @@ selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_de
 
 detect_anomaly <- detect_outliers(data = selected_model$data,
                     quantity= "NET_MASS",
-                    types = c("AO", "TC", "IO"),
                     scale_ts = FALSE,
                     return_tso = TRUE,
                     xreg = model.matrix(selected_model$formula, data = selected_model$data))
@@ -299,7 +297,7 @@ hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2023-01-01"],
                                   codes = hs2_codes[1:5],
                                   quantity = "NET_MASS",
-                                  scale= TRUE,
+                                  scale_ts = TRUE,
                                   freq = "day",
                                   verbose = FALSE,
                                   tso_params = list(cval= 4,
@@ -308,7 +306,7 @@ hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_STAR
 hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
                                   codes = hs2_codes[1:5],
                                   quantity = "volume",
-                                  scale= TRUE,
+                                  scale_ts = TRUE,
                                   freq = "day",
                                   verbose = FALSE,
                                   tso_params = list(cval= 4,
