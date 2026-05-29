@@ -13,16 +13,16 @@ The functions and scripts of this package are designed to monitor, forecast and 
 ### 1. Monthly HMRC Imports
 
 
-The project uses publicly available HM Revenue & Customs (HMRC) import files that will need to be downloaded from an external source, unzipped and stored locally prior to any analysis. Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics, and consist of monthly import `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. See the following resources:
+The project uses publicly available HM Revenue & Customs (HMRC) import files that will need to be downloaded. Data are published by [UK Trade Info](https://www.uktradeinfo.com/trade-data/), the UK government platform for trade statistics, and consist of monthly import collections of zipped `.txt` files, each containing detailed information on UK imports by commodity, country of origin, for example. See the following resources:
 
-* [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each archive contains compressed files that, once unzipped, yield monthly `.txt` files representing UK import transactions for a given period.
+* [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) to access the historical monthly bulk import files. Each zip archive contains monthly `.txt` files representing UK import transactions for a given period.
 * [Guidance and technical specifications](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-guidance-and-technical-specifications/) for further information on the contents and format of data files.
 
 #### Storage and loading
 
-Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) should be stored in a dedicated directory and unzipped. The function `read_uktradeinfo(path)` will load a single file or all `.txt` files in the given directory and its subdirectories.
+Files from [Bulk data sets: archive](https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/#imports-(bds-imp-yymm)) should be stored in a dedicated directory. The function `download_uktradeinfo_bulk()` will do this for you. The function `read_uktradeinfo(path)` will load a single file or all files in a given directory and its subdirectories, or zip archive.
 
-This can take some time if loading several years worth of data. We recommend saving the resulting `data.table` as an `.Rds` object for quicker loading.
+This can take some time if loading several years worth of data. We recommend saving and loading the resulting data object using `data.table::fwrite/fread` as a compressed `.gz` file to save time.
 
 ### 2. Daily IPAFFS Imports
 
@@ -33,7 +33,7 @@ The package also supports the use of open sourced daily import data of Products,
 
 #### Storage and loading
 
-The `.csv` files should downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
+The `.csv` files should be downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
 
 ### 3. Lookup Tables
 
@@ -53,7 +53,7 @@ Both lookup tables can be accessed via an API function, which allows the data to
 
 ##### Notes:
 
-1. Both monthly and daily import datasets and lookup tables are used together throughout the project. The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to  `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
+1. Both monthly and daily import datasets and lookup tables are used together throughout the project. The import data provides the time series values, while the lookup tables provide metadata that supports hierarchical aggregation, classification and interpretation of the data. The datasets are linked when required using common identifiers: `CN8code` in the commodity lookup table corresponds directly to `COMCODE` in the imports dataset and `PortCodeAlpha` in the port lookup table matches `PORT_CODE` in the imports dataset.
 
 2. There is a change in data collection procedure for HMRC UK imports from EU from January 2022 following the UK’s exit from the EU (see [report](https://www.gov.uk/government/statistics/overseas-trade-statistics-methodologies/overseas-trade-in-goods-statistics-methodology-and-quality-report--3#data-sources) for more information). This is reflected as a break in the time series for HMRC `volume`, reducing comparability for this variable before and after 2022.
 
@@ -75,10 +75,10 @@ bulktrends::open_userguide()
 The following instructions aim to clone and run the package using the appropriate data files and functions.
 
 1. Clone this git repository using your preferred method
-2. Download and unzip the import data files for the required time period. For example, downloading and unzipping import data for 2021 will produce 12 `.txt` files, one for each month.
-3. Place all extracted `.txt` files in `data/Rbuildignore/imports/` directory of the cloned repository. The contents of the `data/Rbuildignore/` directory are not tracked by git or included when building/installing the package.
-4. Open and run `UserGuide.qmd` to load and save the datasets and lookup tables, and review usage of the main functions included in `bulktrends`.
-5. Develop. Ensure contributions are documented, that the package version is incremended in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
+2. Create a directory `data/Rbuildignore/imports/` in the cloned repository. The contents of the `data/Rbuildignore/` directory are not tracked by git or included when building/installing the package.
+3. Download import data to this directory. See above for details. The script `data-raw/imports.R` downloads and updates monthly HMRC data.
+4. Run through `UserGuide.qmd` and review usage of the main functions included in `bulktrends`.
+5. Develop. Ensure contributions are documented, that the package version is incremented in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
 
 ### Branching Strategy
 
@@ -90,6 +90,10 @@ This package is managed using the [Gitflow workflow](https://www.atlassian.com/g
 * Releases are prepared on a `release/<version>` branch before being merged into both `main` and `develop`.
 * Urgent fixes to `main` are handled via `hotfix/<name>` branches.
 
+Create a pull request when you're ready to share with other contributors. Request a review from CoPilot in the first instance for immediate feedback. When ready, tag another contributor for a review.
+
+Currently, no branch protection is in place, so take care, especially when merging into `main`!
+
 ### General Guidelines
 
 All development work should be done on a dedicated branch for each new feature. When ready, submit a pull request and request a review from another developer.
@@ -99,14 +103,6 @@ Use the `air` auto-formatter to apply the tidyverse style guide. See [here](http
 ...\bulktrends>air format .
 ```
 
-### Useful References for Contributors
-
-The following resources are recommended for anyone contributing to this repository:
-
-* [R Packages](https://r-pkgs.org/) for guidance on package structure.
-* [Tidyverse style guide](https://style.tidyverse.org/) coding style for readable and consistent `R` code.
-* [Advanced R](https://adv-r.hadley.nz/) for advanced and complex `R` programming concepts.
-
 ### Documentation with Roxygen
 
 All functions **must** be documented using the package [`roxygen2`](https://cran.r-project.org/web/packages/roxygen2/vignettes/roxygen2.html).
@@ -115,6 +111,14 @@ It provides a framework for adjacent code and documentation system for `R`. Docu
 ### Updating the Userguide
 
 The user guide (`docs/UserGuide.qmd`) should be updated whenever a new function is added or an existing function is modified. This can be a simple working example demonstrating how the function should be used. Remember to render a new version of the html!
+
+### Useful References for Contributors
+
+The following resources are recommended for anyone contributing to this repository:
+
+* [R Packages](https://r-pkgs.org/) for guidance on package structure.
+* [Tidyverse style guide](https://style.tidyverse.org/) coding style for readable and consistent `R` code.
+* [Advanced R](https://adv-r.hadley.nz/) for advanced and complex `R` programming concepts.
 
 ### Current Contributors
 

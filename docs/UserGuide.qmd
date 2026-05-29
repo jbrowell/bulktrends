@@ -53,25 +53,41 @@ progressr::handlers(global = TRUE)
 
 ### Load UK Trade Info Bulk Data Files
 
-This package has been developed to work with HMRC Monthly Import data. For more details, see the package [README](https://github.com/jbrowell/bulktrends/). We can use it to load a single bulk data file or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save the loaded data as an `.rds` for quicker loading in the future.
+This package has been developed to work with HMRC Monthly Import data. For more details, see the package [README](https://github.com/jbrowell/bulktrends/). We can use it to download monthly trade data from the UK Trade Info and load either a single file or multiple files or all of the files in a directory (and subdirectories). This can take a while for multiple years of data, so it is recommended to save and load this data as a `.gz` file.
 
 ```{r load-trade-data-hidden}
 #| include: false
 if ( !exists("imports") ){
-  if (file.exists(paste0(data_directory,"imports.rds"))) {
-    imports <- readRDS(paste0(data_directory,"imports.rds"))
+  if (file.exists(file.path(data_directory,"imports.rds"))) {
+    imports <- fread(file.path(data_directory,"imports.gz"))
   } else {
-    imports <- read_uktradeinfo(path = paste0(data_directory,"imports/"))
-    saveRDS(imports, file = paste0(data_directory,"imports.rds"))
+    stop("Run script 'data-raw/imports.R' to generate dataset")
   }
 }
 ```
 
 ```{r read-trade-data-not-run}
 #| eval: false
-imports <- read_uktradeinfo(path = paste0(data_directory,"imports/"))
-saveRDS(imports, file = paste0(data_directory,"imports.rds"))
-# imports <- readRDS(paste0(data_directory,"imports.rds"))
+
+download_uktradeinfo_bulk(
+  dest_dir = file.path(data_directory,"imports/"),
+  type = "imports",
+  overwrite = FALSE
+)
+imports <- read_uktradeinfo(path = file.path(data_directory,"imports/"))
+fwrite(imports, file = file.path(data_directory,"imports.gz"))
+# imports <- fread(file.path(data_directory,"imports.gz"))
+```
+
+Alternatively, to update an existing dataset, simply download the latest data using `download_uktradeinfo_bulk()` and then update your dataset using `update_uktradeinfo()`. This function compares the existing dataset with the latest data downloaded and updates it by adding new rows and removing any rows that are no longer present in the latest data. Finally, save the updated dataset as a `.gz` file.
+
+```{r}
+#| eval: false
+update_uktradeinfo(
+  existing = imports,
+  path = file.path(data_directory,"imports")
+)
+fwrite(imports, file = file.path(data_directory,"imports.gz"))
 ```
 
 
@@ -95,7 +111,7 @@ Download look-up tables, e.g. for commodity codes and ports, and save, or load i
 lookup_tables <- c("Commodity","Port")
 for ( i in lookup_tables ) {
   
-  file <- paste0(data_directory,i,".rds")
+  file <- file.path(data_directory,paste0(i,".rds"))
   
   if( file.exists(file) ){
     assign(i,readRDS(file))

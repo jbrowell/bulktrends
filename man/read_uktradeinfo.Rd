@@ -7,17 +7,21 @@
 read_uktradeinfo(path)
 }
 \arguments{
-\item{path}{Path to a file to read, or directory containing multiple files,
-files in sub-directories are read recursively.}
+\item{path}{Path to a `.txt` file, a `.zip` archive, or a directory
+containing `.txt` and/or `.zip` files. Directories are searched
+recursively.}
 }
 \value{
 A `data.table` of trade data with columns containing timestamps.
 }
 \description{
-Load a single bulk data file of all files in a directory (and its
-sub-directories) from UK Trade Info.
+Load a single bulk data file, a `.zip` archive, or all files in a directory
+(and its sub-directories) from UK Trade Info.
 }
 \details{
+`.zip` archives are extracted to a temporary directory, read, and the
+temporary directory is deleted before the function returns.
+
 This function can be slow to read a large number of files but is much faster
 if a `future::plan()` is set that enables parallel computation.
 }

@@ -22,4 +22,6 @@ Depends:
     progressr (>= 0.18.0),
     strucchangeRcpp (>= 1.5.0)
 Suggests:
-    usethis (>= 2.1.0)
+    usethis (>= 2.1.0),
+    rvest (>= 1.0.0),
+    R.utils
