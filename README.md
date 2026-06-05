@@ -33,7 +33,7 @@ The package also supports the use of open sourced daily import data of Products,
 
 #### Storage and loading
 
-Files should be stored in dedicated directories for each dataset type. The function `download_fsa_ipaffs()` will do this for you, downloading all available monthly CSVs and skipping files that are already present:
+Files should be stored in dedicated directories for each dataset type. Ensure those directories exist (e.g. with `dir.create(..., recursive = TRUE)`), then use `download_fsa_ipaffs()` to download all available monthly CSVs and skip files that are already present:
 
 ```r
 download_fsa_ipaffs(dest_dir = "<my dir>/fnao/", dataset = "fnao")
