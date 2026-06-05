@@ -197,7 +197,7 @@ download_uktradeinfo_bulk <- function(
           mode = "wb",
           quiet = TRUE
         )
-        TRUE
+        identical(status, 0L)
       },
       error = function(e) {
         warning(
