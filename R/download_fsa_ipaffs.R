@@ -116,13 +116,8 @@ download_fsa_ipaffs <- function(
     message("Downloading: ", fname)
     result <- tryCatch(
       {
-        utils::download.file(
-          url,
-          destfile = dest_path,
-          mode = "wb",
-          quiet = TRUE
-        )
-        TRUE
+        status <- utils::download.file(url, destfile = dest_path, mode = "wb", quiet = TRUE)
+        identical(status, 0L)
       },
       error = function(e) {
         warning(
