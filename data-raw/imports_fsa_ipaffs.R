@@ -1,10 +1,10 @@
 # Download and update FSA IPAFFS (Trade Control & Expert System) data
 #
-# Saves monthly CSV files to data/Rbuildignore/imports_ipaffs/ with one
+# Saves monthly CSV files to data/Rbuildignore/imports_fsa_ipaffs/ with one
 # subdirectory per dataset type (fnao, poao). These directories are excluded
 # from the package build via .Rbuildignore.
 #
-# Run with: source("data-raw/imports_ipaffs.R")
+# Run with: source("data-raw/imports_fsa_ipaffs.R")
 library(bulktrends)
 
 data_dir <- "data/Rbuildignore"
