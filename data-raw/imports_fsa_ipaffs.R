@@ -8,8 +8,16 @@
 library(bulktrends)
 
 data_dir <- "data/Rbuildignore"
-dir.create(file.path(data_dir, "imports_fsa_ipaffs/fnao/"), recursive = TRUE, showWarnings = FALSE)
-dir.create(file.path(data_dir, "imports_fsa_ipaffs/poao/"), recursive = TRUE, showWarnings = FALSE)
+dir.create(
+  file.path(data_dir, "imports_fsa_ipaffs/fnao/"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+dir.create(
+  file.path(data_dir, "imports_fsa_ipaffs/poao/"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
 
 download_fsa_ipaffs(
   dest_dir = file.path(data_dir, "imports_fsa_ipaffs/fnao/"),

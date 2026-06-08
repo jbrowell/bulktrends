@@ -191,7 +191,7 @@ download_uktradeinfo_bulk <- function(
     message("Downloading: ", fname)
     result <- tryCatch(
       {
-        utils::download.file(
+        status <- utils::download.file(
           url,
           destfile = dest_path,
           mode = "wb",

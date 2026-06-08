@@ -81,10 +81,13 @@ download_fsa_ipaffs <- function(
     poao = "https://data.food.gov.uk/catalog/datasets/1a6ebd38-460e-4734-aa59-40fdd6b8e209"
   )
 
-  all_links <- unique(unlist(lapply(
-    catalog_urls[dataset],
-    collect_fsa_csv_hrefs
-  ), use.names = FALSE))
+  all_links <- unique(unlist(
+    lapply(
+      catalog_urls[dataset],
+      collect_fsa_csv_hrefs
+    ),
+    use.names = FALSE
+  ))
 
   if (length(all_links) == 0L) {
     message("No CSV files found on the FSA catalogue page(s).")
@@ -116,7 +119,12 @@ download_fsa_ipaffs <- function(
     message("Downloading: ", fname)
     result <- tryCatch(
       {
-        status <- utils::download.file(url, destfile = dest_path, mode = "wb", quiet = TRUE)
+        status <- utils::download.file(
+          url,
+          destfile = dest_path,
+          mode = "wb",
+          quiet = TRUE
+        )
         identical(status, 0L)
       },
       error = function(e) {
@@ -167,12 +175,29 @@ collect_fsa_csv_hrefs <- function(url) {
 # Returns NA_Date_ when the month/year cannot be identified.
 parse_fsa_csv_date <- function(fname) {
   mon_lookup <- c(
-    january = 1L, february = 2L, march = 3L, april = 4L,
-    may = 5L, june = 6L, july = 7L, august = 8L,
-    september = 9L, october = 10L, november = 11L, december = 12L,
-    jan = 1L, feb = 2L, mar = 3L, apr = 4L,
-    jun = 6L, jul = 7L, aug = 8L, sep = 9L,
-    oct = 10L, nov = 11L, dec = 12L
+    january = 1L,
+    february = 2L,
+    march = 3L,
+    april = 4L,
+    may = 5L,
+    june = 6L,
+    july = 7L,
+    august = 8L,
+    september = 9L,
+    october = 10L,
+    november = 11L,
+    december = 12L,
+    jan = 1L,
+    feb = 2L,
+    mar = 3L,
+    apr = 4L,
+    jun = 6L,
+    jul = 7L,
+    aug = 8L,
+    sep = 9L,
+    oct = 10L,
+    nov = 11L,
+    dec = 12L
   )
 
   # Match a month name (full or 3-letter) followed by an optional separator
@@ -187,7 +212,11 @@ parse_fsa_csv_date <- function(fname) {
 
   mm <- mon_lookup[tolower(m[2L])]
   yr_str <- m[3L]
-  yyyy <- if (nchar(yr_str) <= 2L) 2000L + as.integer(yr_str) else as.integer(yr_str)
+  yyyy <- if (nchar(yr_str) <= 2L) {
+    2000L + as.integer(yr_str)
+  } else {
+    as.integer(yr_str)
+  }
 
   if (is.na(mm) || yyyy < 2000L || yyyy > 2100L) {
     return(as.Date(NA))
