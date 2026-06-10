@@ -33,7 +33,16 @@ The package also supports the use of open sourced daily import data of Products,
 
 #### Storage and loading
 
-The `.csv` files should be downloaded and stored in a dedicated directory. The function `read_ipaffs(path)` will load a single file or all `.csv` files in the given directory and its subdirectories.
+Files should be stored in dedicated directories for each dataset type. Ensure those directories exist (e.g. with `dir.create(..., recursive = TRUE)`), then use `download_fsa_ipaffs()` to download all available monthly CSVs and skip files that are already present:
+
+```r
+download_fsa_ipaffs(dest_dir = "<my dir>/fnao/", dataset = "fnao")
+download_fsa_ipaffs(dest_dir = "<my dir>/poao/", dataset = "poao")
+```
+
+Pass `dataset = c("fnao", "poao")` (the default) to download both in a single call to a shared directory.
+
+The function `read_ipaffs(path)` will load a single CSV file or all `.csv` files in a given directory and its subdirectories into a `data.table`.
 
 ### 3. Lookup Tables
 
@@ -75,8 +84,8 @@ bulktrends::open_userguide()
 The following instructions aim to clone and run the package using the appropriate data files and functions.
 
 1. Clone this git repository using your preferred method
-2. Create a directory `data/Rbuildignore/imports/` in the cloned repository. The contents of the `data/Rbuildignore/` directory are not tracked by git or included when building/installing the package.
-3. Download import data to this directory. See above for details. The script `data-raw/imports.R` downloads and updates monthly HMRC data.
+2. Create directory `data/Rbuildignore/` in the cloned repository. The contents of the `data/Rbuildignore/` directory are not tracked by git or included when building/installing the package.
+3. Download import data. The script `data-raw/imports_uktradeinfo.R` downloads and updates monthly HMRC data; `data-raw/imports_fsa_ipaffs.R` downloads and updates FSA IPAFFS data for both FNAO and POAO. Both scripts can be run with `source()` and will skip files already present on disk.
 4. Run through `UserGuide.qmd` and review usage of the main functions included in `bulktrends`.
 5. Develop. Ensure contributions are documented, that the package version is incremented in `DESCRIPTION`, and new features are demonstrated in the user guide (see further instructions below).
 
