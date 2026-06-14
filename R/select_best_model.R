@@ -24,13 +24,13 @@
 #'
 #' @export
 select_best_model <- function(
-  data,
-  date_col = "DATE_START",
-  formulas = NULL,
-  response_col = NULL,
-  metric = AIC,
-  break_detection = TRUE,
-  freq = NULL
+    data,
+    date_col = "DATE_START",
+    formulas = NULL,
+    response_col = NULL,
+    metric = AIC,
+    break_detection = TRUE,
+    freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
     data <- as.data.table(data)
@@ -52,40 +52,37 @@ select_best_model <- function(
 
     if (freq == "month") {
       formulas <- list(
-        ~ -1,
+        ~-1,
         ~1,
         ~linear_trend,
-        ~ annual_sin + annual_cos,
-        ~ linear_trend + annual_sin + annual_cos
+        ~annual_sin + annual_cos,
+        ~linear_trend + annual_sin + annual_cos
       )
 
       formulas <- lapply(formulas, function(f) {
-        rhs <- f[[2]]
-        as.formula(paste(response_col, "~", deparse(rhs)))
+        as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
 
-      data[, linear_trend := .I]
-      data[, day_of_year := as.integer(format(data[[date_col]], "%j"))]
-      data[, annual_sin := sin(2 * pi * day_of_year / 365)]
-      data[, annual_cos := cos(2 * pi * day_of_year / 365)]
+      # covariate creation now delegated to add_date_features()
+      data <- add_date_features(data, date_col, freq = "month")  # data[, linear_trend := .I]
+
     } else if (freq == "day") {
       formulas <- list(
-        ~ -1,
+        ~-1,
         ~1,
         ~linear_trend,
-        ~ annual_sin + annual_cos,
-        ~ linear_trend + annual_sin + annual_cos,
-        ~ linear_trend + annual_sin + annual_cos + day_of_week,
-        ~ linear_trend + annual_sin + annual_cos + day_of_week + is_holiday
+        ~annual_sin + annual_cos,
+        ~linear_trend + annual_sin + annual_cos,
+        ~linear_trend + annual_sin + annual_cos + day_of_week,
+        ~linear_trend + annual_sin + annual_cos + day_of_week + is_holiday
       )
 
       formulas <- lapply(formulas, function(f) {
-        rhs <- f[[2]]
-        as.formula(paste(response_col, "~", deparse(rhs)))
+        as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
 
-      data[, linear_trend := .I]
-      data <- add_date_features(data, date_col)
+      # data[, linear_trend := .I]
+      data <- add_date_features(data, date_col, freq = "day")
     } else {
       stop("\"formulas=NULL\" and data isn't daily or monthly.")
     }
@@ -99,18 +96,16 @@ select_best_model <- function(
   for (i in seq_along(formulas)) {
     model_fit <- try(
       lm(formula = formulas[[i]], data = data),
-      silent = T
-    )
+      silent = T)
 
     if ("try-error" %in% class(model_fit)) {
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
-    } else {
-      new_metric <- metric(model_fit)
-      if (new_metric < current_metric) {
-        current_metric <- new_metric
-        output <- list(data = data, formula = formulas[[i]])
-      }
+    }
+    new_metric <- metric(model_fit)
+    if (new_metric < current_metric) {
+      current_metric <- new_metric
+      output <- list(data = data, formula = formulas[[i]])
     }
   }
 
@@ -126,34 +121,29 @@ select_best_model <- function(
         silent = TRUE
       )
       if ("try-error" %in% class(breaks)) {
-        warning("Breaks detection failed", "\n")
+        warning("Breaks detection failed\n")
         next
       }
-      if (is.null(breaks)) {
+      if (is.null(breaks))
         next
-      }
 
-      segments <- breaks$segments
-      fmla <- update(formulas[[i]], . ~ . * segments)
+      segments  <- breaks$segments
+      fmla      <- update(formulas[[i]], . ~ . * segments)
 
       model_fit <- try(
-        lm(formula = fmla, data = cbind(data, segments)),
-        silent = T
-      )
+        lm(formula = fmla, data = cbind(data, segments)), silent = T)
 
       if ("try-error" %in% class(model_fit)) {
         warning("Model failed: ", deparse(fmla), "\n")
         next
-      } else {
-        new_metric <- metric(model_fit)
-        if (new_metric < current_metric) {
-          current_metric <- new_metric
-          output = list(
-            data = cbind(data, segments),
-            formula = fmla,
-            break_entry = breaks$break_entry
-          )
-        }
+      }
+      new_metric <- metric(model_fit)
+      if (new_metric < current_metric) {
+        current_metric <- new_metric
+        output <- list(
+          data = cbind(data, segments),
+          formula = fmla,
+          break_entry = breaks$break_entry)
       }
     }
   }
@@ -164,3 +154,4 @@ select_best_model <- function(
 
   return(output)
 }
+
