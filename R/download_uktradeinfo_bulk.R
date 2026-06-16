@@ -45,9 +45,8 @@
 #' **Incomplete semi-annual files.** The most recent 6-month file (e.g.
 #' `BDSImp_jan-jun26.zip`) is published progressively and may not yet contain
 #' all 6 months of data. When a semi-annual file is already present in
-#' `dest_dir`, the function inspects its actual contents and re-downloads it
-#' if the data inside does not yet reach the end of the period named in the
-#' file. This applies even when `overwrite = FALSE`.
+#' `dest_dir`, the function counts the files inside the ZIP and re-downloads it
+#' if fewer than six are found. This applies even when `overwrite = FALSE`.
 #'
 #' Requires the \pkg{rvest} package. Install it with
 #' `install.packages("rvest")` if needed.
@@ -187,12 +186,13 @@ download_uktradeinfo_bulk <- function(
     if (!overwrite && file.exists(dest_path)) {
       should_skip <- TRUE
       # Semi-annual files are published progressively; re-download if the local
-      # copy does not yet cover the full period named in the filename.
+      # copy contains fewer than six monthly data files.
       if (grepl(.semi_annual_pattern, fname, perl = TRUE)) {
-        nominal_cov <- extract_file_coverage(fname)
-        actual_cov  <- extract_zip_coverage(dest_path)
-        if (!is.na(nominal_cov$to) && !is.na(actual_cov$to) &&
-            actual_cov$to < nominal_cov$to) {
+        n_files <- tryCatch(
+          length(unzip(dest_path, list = TRUE)$Name),
+          error = function(e) NA_integer_
+        )
+        if (!is.na(n_files) && n_files < 6L) {
           message("Re-downloading incomplete semi-annual file: ", fname)
           should_skip <- FALSE
         }
