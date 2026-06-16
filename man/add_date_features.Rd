@@ -8,7 +8,7 @@ add_date_features(
   data,
   date_col,
   division = "england-and-wales",
-  holidays = NULL,
+  holidays = bulktrends::uk_bank_holidays,
   freq = NULL
 )
 }
@@ -24,8 +24,8 @@ add_date_features(
 `date` and `title` columns, as returned by [get_uk_bank_holidays()].
 Defaults to the bundled [uk_bank_holidays] dataset.}
 
-\item{freq}{Frequency of the input time series. If \code{NULL} it will be
-auto-detected (\code{'day'}, \code{'week'}, or \code{'month'}).}
+\item{freq}{Frequency of the input time series. If `NULL` it will be
+auto-detected (`'day'`, `'week'`, or `'month'`).}
 }
 \value{
 A `data.table` with the original data and additional calendar features, including
