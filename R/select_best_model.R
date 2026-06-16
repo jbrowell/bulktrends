@@ -63,8 +63,7 @@ select_best_model <- function(
         as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
 
-      # covariate creation now delegated to add_date_features()
-      data <- add_date_features(data, date_col, freq = "month") # data[, linear_trend := .I]
+      data <- add_date_features(data, date_col, freq = "month")
     } else if (freq == "day") {
       formulas <- list(
         ~ -1,
@@ -80,7 +79,6 @@ select_best_model <- function(
         as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
 
-      # data[, linear_trend := .I]
       data <- add_date_features(data, date_col, freq = "day")
     } else {
       stop("\"formulas=NULL\" and data isn't daily or monthly.")
@@ -121,7 +119,7 @@ select_best_model <- function(
         silent = TRUE
       )
       if ("try-error" %in% class(breaks)) {
-        warning("Breaks detection failed\n")
+        warning("Breaks detection failed: ", deparse(formulas[[i]]), "\n")
         next
       }
       if (is.null(breaks)) {

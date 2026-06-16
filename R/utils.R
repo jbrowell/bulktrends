@@ -147,7 +147,7 @@ add_date_features <- function(
   data,
   date_col,
   division = "england-and-wales",
-  holidays = NULL,
+  holidays = bulktrends::uk_bank_holidays,
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
@@ -176,18 +176,13 @@ add_date_features <- function(
 
   dates <- data[[date_col]]
 
-  # Linear trend: elapsed days since the first observation
-  data[, linear_trend := as.numeric(dates - min(dates))]
-
+  data[, linear_trend := lubridate::decimal_date(dates)]
   data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
 
   # Daily-only features
   if (freq == "day") {
-    if (is.null(holidays)) {
-      holidays <- uk_bank_holidays
-    }
 
     division <- match.arg(
       division,
@@ -226,7 +221,6 @@ add_date_features <- function(
     )
 
     data[, day_of_week := weekdays(dates)]
-    # data$day_of_year <- as.integer(format(dates, "%j"))
     data[, holiday := unname(holiday_lookup[as.character(dates)])]
     data[, is_holiday := !is.na(holiday)]
   }
