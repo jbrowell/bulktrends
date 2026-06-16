@@ -145,7 +145,7 @@ extract_ts <- function(
 add_date_features <- function(
   data,
   date_col,
-  freq = NULL,  # pull over from select_best_model()
+  freq = NULL, # pull over from select_best_model()
   division = "england-and-wales",
   holidays = NULL
 ) {
@@ -161,7 +161,10 @@ add_date_features <- function(
   # warning for ignored arguments on monthly data
   if (!is.null(freq) && freq == "month") {
     if (!is.null(holidays) || division != "england-and-wales") {
-      warning("`division` and `holidays` are ignored for monthly data.", call. = FALSE)
+      warning(
+        "`division` and `holidays` are ignored for monthly data.",
+        call. = FALSE
+      )
     }
   }
 
@@ -171,8 +174,8 @@ add_date_features <- function(
   data[, linear_trend := lubridate::decimal_date(dates)]
 
   data[, day_of_year := as.integer(format(dates, "%j"))]
-  data[, annual_sin  := sin(2 * pi * day_of_year / 365)]
-  data[, annual_cos  := cos(2 * pi * day_of_year / 365)]
+  data[, annual_sin := sin(2 * pi * day_of_year / 365)]
+  data[, annual_cos := cos(2 * pi * day_of_year / 365)]
 
   # Daily-only features
   if (!is.null(freq) && freq == "day") {
@@ -189,9 +192,9 @@ add_date_features <- function(
 
     # Warn if any dates fall outside the coverage of the holidays dataset
     # dates <- data[[date_col]]
-    coverage_min  <- min(div_holidays$date)
-    coverage_max  <- max(div_holidays$date)
-    out_of_range  <- dates[
+    coverage_min <- min(div_holidays$date)
+    coverage_max <- max(div_holidays$date)
+    out_of_range <- dates[
       !is.na(dates) & (dates < coverage_min | dates > coverage_max)
     ]
     if (length(out_of_range) > 0) {
@@ -202,7 +205,8 @@ add_date_features <- function(
         "' (",
         coverage_min,
         " to ",
-        coverage_max, "). ",
+        coverage_max,
+        "). ",
         "UK holidays will be marked NA for those dates. ",
         "Use get_uk_bank_holidays() to refresh via the `holidays` argument.",
         call. = FALSE
@@ -217,13 +221,12 @@ add_date_features <- function(
 
     data[, day_of_week := weekdays(dates)]
     # data$day_of_year <- as.integer(format(dates, "%j"))
-    data[, holiday     := unname(holiday_lookup[as.character(dates)])]
-    data[, is_holiday  := !is.na(holiday)]
+    data[, holiday := unname(holiday_lookup[as.character(dates)])]
+    data[, is_holiday := !is.na(holiday)]
   }
 
   return(data)
 }
-
 
 
 #' Get UK Bank Holidays from gov.uk
