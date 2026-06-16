@@ -162,6 +162,8 @@ add_date_features <- function(
   # Auto-detect freq if not provided
   if (is.null(freq)) {
     freq <- detect_date_frequency(data[[date_col]])
+  } else if (!freq %in% c("day", "week", "month")) {
+    stop("\"freq\" must be \"day\", \"week\" or \"month\"")
   }
 
   # Warn about ignored arguments for non-daily data
