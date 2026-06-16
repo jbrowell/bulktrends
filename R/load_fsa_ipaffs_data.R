@@ -122,6 +122,8 @@ read_ipaffs <- function(path) {
       fill = T
     )
 
+    data.table::setorder(BDS_all, DATE_START)
+
     return(BDS_all)
   } else {
     stop("path is not a file or directory.")
