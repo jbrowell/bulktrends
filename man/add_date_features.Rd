@@ -7,9 +7,9 @@
 add_date_features(
   data,
   date_col,
-  freq = NULL,
   division = "england-and-wales",
-  holidays = NULL
+  holidays = NULL,
+  freq = NULL
 )
 }
 \arguments{
@@ -17,14 +17,15 @@ add_date_features(
 
 \item{date_col}{Name of column containing timestamps.}
 
-\item{freq}{Frequency of the input time series (from select_best_model() ). If NULL it will be auto-detected ('day', 'week', or 'month').}
-
 \item{division}{UK division for bank holiday lookup. One of
 `"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.}
 
 \item{holidays}{A `data.frame` or `data.table` of bank holidays with at least
 `date` and `title` columns, as returned by [get_uk_bank_holidays()].
 Defaults to the bundled [uk_bank_holidays] dataset.}
+
+\item{freq}{Frequency of the input time series. If \code{NULL} it will be
+auto-detected (\code{'day'}, \code{'week'}, or \code{'month'}).}
 }
 \value{
 A `data.table` with the original data and additional calendar features, including

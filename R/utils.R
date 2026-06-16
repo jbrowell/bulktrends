@@ -122,12 +122,13 @@ extract_ts <- function(
 #'
 #' @param data A `data.table` containing trade data.
 #' @param date_col Name of column containing timestamps.
-#' @param freq Frequency of the input time series (from select_best_model() ). If NULL it will be auto-detected ('day', 'week', or 'month').
 #' @param division UK division for bank holiday lookup. One of
 #'   `"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.
 #' @param holidays A `data.frame` or `data.table` of bank holidays with at least
 #'   `date` and `title` columns, as returned by [get_uk_bank_holidays()].
 #'   Defaults to the bundled [uk_bank_holidays] dataset.
+#' @param freq Frequency of the input time series. If `NULL` it will be
+#'   auto-detected (`'day'`, `'week'`, or `'month'`).
 #'
 #' @return A `data.table` with the original data and additional calendar features, including
 #' day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
@@ -145,9 +146,9 @@ extract_ts <- function(
 add_date_features <- function(
   data,
   date_col,
-  freq = NULL, # pull over from select_best_model()
   division = "england-and-wales",
-  holidays = NULL
+  holidays = NULL,
+  freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
     data <- as.data.table(data)
@@ -158,11 +159,16 @@ add_date_features <- function(
     stop("Input must be of class \"Date\".")
   }
 
-  # warning for ignored arguments on monthly data
-  if (!is.null(freq) && freq == "month") {
+  # Auto-detect freq if not provided
+  if (is.null(freq)) {
+    freq <- detect_date_frequency(data[[date_col]])
+  }
+
+  # Warn about ignored arguments for non-daily data
+  if (freq != "day") {
     if (!is.null(holidays) || division != "england-and-wales") {
       warning(
-        "`division` and `holidays` are ignored for monthly data.",
+        "`division` and `holidays` are ignored for non-daily data.",
         call. = FALSE
       )
     }
@@ -170,15 +176,15 @@ add_date_features <- function(
 
   dates <- data[[date_col]]
 
-  # Robust linear trend: months elapsed for monthly, days elapsed for daily
-  data[, linear_trend := lubridate::decimal_date(dates)]
+  # Linear trend: elapsed days since the first observation
+  data[, linear_trend := as.numeric(dates - min(dates))]
 
   data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
 
   # Daily-only features
-  if (!is.null(freq) && freq == "day") {
+  if (freq == "day") {
     if (is.null(holidays)) {
       holidays <- uk_bank_holidays
     }
