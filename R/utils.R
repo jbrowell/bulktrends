@@ -183,7 +183,6 @@ add_date_features <- function(
 
   # Daily-only features
   if (freq == "day") {
-
     division <- match.arg(
       division,
       c("england-and-wales", "scotland", "northern-ireland")
