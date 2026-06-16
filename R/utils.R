@@ -143,11 +143,11 @@ extract_ts <- function(
 #'
 #' @export
 add_date_features <- function(
-    data,
-    date_col,
-    freq = NULL,  # pull over from select_best_model()
-    division = "england-and-wales",
-    holidays = NULL
+  data,
+  date_col,
+  freq = NULL,  # pull over from select_best_model()
+  division = "england-and-wales",
+  holidays = NULL
 ) {
   if (!inherits(data, "data.table")) {
     data <- as.data.table(data)
@@ -166,14 +166,9 @@ add_date_features <- function(
   }
 
   dates <- data[[date_col]]
-  origin <- min(dates, na.rm = TRUE)
 
   # Robust linear trend: months elapsed for monthly, days elapsed for daily
-  if (!is.null(freq) && freq == "month") {
-    data[, linear_trend := (year(dates) - year(origin)) * 12 + (month(dates) - month(origin)) + 1L]
-  } else {
-    data[, linear_trend := as.integer(dates - origin) + 1L]
-  }
+  data[, linear_trend := lubridate::decimal_date(dates)]
 
   data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin  := sin(2 * pi * day_of_year / 365)]
@@ -228,6 +223,7 @@ add_date_features <- function(
 
   return(data)
 }
+
 
 
 #' Get UK Bank Holidays from gov.uk
