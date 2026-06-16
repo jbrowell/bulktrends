@@ -147,22 +147,16 @@ download_uktradeinfo_bulk <- function(
     hrefs[!is.na(hrefs) & grepl("\\.zip$", hrefs, ignore.case = TRUE)]
   }
 
-  latest_hrefs <- collect_zip_hrefs(latest_url, required = FALSE)
+  latest_hrefs  <- collect_zip_hrefs(latest_url, required = FALSE)
   archive_hrefs <- collect_zip_hrefs(archive_url, required = TRUE)
-  zip_hrefs <- unique(c(latest_hrefs, archive_hrefs))
-  all_links <- paste0(base_url, zip_hrefs)
-  latest_links <- paste0(base_url, latest_hrefs)
+  latest_links  <- paste0(base_url, latest_hrefs)
+  archive_links <- paste0(base_url, archive_hrefs)
+  all_links     <- unique(c(latest_links, archive_links))
 
-  patterns <- list(
-    imports = "(?i)bdsimp(?!det)",
-    exports = "(?i)bdsexp(?!det)",
-    control = "(?i)smka12",
-    importer_details = "(?i)bdsimpdet",
-    exporter_details = "(?i)bdsexpdet",
-    preference = "(?i)bdspref"
+  combined_pattern <- paste(
+    unname(unlist(.bulk_type_patterns[type])),
+    collapse = "|"
   )
-
-  combined_pattern <- paste(unname(unlist(patterns[type])), collapse = "|")
   matched_links <- all_links[
     grepl(combined_pattern, basename(all_links), perl = TRUE)
   ]
@@ -242,6 +236,27 @@ download_uktradeinfo_bulk <- function(
   }
 
   invisible(downloaded)
+}
+
+# Package-level lookup: regex patterns for each bulk data type.
+# Used by download_uktradeinfo_bulk() and download_coverage_gaps().
+.bulk_type_patterns <- list(
+  imports          = "(?i)bdsimp(?!det)",
+  exports          = "(?i)bdsexp(?!det)",
+  control          = "(?i)smka12",
+  importer_details = "(?i)bdsimpdet",
+  exporter_details = "(?i)bdsexpdet",
+  preference       = "(?i)bdspref"
+)
+
+# Helper: extract a single Date field ("from" or "to") from a vector of
+# filenames using extract_file_coverage().
+# Returns a Date vector (NA where the filename pattern is not recognised).
+extract_coverage_field <- function(fnames, field) {
+  vapply(
+    lapply(fnames, extract_file_coverage),
+    `[[`, as.Date(NA), field
+  )
 }
 
 # Parse NULL / Date / "YYYY-MM" → first-of-month Date, or stop()
@@ -426,9 +441,8 @@ find_duplicate_coverage <- function(zip_paths) {
 }
 
 filter_links_by_date <- function(links, from_date, to_date) {
-  coverage <- lapply(basename(links), extract_file_coverage)
-  file_from <- vapply(coverage, `[[`, as.Date(NA), "from")
-  file_to <- vapply(coverage, `[[`, as.Date(NA), "to")
+  file_from <- extract_coverage_field(basename(links), "from")
+  file_to   <- extract_coverage_field(basename(links), "to")
   parseable <- !is.na(file_from)
   n_skip <- sum(!parseable)
 
@@ -495,14 +509,7 @@ download_coverage_gaps <- function(
     return(character(0))
   }
 
-  type_patterns <- list(
-    imports          = "(?i)bdsimp(?!det)",
-    exports          = "(?i)bdsexp(?!det)",
-    control          = "(?i)smka12",
-    importer_details = "(?i)bdsimpdet",
-    exporter_details = "(?i)bdsexpdet",
-    preference       = "(?i)bdspref"
-  )
+  type_patterns <- .bulk_type_patterns
 
   # Regex that matches semi-annual filenames (e.g. BDSImp_jan-jun26.zip)
   semi_pattern <- "_[a-zA-Z]{3}-[a-zA-Z]{3}\\d{2}(?:archive)?\\.zip$"
@@ -525,10 +532,7 @@ download_coverage_gaps <- function(
     if (length(semi_zips) == 0L) next
 
     # Select the most recent semi-annual file based on filename start date
-    semi_file_from <- vapply(
-      lapply(basename(semi_zips), extract_file_coverage),
-      `[[`, as.Date(NA), "from"
-    )
+    semi_file_from <- extract_coverage_field(basename(semi_zips), "from")
     if (all(is.na(semi_file_from))) next
     most_recent_semi <- semi_zips[which.max(semi_file_from)]
 
@@ -545,10 +549,7 @@ download_coverage_gaps <- function(
     if (length(monthly_latest) == 0L) next
 
     # Start dates of those monthly files (from filenames)
-    monthly_from <- vapply(
-      lapply(basename(monthly_latest), extract_file_coverage),
-      `[[`, as.Date(NA), "from"
-    )
+    monthly_from <- extract_coverage_field(basename(monthly_latest), "from")
 
     # Gap: monthly files that start after the semi-annual file's actual end
     gap_idx <- which(!is.na(monthly_from) & monthly_from > actual_cov$to)
