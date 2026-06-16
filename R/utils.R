@@ -168,7 +168,7 @@ add_date_features <- function(
 
   # Warn about ignored arguments for non-daily data
   if (freq != "day") {
-    if (!is.null(holidays) || division != "england-and-wales") {
+    if (!missing(holidays) || division != "england-and-wales") {
       warning(
         "`division` and `holidays` are ignored for non-daily data.",
         call. = FALSE
