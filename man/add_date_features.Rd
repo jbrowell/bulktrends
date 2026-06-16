@@ -7,6 +7,7 @@
 add_date_features(
   data,
   date_col,
+  freq = NULL,
   division = "england-and-wales",
   holidays = NULL
 )
@@ -15,6 +16,8 @@ add_date_features(
 \item{data}{A `data.table` containing trade data.}
 
 \item{date_col}{Name of column containing timestamps.}
+
+\item{freq}{Frequency of the input time series (from select_best_model() ). If NULL it will be auto-detected ('day', 'week', or 'month').}
 
 \item{division}{UK division for bank holiday lookup. One of
 `"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.}
@@ -28,7 +31,8 @@ A `data.table` with the original data and additional calendar features, includin
 day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
 }
 \description{
-A function that identifies the features (bank holidays) of dates provided.
+A function that identifies the features (bank holidays) of dates provided, and
+creates the linear_trend covariates (formerly in select_best_model() ) based on date stamp not row number.
 }
 \details{
 Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
