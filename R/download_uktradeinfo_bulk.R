@@ -249,6 +249,10 @@ download_uktradeinfo_bulk <- function(
   preference       = "(?i)bdspref"
 )
 
+# Regex that matches semi-annual filenames (e.g. BDSImp_jan-jun26.zip or
+# BDSImp_jan-jun26archive.zip). Used by download_coverage_gaps().
+.semi_annual_pattern <- "_[a-zA-Z]{3}-[a-zA-Z]{3}\\d{2}(?:archive)?\\.zip$"
+
 # Helper: extract a single Date field ("from" or "to") from a vector of
 # filenames using extract_file_coverage().
 # Returns a Date vector (NA where the filename pattern is not recognised).
@@ -510,9 +514,7 @@ download_coverage_gaps <- function(
   }
 
   type_patterns <- .bulk_type_patterns
-
-  # Regex that matches semi-annual filenames (e.g. BDSImp_jan-jun26.zip)
-  semi_pattern <- "_[a-zA-Z]{3}-[a-zA-Z]{3}\\d{2}(?:archive)?\\.zip$"
+  semi_pattern  <- .semi_annual_pattern
 
   extra_downloaded <- character(0)
 
