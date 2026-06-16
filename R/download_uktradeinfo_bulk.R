@@ -42,14 +42,12 @@
 #' (e.g. `BDSImp2401.zip` → January 2024). Files whose dates cannot be parsed
 #' from the filename are always kept.
 #'
-#' **Semi-annual coverage gap filling.** The most recent 6-month file (e.g.
-#' `BDSImp_jan-jun26.zip`) is often published before all 6 months of data are
-#' available. After the main download, the function inspects the actual content
-#' of the most recent semi-annual file for each requested data type and compares
-#' it against the latest single-month files available on the latest bulk-data
-#' page. Any months that are present on the latest page but absent from the
-#' semi-annual file are downloaded automatically. This ensures that the local
-#' copy is always as up-to-date as the source.
+#' **Incomplete semi-annual files.** The most recent 6-month file (e.g.
+#' `BDSImp_jan-jun26.zip`) is published progressively and may not yet contain
+#' all 6 months of data. When a semi-annual file is already present in
+#' `dest_dir`, the function inspects its actual contents and re-downloads it
+#' if the data inside does not yet reach the end of the period named in the
+#' file. This applies even when `overwrite = FALSE`.
 #'
 #' Requires the \pkg{rvest} package. Install it with
 #' `install.packages("rvest")` if needed.
@@ -147,11 +145,11 @@ download_uktradeinfo_bulk <- function(
     hrefs[!is.na(hrefs) & grepl("\\.zip$", hrefs, ignore.case = TRUE)]
   }
 
-  latest_hrefs  <- collect_zip_hrefs(latest_url, required = FALSE)
-  archive_hrefs <- collect_zip_hrefs(archive_url, required = TRUE)
-  latest_links  <- paste0(base_url, latest_hrefs)
-  archive_links <- paste0(base_url, archive_hrefs)
-  all_links     <- unique(c(latest_links, archive_links))
+  zip_hrefs <- unique(c(
+    collect_zip_hrefs(latest_url, required = FALSE),
+    collect_zip_hrefs(archive_url, required = TRUE)
+  ))
+  all_links <- paste0(base_url, zip_hrefs)
 
   combined_pattern <- paste(
     unname(unlist(.bulk_type_patterns[type])),
@@ -187,8 +185,22 @@ download_uktradeinfo_bulk <- function(
     dest_path <- file.path(dest_dir, fname)
 
     if (!overwrite && file.exists(dest_path)) {
-      message("Skipping (already exists): ", fname)
-      next
+      should_skip <- TRUE
+      # Semi-annual files are published progressively; re-download if the local
+      # copy does not yet cover the full period named in the filename.
+      if (grepl(.semi_annual_pattern, fname, perl = TRUE)) {
+        nominal_cov <- extract_file_coverage(fname)
+        actual_cov  <- extract_zip_coverage(dest_path)
+        if (!is.na(nominal_cov$to) && !is.na(actual_cov$to) &&
+            actual_cov$to < nominal_cov$to) {
+          message("Re-downloading incomplete semi-annual file: ", fname)
+          should_skip <- FALSE
+        }
+      }
+      if (should_skip) {
+        message("Skipping (already exists): ", fname)
+        next
+      }
     }
 
     message("Downloading: ", fname)
@@ -221,9 +233,6 @@ download_uktradeinfo_bulk <- function(
 
   message("Downloaded ", length(downloaded), " file(s) to ", dest_dir)
 
-  extra <- download_coverage_gaps(dest_dir, type, latest_links, overwrite, to_date)
-  downloaded <- c(downloaded, extra)
-
   dups <- check_bulk_coverage(dest_dir)
   if (nrow(dups) > 0L && interactive()) {
     ans <- readline("Delete redundant monthly files (recommended)? [y/N]: ")
@@ -239,7 +248,7 @@ download_uktradeinfo_bulk <- function(
 }
 
 # Package-level lookup: regex patterns for each bulk data type.
-# Used by download_uktradeinfo_bulk() and download_coverage_gaps().
+# Used by download_uktradeinfo_bulk().
 .bulk_type_patterns <- list(
   imports          = "(?i)bdsimp(?!det)",
   exports          = "(?i)bdsexp(?!det)",
@@ -250,7 +259,8 @@ download_uktradeinfo_bulk <- function(
 )
 
 # Regex that matches semi-annual filenames (e.g. BDSImp_jan-jun26.zip or
-# BDSImp_jan-jun26archive.zip). Used by download_coverage_gaps().
+# BDSImp_jan-jun26archive.zip). Used to detect incomplete semi-annual files
+# that should be re-downloaded.
 .semi_annual_pattern <- "_[a-zA-Z]{3}-[a-zA-Z]{3}\\d{2}(?:archive)?\\.zip$"
 
 # Helper: extract a single Date field ("from" or "to") from a vector of
@@ -483,129 +493,6 @@ filter_links_by_date <- function(links, from_date, to_date) {
   }
 
   links[keep]
-}
-
-# Internal: detect and download monthly files that are missing from the most
-# recent semi-annual file for each requested data type.
-#
-# After the main download pass, the most recent semi-annual ZIP for each type
-# is inspected to determine its *actual* data coverage (by reading the names of
-# the files inside the ZIP).  Any monthly files available on the latest-bulk-
-# data page that cover months after the semi-annual file's actual coverage end
-# are then downloaded automatically.
-#
-# @param dest_dir      Path to directory that already holds the downloaded ZIPs.
-# @param type          Character vector of data types (same as main function).
-# @param latest_links  Full URLs scraped from the latest-bulk-data-sets page.
-# @param overwrite     Passed through — if FALSE, already-present files are
-#                      skipped (but still included in the returned paths).
-# @param to_date       Optional Date; gap files later than this are ignored.
-#
-# @return Character vector of paths to additionally downloaded files.
-download_coverage_gaps <- function(
-  dest_dir,
-  type,
-  latest_links,
-  overwrite = FALSE,
-  to_date = NULL
-) {
-  if (length(latest_links) == 0L) {
-    return(character(0))
-  }
-
-  type_patterns <- .bulk_type_patterns
-  semi_pattern  <- .semi_annual_pattern
-
-  extra_downloaded <- character(0)
-
-  for (t in type) {
-    pat <- type_patterns[[t]]
-
-    # Find semi-annual ZIPs already present in dest_dir for this type
-    all_zips <- list.files(
-      dest_dir,
-      pattern = "\\.zip$",
-      ignore.case = TRUE,
-      full.names = TRUE
-    )
-    type_zips <- all_zips[grepl(pat, basename(all_zips), perl = TRUE)]
-    semi_zips <- type_zips[grepl(semi_pattern, basename(type_zips), perl = TRUE)]
-
-    if (length(semi_zips) == 0L) next
-
-    # Select the most recent semi-annual file based on filename start date
-    semi_file_from <- extract_coverage_field(basename(semi_zips), "from")
-    if (all(is.na(semi_file_from))) next
-    most_recent_semi <- semi_zips[which.max(semi_file_from)]
-
-    # Determine what months the semi-annual ZIP actually contains
-    actual_cov <- extract_zip_coverage(most_recent_semi)
-    if (is.na(actual_cov$to)) next
-
-    # Monthly links on the latest page for this type
-    type_latest <- latest_links[grepl(pat, basename(latest_links), perl = TRUE)]
-    monthly_latest <- type_latest[
-      !grepl(semi_pattern, basename(type_latest), perl = TRUE)
-    ]
-
-    if (length(monthly_latest) == 0L) next
-
-    # Start dates of those monthly files (from filenames)
-    monthly_from <- extract_coverage_field(basename(monthly_latest), "from")
-
-    # Gap: monthly files that start after the semi-annual file's actual end
-    gap_idx <- which(!is.na(monthly_from) & monthly_from > actual_cov$to)
-
-    # Respect upper date bound supplied by the caller
-    if (!is.null(to_date)) {
-      gap_idx <- gap_idx[monthly_from[gap_idx] <= to_date]
-    }
-
-    if (length(gap_idx) == 0L) next
-
-    gap_links  <- monthly_latest[gap_idx]
-    gap_months <- format(monthly_from[gap_idx], "%Y-%m")
-
-    message(
-      "Coverage gap detected in '", t, "': ",
-      basename(most_recent_semi),
-      " contains data up to ", format(actual_cov$to, "%Y-%m"),
-      " but monthly file(s) available for: ",
-      paste(gap_months, collapse = ", "),
-      ". Downloading missing file(s)."
-    )
-
-    for (url in gap_links) {
-      fname     <- basename(url)
-      dest_path <- file.path(dest_dir, fname)
-
-      if (!overwrite && file.exists(dest_path)) {
-        message("Skipping (already exists): ", fname)
-        extra_downloaded <- c(extra_downloaded, dest_path)
-        next
-      }
-
-      message("Downloading gap file: ", fname)
-      result <- tryCatch(
-        {
-          utils::download.file(url, destfile = dest_path, mode = "wb", quiet = TRUE)
-          TRUE
-        },
-        error = function(e) {
-          warning(
-            "Failed to download ", fname, ": ", conditionMessage(e),
-            call. = FALSE
-          )
-          FALSE
-        }
-      )
-      if (isTRUE(result) && file.exists(dest_path)) {
-        extra_downloaded <- c(extra_downloaded, dest_path)
-      }
-    }
-  }
-
-  extra_downloaded
 }
 
 
