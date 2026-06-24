@@ -184,7 +184,7 @@ When `return_tso = TRUE` in `detect_outliers`, the full output object returned b
 ```{r tso_example}
 #| warning: false
 
-ts_data <- extract_ts(imports, "03", quantity="NET_MASS")
+ts_data <- extract_ts(imports, "01", quantity="NET_MASS")
 
 selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_detection = TRUE)
 
@@ -192,7 +192,9 @@ detect_anomaly <- detect_outliers(data = selected_model$data,
                     quantity= "NET_MASS",
                     scale_ts = FALSE,
                     return_tso = TRUE,
-                    xreg = model.matrix(selected_model$formula, data = selected_model$data))
+                    xreg = model.matrix(selected_model$formula, data = selected_model$data),
+                    tso_params = list(cval= 4,
+                                      types = c("AO", "TC", "IO")))
 
 print(selected_model$break_entry)
 print(detect_anomaly)
@@ -290,7 +292,9 @@ detect_anomaly <- detect_outliers(data = selected_model$data,
                     quantity= "NET_MASS",
                     scale_ts = FALSE,
                     return_tso = TRUE,
-                    xreg = model.matrix(selected_model$formula, data = selected_model$data))
+                    xreg = model.matrix(selected_model$formula, data = selected_model$data),
+                    tso_params = list(cval= 4,
+                                      types = c("AO", "TC", "IO")))
 
 print(selected_model$break_entry)
 print(detect_anomaly)

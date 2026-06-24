@@ -73,6 +73,10 @@ detect_outliers <- function(
 
     if (length(outlier_cols) > 0) {
       xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
+
+      types <- sub("[0-9]+$", "", names(xreg_outliers))
+      setnames(xreg_outliers, paste0(types, ave(types, types, FUN = seq_along)))
+
       data <- cbind(data, xreg_outliers)
     }
   }
