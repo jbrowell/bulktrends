@@ -60,28 +60,39 @@ detect_anomalies <- function(
   all_outliers <- lapply(results, `[[`, "outliers")
   list_of_ts <- lapply(results, `[[`, "list_of_ts")
   names(list_of_ts) <- lapply(results, `[[`, "id")
+  all_formulas <- lapply(results, `[[`, "formula")
+  names(all_formulas) <- lapply(results, `[[`, "id")
   return(list(
     outliers = rbindlist(all_outliers, fill = TRUE),
-    list_of_ts = list_of_ts
+    list_of_ts = list_of_ts,
+    formulas = all_formulas
   ))
 }
 
 #' Detect anomalies in a single time series (Internal)
 #' @note This needs to return a list of time series with original tsibble attributes. See suggested pattern in comments...
 #'
-.detect_anomalies_single_ts <- function(
+detect_anomalies_single_ts <- function(
   ts_data,
   id,
   response_col,
   date_col,
   scale_ts
 ) {
-
-  if ( inherits(ts_data,"tsibble") ) {
+  if (inherits(ts_data, "tsibble")) {
     # Store attributes & convert to data.table...
-    #
-    # .tsibble_attributes <- attr(ts_data)
-    # ts_data <- data.table::as.data.table(ts_data)
+    tsibble_attributes <- data %>% group_by_key() %>% group_keys()
+    key_names <- names(tsibble_attributes)
+    ts_data_split <- data %>% group_by_key() %>% group_split()
+    ts_data_split <- lapply(ts_data_split, function(x) {
+      dt <- as.data.table(x[, c("DATE_START", "NET_MASS")])
+      dt[, DATE_START := as.Date(DATE_START)]
+      dt
+    })
+    ts_data <- ts_data_split
+
+    # note: tsibble_attributes <- attr(ts_data)
+    # note: ts_data <- data.table::as.data.table(ts_data)
   }
 
   sparse_rate <- mean(ts_data[[response_col]] == 0, na.rm = T)
@@ -101,7 +112,7 @@ detect_anomalies <- function(
   if (verbose) {
     message(sprintf("Running selected_model for %s", id))
   }
-
+  # model selection
   selected_model <- tryCatch(
     select_best_model(
       data = ts_data,
@@ -123,6 +134,7 @@ detect_anomalies <- function(
     message(sprintf("Running detect_anomaly for %s", id))
   }
 
+  # matrix of regressors
   ts_data <- selected_model$data
   break_entry <- selected_model$break_entry
   xreg_all <- model.matrix(selected_model$formula, data = ts_data)
@@ -132,6 +144,7 @@ detect_anomalies <- function(
     xreg_all <- NULL
   }
 
+  # tso outlier detection
   outliers <- detect_outliers(
     data = ts_data,
     quantity = response_col, ### Change quantity to response_col!!!
@@ -142,13 +155,24 @@ detect_anomalies <- function(
 
   ts_data <- outliers$data
 
+  # update formula
+  tso_vars <- grep("^(AO|TC|IO)", names(ts_data), value = TRUE)
+  if (length(tso_vars) > 0) {
+    updated_formula <- update(
+      selected_model$formula,
+      paste(". ~ . +", paste(tso_vars, collapse = " + "))
+    )
+  } else {
+    updated_formula <- selected_model$formula
+  }
+
   if (!is.null(outliers$outliers) && nrow(outliers$outliers) > 0) {
-    #store tso outliers data produced
+    # store tso outliers data produced
     new_outliers <- as.data.table(outliers$outliers)
     new_outliers[, id := id]
-    new_outliers[,
-      model_formula := paste(deparse(selected_model$formula), collapse = " ")
-    ]
+    # new_outliers[,
+    #   model_formula := paste(deparse(selected_model$formula), collapse = " ")
+    # ]
 
     new_outliers[, time := ts_data$DATE_START[ind]]
     new_outliers[, anomaly_type := "Outlier"]
@@ -161,9 +185,9 @@ detect_anomalies <- function(
   #add breaks table
   if (!is.null(break_entry) && nrow(break_entry) > 0) {
     break_entry[, id := id]
-    break_entry[,
-      model_formula := paste(deparse(selected_model$formula), collapse = " ")
-    ]
+    # break_entry[,
+    #   model_formula := paste(deparse(selected_model$formula), collapse = " ")
+    # ]
     break_entry[, anomaly_type := "Break"]
 
     outliers_entry <- rbindlist(
@@ -176,23 +200,36 @@ detect_anomalies <- function(
     break_entry <- data.table()
   }
 
-  #no break no outlier option
+  # no break no outlier option
   if (nrow(outliers_entry) == 0) {
     outliers_entry <- data.table(
       id = id,
-      model_formula = paste(deparse(selected_model$formula), collapse = " "),
+      # model_formula = paste(deparse(selected_model$formula), collapse = " "),
       anomaly_type = "None"
     )
   }
 
-  if ( inherits(ts_data,"tsibble") ) {
-    # Covert back to tsibble and assign attributes...
-    #
-    # ts_data <- fable::as.tsibble(ts_data)
-    # attr(ts_data) <- .tsibble_attributes
+  # back to tsibble if tsibble
+  if (inherits(ts_data, "tsibble")) {
+    # option 1 without keys
+    ts_data$hierarchy_id <- id
+    ts_data[, (key_names) := tstrsplit(hierarchy_id, "\\|")]
+    all_ts <- ts_data[!is.na(DATE_START)][, DATE_START := yearmonth(DATE_START)]
+    all_ts <- as_tsibble(all_ts, key = key_names, index = DATE_START)
+    # function to return `all_ts` with attributes as tsibble format
 
+    #option 2 with keys
+
+    # note: Covert back to tsibble and assign attributes...
+    # note: ts_data <- fable::as.tsibble(ts_data)
+    # note: attr(ts_data) <- .tsibble_attributes
   }
 
   p(sprintf("Completed time series %s", id))
-  return(list(outliers = outliers_entry, list_of_ts = ts_data, id = id))
+  return(list(
+    outliers = outliers_entry,
+    list_of_ts = ts_data,
+    formula = updated_formula,
+    id = id
+  ))
 }

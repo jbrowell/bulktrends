@@ -292,3 +292,38 @@ open_userguide <- function(path = NULL) {
     stop("Couldn't find UserGuide.html")
   }
 }
+
+
+#' prepare data into list of time series
+prepare_ts_data <- function(
+  data,
+  codes,
+  response_col = "NET_MASS",
+  date_col = "DATE_START",
+  freq = NULL,
+  fill_missing = 0
+) {
+  ts_prep <- list()
+
+  for (code in codes) {
+    ts_data <- tryCatch(
+      extract_ts(
+        import_data = data,
+        code = code,
+        date_col = date_col,
+        quantity = response_col,
+        fill_missing = fill_missing,
+        freq = freq
+      ),
+      error = function(e) NULL
+    )
+
+    if (is.null(ts_data)) {
+      next
+    }
+
+    ts_prep[[code]] <- ts_data
+  }
+
+  return(ts_prep)
+}
