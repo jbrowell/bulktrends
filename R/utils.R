@@ -295,16 +295,18 @@ open_userguide <- function(path = NULL) {
 
 
 #' prepare data into list of time series
-prepare_ts_data <- function(
+prep_ts_data <- function(
   data,
   codes,
   response_col = "NET_MASS",
   date_col = "DATE_START",
   freq = NULL,
   fill_missing = 0
+  #format ?
 ) {
   ts_prep <- list()
 
+  # if(format=="data_table"){
   for (code in codes) {
     ts_data <- tryCatch(
       extract_ts(
@@ -324,6 +326,12 @@ prepare_ts_data <- function(
 
     ts_prep[[code]] <- ts_data
   }
+  #}
+
+  #  else if(format=="tsibble"){
+  #    tsibble_data <- generate_tstibble(data=imports, hierarchy = c("HS2", "HS4"), groups= "category")
+  #split tsibble into ts_prep per hierarchy id
+  #  }
 
   return(ts_prep)
 }
