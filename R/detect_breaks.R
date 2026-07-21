@@ -26,8 +26,9 @@ detect_breaks <- function(data, date_col = "DATE_START", formula) {
   if (length(breaks) > 0 && !all(is.na(breaks))) {
     time <- data[[date_col]][breaks]
     output <- data.table(type = "SB", ind = breaks, time = time)
-    segments <- as.matrix(strucchangeRcpp::breakfactor(bp))
+    segments <- as.data.table(as.matrix(strucchangeRcpp::breakfactor(bp)))
     colnames(segments) <- paste0("segments")
+    segments[, segments := as.factor(segments)]
     return(list(break_entry = output, segments = segments))
   } else {
     return(NULL)
