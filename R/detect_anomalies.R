@@ -34,22 +34,62 @@ detect_anomalies <- function(
   verbose = FALSE,
   tso_params = list()
 ) {
-  if (!inherits(data, "list")) {
-    stop("`data` must be a list.")
+  #
+  # if (inherits(data, "tsibble")) {
+  #   key_cols <- tsibble::key_vars(data)
+  #
+  #   if (length(key_cols) == 0) {
+  #     series_list <- list(series = data)
+  #     key_ids <- "series"
+  #
+  #   } else {
+  #     series_list <- data %>% group_by_key()  %>% group_split()
+  #     time_series_ids <- do.call(paste, c(key_tbl, sep = "|"))
+  #     names(series_list) <- key_ids
+  #   }
+  #
+  # } else if (is.list(data)) {
+  #   series_list <- data
+  #   time_series_ids <- names(data)
+  #
+  # } else {
+  #   stop("`data` must be a tsibble or a named list of time series.")
+  # }
+
+  if (inherits(data, "tbl_ts")) {
+    key_tbl <- data %>% group_by_key() %>% group_keys()
+
+    if (ncol(key_tbl) == 0) {
+      series_list <- list(series = data)
+      time_series_ids <- "series"
+    } else {
+      series_list <- data %>% group_by_key() %>% group_split()
+      time_series_ids <- do.call(paste, c(key_tbl, sep = "|"))
+      names(series_list) <- time_series_ids
+    }
+  } else if (is.list(data)) {
+    series_list <- data
+    time_series_ids <- names(data)
+  } else {
+    stop("`data` must be a tsibble or a named list of time series.")
   }
 
-  time_series_ids <- names(data)
+  # time_series_ids <- names(data)
 
   p <- progressr::progressor(along = time_series_ids)
 
   results <- future.apply::future_mapply(
-    .detect_anomalies_single_ts,
-    ts_prep,
-    time_series_ids,
+    detect_anomalies_single_ts,
+    ts_data = series_list,
+    id = time_series_ids,
     MoreArgs = list(
       response_col = response_col,
       date_col = date_col,
-      scale_ts = scale_ts
+      scale_ts = scale_ts,
+      model_selection_metric = model_selection_metric,
+      verbose = verbose,
+      tso_params = tso_params,
+      p = p
     ),
     SIMPLIFY = FALSE,
     future.globals = list(),
@@ -73,29 +113,35 @@ detect_anomalies <- function(
 #' @note This needs to return a list of time series with original tsibble attributes. See suggested pattern in comments...
 #'
 detect_anomalies_single_ts <- function(
+  # ts_data,
+  # id,
+  # response_col,
+  # date_col,
+  # scale_ts
   ts_data,
   id,
   response_col,
   date_col,
-  scale_ts
+  scale_ts,
+  model_selection_metric,
+  verbose,
+  tso_params,
+  p
 ) {
-  if (inherits(ts_data, "tsibble")) {
-    # Store attributes & convert to data.table...
-    tsibble_attributes <- data %>% group_by_key() %>% group_keys()
-    key_names <- names(tsibble_attributes)
-    ts_data_split <- data %>% group_by_key() %>% group_split()
-    ts_data_split <- lapply(ts_data_split, function(x) {
-      dt <- as.data.table(x[, c("DATE_START", "NET_MASS")])
-      dt[, DATE_START := as.Date(DATE_START)]
-      dt
-    })
-    ts_data <- ts_data_split
-
-    # note: tsibble_attributes <- attr(ts_data)
-    # note: ts_data <- data.table::as.data.table(ts_data)
+  is_tsibble_input <- inherits(ts_data, "tbl_ts")
+  original_ts <- ts_data
+  if (is_tsibble_input) {
+    data <- ts_data %>%
+      dplyr::select(dplyr::all_of(c(date_col, response_col))) %>%
+      data.table::as.data.table()
+  } else {
+    data <- data.table::as.data.table(ts_data)
+    # data <- data.table::as.data.table(ts_data)[, c(date_col, response_col), with = FALSE]
   }
 
-  sparse_rate <- mean(ts_data[[response_col]] == 0, na.rm = T)
+  data[[date_col]] <- as.Date(data[[date_col]])
+
+  sparse_rate <- mean(data[[response_col]] == 0, na.rm = T)
 
   if (!is.na(sparse_rate) && sparse_rate > 0.4) {
     message(paste(
@@ -115,7 +161,7 @@ detect_anomalies_single_ts <- function(
   # model selection
   selected_model <- tryCatch(
     select_best_model(
-      data = ts_data,
+      data = data,
       response_col = response_col,
       date_col = date_col,
       metric = model_selection_metric,
@@ -170,10 +216,6 @@ detect_anomalies_single_ts <- function(
     # store tso outliers data produced
     new_outliers <- as.data.table(outliers$outliers)
     new_outliers[, id := id]
-    # new_outliers[,
-    #   model_formula := paste(deparse(selected_model$formula), collapse = " ")
-    # ]
-
     new_outliers[, time := ts_data$DATE_START[ind]]
     new_outliers[, anomaly_type := "Outlier"]
 
@@ -185,9 +227,6 @@ detect_anomalies_single_ts <- function(
   #add breaks table
   if (!is.null(break_entry) && nrow(break_entry) > 0) {
     break_entry[, id := id]
-    # break_entry[,
-    #   model_formula := paste(deparse(selected_model$formula), collapse = " ")
-    # ]
     break_entry[, anomaly_type := "Break"]
 
     outliers_entry <- rbindlist(
@@ -204,31 +243,38 @@ detect_anomalies_single_ts <- function(
   if (nrow(outliers_entry) == 0) {
     outliers_entry <- data.table(
       id = id,
-      # model_formula = paste(deparse(selected_model$formula), collapse = " "),
       anomaly_type = "None"
     )
   }
 
   # back to tsibble if tsibble
-  if (inherits(ts_data, "tsibble")) {
-    # option 1 without keys
-    ts_data$hierarchy_id <- id
-    ts_data[, (key_names) := tstrsplit(hierarchy_id, "\\|")]
-    all_ts <- ts_data[!is.na(DATE_START)][, DATE_START := yearmonth(DATE_START)]
-    all_ts <- as_tsibble(all_ts, key = key_names, index = DATE_START)
-    # function to return `all_ts` with attributes as tsibble format
+  if (is_tsibble_input) {
+    ts_data <- data.table::as.data.table(outliers$data)
+    ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
+    covariate_names <- setdiff(names(ts_data), names(original_ts))
+    #print(names(all_ts))
+    #print(names(ts_data))
+    #print(setdiff(names(all_ts), names(ts_data)))
+    covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
+    if (length(covariate_names) > 0) {
+      covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
+      all_ts <- dplyr::left_join(original_ts, covariates, by = date_col)
 
-    #option 2 with keys
-
-    # note: Covert back to tsibble and assign attributes...
-    # note: ts_data <- fable::as.tsibble(ts_data)
-    # note: attr(ts_data) <- .tsibble_attributes
+      # function to return `all_ts` with attributes as tsibble format
+      # note: Covert back to tsibble and assign attributes...
+      # note: ts_data <- fable::as.tsibble(ts_data)
+      # note: attr(ts_data) <- .tsibble_attributes
+    } else {
+      all_ts <- original_ts
+    }
+  } else {
+    all_ts <- ts_data
   }
 
   p(sprintf("Completed time series %s", id))
   return(list(
     outliers = outliers_entry,
-    list_of_ts = ts_data,
+    list_of_ts = all_ts,
     formula = updated_formula,
     id = id
   ))
