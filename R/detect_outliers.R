@@ -21,7 +21,7 @@
 #' @export
 detect_outliers <- function(
   data,
-  quantity,
+  response_col,
   scale_ts = FALSE,
   xreg = NULL,
   return_tso = FALSE,
@@ -37,9 +37,9 @@ detect_outliers <- function(
   tso_params <- modifyList(
     list(
       y = if (scale_ts) {
-        as.ts(scale(data[[quantity]]))
+        as.ts(scale(data[[response_col]]))
       } else {
-        as.ts(data[[quantity]])
+        as.ts(data[[response_col]])
       },
       xreg = xreg,
       types = c("AO", "TC"),

@@ -170,7 +170,7 @@ detect_anomalies_single_ts <- function(
   outliers <- tryCatch(
     detect_outliers(
       data = ts_data,
-      quantity = response_col, ### Change quantity to response_col!!!
+      response_col = response_col,
       scale_ts = scale_ts,
       xreg = xreg_all,
       tso_params = tso_params
