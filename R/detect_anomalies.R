@@ -35,13 +35,13 @@ detect_anomalies <- function(
   tso_params = list()
 ) {
   if (inherits(data, "tbl_ts")) {
-    key_tbl <- data %>% group_by_key() %>% group_keys()
+    key_tbl <- dplyr::group_keys(tsibble::group_by_key(data))
 
     if (ncol(key_tbl) == 0) {
       series_list <- list(series = data)
       time_series_ids <- "series"
     } else {
-      series_list <- data %>% group_by_key() %>% group_split()
+      series_list <- dplyr::group_split(tsibble::group_by_key(data))
       time_series_ids <- do.call(paste, c(key_tbl, sep = "|"))
       names(series_list) <- time_series_ids
     }
@@ -91,11 +91,6 @@ detect_anomalies <- function(
 #' @note This needs to return a list of time series with original tsibble attributes. See suggested pattern in comments...
 #'
 detect_anomalies_single_ts <- function(
-  # ts_data,
-  # id,
-  # response_col,
-  # date_col,
-  # scale_ts
   ts_data,
   id,
   response_col,
@@ -172,13 +167,28 @@ detect_anomalies_single_ts <- function(
   }
 
   # tso outlier detection
-  outliers <- detect_outliers(
-    data = ts_data,
-    quantity = response_col, ### Change quantity to response_col!!!
-    scale_ts = scale_ts,
-    xreg = xreg_all,
-    tso_params = tso_params
+  outliers <- tryCatch(
+    detect_outliers(
+      data = ts_data,
+      quantity = response_col, ### Change quantity to response_col!!!
+      scale_ts = scale_ts,
+      xreg = xreg_all,
+      tso_params = tso_params
+    ),
+    error = function(e) e
   )
+
+  if (inherits(outliers, "error")) {
+    message("Skipping time series", id, ":", outliers)
+    p(sprintf("Skipped %s", id))
+    return(NULL)
+  }
+
+  if (is.null(outliers)) {
+    message(paste("Outlier detection failed:", id))
+    p(sprintf("Skipped %s", id))
+    return(NULL)
+  }
 
   ts_data <- outliers$data
 
@@ -197,7 +207,7 @@ detect_anomalies_single_ts <- function(
     # store tso outliers data produced
     new_outliers <- as.data.table(outliers$outliers)
     new_outliers[, id := id]
-    new_outliers[, time := ts_data$DATE_START[ind]]
+    new_outliers[, time := ts_data[[date_col]][ind]]
     new_outliers[, anomaly_type := "Outlier"]
 
     outliers_entry <- new_outliers
@@ -233,18 +243,12 @@ detect_anomalies_single_ts <- function(
     ts_data <- data.table::as.data.table(outliers$data)
     ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
     covariate_names <- setdiff(names(ts_data), names(original_ts))
-    #print(names(all_ts))
-    #print(names(ts_data))
-    #print(setdiff(names(all_ts), names(ts_data)))
     covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
     if (length(covariate_names) > 0) {
       covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
       all_ts <- dplyr::left_join(original_ts, covariates, by = date_col)
 
       # function to return `all_ts` with attributes as tsibble format
-      # note: Covert back to tsibble and assign attributes...
-      # note: ts_data <- fable::as.tsibble(ts_data)
-      # note: attr(ts_data) <- .tsibble_attributes
     } else {
       all_ts <- original_ts
     }
