@@ -34,28 +34,6 @@ detect_anomalies <- function(
   verbose = FALSE,
   tso_params = list()
 ) {
-  #
-  # if (inherits(data, "tsibble")) {
-  #   key_cols <- tsibble::key_vars(data)
-  #
-  #   if (length(key_cols) == 0) {
-  #     series_list <- list(series = data)
-  #     key_ids <- "series"
-  #
-  #   } else {
-  #     series_list <- data %>% group_by_key()  %>% group_split()
-  #     time_series_ids <- do.call(paste, c(key_tbl, sep = "|"))
-  #     names(series_list) <- key_ids
-  #   }
-  #
-  # } else if (is.list(data)) {
-  #   series_list <- data
-  #   time_series_ids <- names(data)
-  #
-  # } else {
-  #   stop("`data` must be a tsibble or a named list of time series.")
-  # }
-
   if (inherits(data, "tbl_ts")) {
     key_tbl <- data %>% group_by_key() %>% group_keys()
 
@@ -136,7 +114,10 @@ detect_anomalies_single_ts <- function(
       data.table::as.data.table()
   } else {
     data <- data.table::as.data.table(ts_data)
-    # data <- data.table::as.data.table(ts_data)[, c(date_col, response_col), with = FALSE]
+    data <- data.table::as.data.table(ts_data)[,
+      c(date_col, response_col),
+      with = FALSE
+    ]
   }
 
   data[[date_col]] <- as.Date(data[[date_col]])
