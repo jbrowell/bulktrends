@@ -59,7 +59,7 @@ This package has been developed to work with HMRC Monthly Import data. For more 
 ```{r load-trade-data-hidden}
 #| include: false
 if ( !exists("imports") ){
-  if (file.exists(file.path(data_directory,"imports.rds"))) {
+  if (file.exists(file.path(data_directory,"imports.gz"))) {
     imports <- fread(file.path(data_directory,"imports.gz"))
   } else {
     stop("Run script 'data-raw/imports.R' to generate dataset")
