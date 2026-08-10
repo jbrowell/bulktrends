@@ -1,9 +1,12 @@
 #' Large-scale anomaly detection
 #'
-#' This function loops over a list of commodity codes, selects a regression model,
-#' and detects anomalies.
-#'
-#' @param import_data A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.
+#' This function detects anomalies across multiple time series. Accepts either a keyed
+#' [tsibble::tsibble()] (where each key combination is treated as a separate series) or
+#' a named list of time series objects. For each series,
+#' `select_best_model()` chooses a regression specification (including structural-break detection),
+#' and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
+
+#' @param data A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.
 #' @param codes A vector of HS2/HS4/HS6/CN8 codes
 #' @param quantity Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
@@ -16,11 +19,12 @@
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
 #'
-#' @return A list with two elements: (i) `outliers`, a `data.table` with one row per
+#' @return A list with three elements: (i) `outliers`, a `data.table` with one row per
 #'   detected event (or one row with `anomaly_type = "None"` if nothing was found),
-#'   and (ii) `list_of_ts`, a named list of `data.table`s — one
+#'  (ii) `list_of_ts`, a named list of `data.table`s — one
 #'   per commodity code — containing the time series with fitted regressors and
-#'   outlier effect columns appended. Processing runs in parallel via
+#'   outlier effect columns appended, and (iii) the final model formula for each time series
+#'   Processing runs in parallel via
 #'   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 #'
 #' @export
@@ -88,7 +92,6 @@ detect_anomalies <- function(
 }
 
 #' Detect anomalies in a single time series (Internal)
-#' @note This needs to return a list of time series with original tsibble attributes. See suggested pattern in comments...
 #'
 detect_anomalies_single_ts <- function(
   ts_data,

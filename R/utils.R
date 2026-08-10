@@ -59,7 +59,7 @@ detect_date_frequency <- function(dates) {
 #'
 #' @export
 extract_ts <- function(
-  import_data,
+  data,
   code,
   date_col = "DATE_START",
   quantity = "NET_MASS",
@@ -73,8 +73,8 @@ extract_ts <- function(
     names(ts_list) <- code
 
     for (i in seq_along(code)) {
-      ts_list[[i]] <- extract_ts_2(
-        import_data = import_data,
+      ts_list[[i]] <- extract_ts(
+        data = data,
         code = code[i],
         date_col = date_col,
         quantity = quantity,
@@ -92,22 +92,22 @@ extract_ts <- function(
   }
 
   #filter by code
-  import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
+  data <- copy(data[substr(COMCODE, 1, nchar(code)) == code])
 
-  if (import_data[, any(is.na(get(date_col)))]) {
-    import_data <- import_data[!is.na(get(date_col))]
+  if (data[, any(is.na(get(date_col)))]) {
+    data <- data[!is.na(get(date_col))]
     warning("Some timestamps are NA and have been omitted.")
   }
 
   value_col <- quantity
 
   if (quantity == "volume") {
-    ts_data <- import_data[,
+    ts_data <- data[,
       .(volume = .N),
       by = c(group_by, date_col)
     ]
   } else {
-    ts_data <- import_data[,
+    ts_data <- data[,
       .(agg = sum(get(quantity), na.rm = TRUE)),
       by = c(group_by, date_col)
     ]
@@ -338,4 +338,111 @@ open_userguide <- function(path = NULL) {
   } else {
     stop("Couldn't find UserGuide.html")
   }
+}
+
+
+#' Convert UK trade data table to a hierarchical tsibble
+#'
+#' This function creates a tsibble from UK trade data by deriving commodity-code hierarchy
+#' columns, aggregating a selected quantity over time, filling missing time
+#' periods with zero, and aggregating values per hierarchies.
+#'
+#'
+#' @param data A `data.table` containing trade data. Must include columns
+#' `COMCODE` and specified `quantity`.
+#' @param quantity Quantity to be extracted and aggregated as time series, e.g.
+#' `NET_MASS` or `STAT_VALUE` or `volume`.
+#' @param hierarchy Hierarchy columns to use as tsibble keys
+#' and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
+#' Expected commodity hierarchy columns are `"HS2"`, `"HS4"`,`"HS6"`, `"CN8"`, and `"CN10"`.
+#' @param groups Include `"category"` to aggregate by plants and animals. Default is null.
+#' @param date_col Name of column containing timestamps.
+#' @param freq Frequency of time series data. See details.
+#'
+#' @return A hierarchical tsibble with date, quantity and aggregated hierarchy levels columns.
+#'
+#' @details Daily or monthly data is expected and detected automatically. Missing
+#' values are filled.
+#'
+#' By default, `freq=NULL` and will be detected automatically. However, this may
+#' fail for sparse data, in which case `freq` should be set manually. Options are
+#' "day", "week", or "month".
+#'
+#' The `category` column labels commodity codes found in
+#' `comcode_groups$animal_SPS` as `"Animal"` and those in
+#' `comcode_groups$plant_SPS` as `"Plant"`.
+#'
+#' @export
+uktrade_tsibble <- function(
+  data,
+  quantity = "NET_MASS",
+  hierarchy = c("HS2", "HS4"),
+  groups = NULL,
+  date_col = "DATE_START",
+  freq = NULL
+) {
+  #create categories
+  data <- copy(data)
+  data[,
+    category := ifelse(
+      COMCODE %in% comcode_groups$animal_SPS,
+      "Animal",
+      ifelse(COMCODE %in% comcode_groups$plant_SPS, "Plant", NA)
+    )
+  ]
+  #add hierarchies
+  data[, HS2 := substr(COMCODE, 1, 2)]
+  data[, HS4 := substr(COMCODE, 1, 4)]
+  data[, HS6 := substr(COMCODE, 1, 6)]
+  data[, CN8 := substr(COMCODE, 1, 8)]
+  data[, CN10 := substr(COMCODE, 1, 10)]
+
+  #NA for daily data
+  if (data[, any(is.na(get(date_col)))]) {
+    warning("Rows with missing or invalid dates were omitted.")
+    data <- data[!is.na(get(date_col))]
+  }
+
+  #frequency checks
+  if (is.null(freq)) {
+    freq <- detect_date_frequency(data[[date_col]])
+  } else if (!freq %in% c("day", "week", "month")) {
+    stop('"freq" must be "day", "week" or "month"')
+  }
+
+  if (freq == "month") {
+    data[, (date_col) := tsibble::yearmonth(get(date_col))]
+  }
+
+  #tsibble prep
+  group_cols <- c(date_col, hierarchy, groups)
+  imports_tsibble <- data[
+    HS2 != "  ",
+    .(value = sum(get(quantity), na.rm = TRUE)),
+    by = group_cols
+  ]
+
+  imports_tsibble <- as_tsibble(
+    imports_tsibble,
+    index = date_col,
+    key = c(hierarchy, groups)
+  ) %>%
+    fill_gaps(value = 0)
+
+  hierarchy_terms <- if (length(hierarchy) > 0) paste(hierarchy, collapse = "/")
+
+  group_terms <- if (!is.null(groups) && length(groups) > 0) {
+    paste(groups, collapse = "*")
+  } else {
+    NULL
+  }
+
+  level <- rlang::parse_expr(paste(
+    c(hierarchy_terms, group_terms),
+    collapse = " * "
+  ))
+
+  ts_table <- imports_tsibble %>% aggregate_key(!!level, value = sum(value))
+  setnames(ts_table, "value", quantity)
+  return(ts_table)
 }
