@@ -5,9 +5,8 @@
 \title{Large-scale anomaly detection}
 \usage{
 detect_anomalies(
-  import_data,
-  codes,
-  quantity = "NET_MASS",
+  data,
+  response_col = "NET_MASS",
   date_col = "DATE_START",
   model_selection_metric = AIC,
   scale_ts = FALSE,
@@ -17,11 +16,7 @@ detect_anomalies(
 )
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.}
-
-\item{codes}{A vector of HS2/HS4/HS6/CN8 codes}
-
-\item{quantity}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
+\item{data}{A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.}
 
 \item{date_col}{Name of column containing timestamps.}
 
@@ -37,16 +32,24 @@ or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 \item{tso_params}{A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 Default `list()`.}
+
+\item{codes}{A vector of HS2/HS4/HS6/CN8 codes}
+
+\item{quantity}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
 }
 \value{
-A list with two elements: (i) `outliers`, a `data.table` with one row per
+A list with three elements: (i) `outliers`, a `data.table` with one row per
   detected event (or one row with `anomaly_type = "None"` if nothing was found),
-  and (ii) `list_of_ts`, a named list of `data.table`s — one
+ (ii) `list_of_ts`, a named list of `data.table`s — one
   per commodity code — containing the time series with fitted regressors and
-  outlier effect columns appended. Processing runs in parallel via
+  outlier effect columns appended, and (iii) the final model formula for each time series
+  Processing runs in parallel via
   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 }
 \description{
-This function loops over a list of commodity codes, selects a regression model,
-and detects anomalies.
+This function detects anomalies across multiple time series. Accepts either a keyed
+[tsibble::tsibble()] (where each key combination is treated as a separate series) or
+a named list of time series objects. For each series,
+`select_best_model()` chooses a regression specification (including structural-break detection),
+and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
 }

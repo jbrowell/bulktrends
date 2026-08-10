@@ -5,18 +5,17 @@
 \title{Extract of monthly or daily time series for a given commodity code}
 \usage{
 extract_ts(
-  import_data,
+  data,
   code,
   date_col = "DATE_START",
   quantity = "NET_MASS",
   fill_missing = NA,
-  freq = NULL
+  freq = NULL,
+  group_by = NULL,
+  return_list = FALSE
 )
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns
-`COMCODE` and specified `quantity`.}
-
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
 \item{date_col}{Name of column containing timestamps.}
@@ -28,6 +27,9 @@ extract_ts(
 for missing dates are filled with this value.}
 
 \item{freq}{Frequency of time series data. See details.}
+
+\item{import_data}{A `data.table` containing trade data. Must include columns
+`COMCODE` and specified `quantity`.}
 }
 \value{
 A `data.table` with date and quantity columns.

@@ -6,7 +6,7 @@
 \usage{
 detect_outliers(
   data,
-  quantity,
+  response_col,
   scale_ts = FALSE,
   xreg = NULL,
   return_tso = FALSE,
@@ -15,9 +15,6 @@ detect_outliers(
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
-
-\item{quantity}{Name of the column containing the time series values,
-e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 
@@ -28,6 +25,9 @@ returned list as element `tso`. Default `FALSE`.}
 
 \item{tso_params}{A named list of additional arguments passed directly to `tsoutliers::tso()`,
 e.g. `list(cval = 5, types = c("AO", "TC", "IO"))`. Default `list()`.}
+
+\item{quantity}{Name of the column containing the time series values,
+e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.}
 }
 \value{
 A list with elements (i) `data`, the original time series dataset with outlier covariates
