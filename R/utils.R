@@ -64,12 +64,34 @@ extract_ts <- function(
   date_col = "DATE_START",
   quantity = "NET_MASS",
   fill_missing = NA,
-  freq = NULL
+  freq = NULL,
+  group_by = NULL,
+  return_list = FALSE
 ) {
-  if (!inherits(import_data, "data.table")) {
-    import_data <- as.data.table(import_data)
+  if (length(code) > 1) {
+    ts_list <- vector("list", length(code))
+    names(ts_list) <- code
+
+    for (i in seq_along(code)) {
+      ts_list[[i]] <- extract_ts_2(
+        import_data = import_data,
+        code = code[i],
+        date_col = date_col,
+        quantity = quantity,
+        fill_missing = fill_missing,
+        freq = freq,
+        group_by = group_by,
+        return_list = return_list
+      )
+    }
+
+    if (return_list) {
+      return(unlist(ts_list, recursive = FALSE))
+    }
+    return(rbindlist(ts_list, idcol = "code"))
   }
 
+  #filter by code
   import_data <- copy(import_data[substr(COMCODE, 1, nchar(code)) == code])
 
   if (import_data[, any(is.na(get(date_col)))]) {
@@ -77,41 +99,66 @@ extract_ts <- function(
     warning("Some timestamps are NA and have been omitted.")
   }
 
+  value_col <- quantity
+
   if (quantity == "volume") {
-    ts_data <- import_data[, .(volume = .N), by = date_col]
+    ts_data <- import_data[,
+      .(volume = .N),
+      by = c(group_by, date_col)
+    ]
   } else {
     ts_data <- import_data[,
-      .(agg = sum(get(quantity), na.rm = T)),
-      by = date_col
+      .(agg = sum(get(quantity), na.rm = TRUE)),
+      by = c(group_by, date_col)
     ]
     setnames(ts_data, "agg", quantity)
   }
 
   if (is.null(freq)) {
     freq <- detect_date_frequency(ts_data[[date_col]])
-  } else {
-    if (!freq %in% c("day", "week", "month")) {
-      stop("\"freq\" must be \"day\",\"week\" or \"month\"")
-    }
+  } else if (!freq %in% c("day", "week", "month")) {
+    stop('"freq" must be "day", "week" or "month"')
   }
 
-  complete_seq <- ts_data[,
-    seq(
-      min(get(date_col)),
-      max(get(date_col)),
-      by = freq
-    )
-  ]
+  #identical dates for all groups
+  complete_seq <- seq(
+    min(ts_data[[date_col]]),
+    max(ts_data[[date_col]]),
+    by = freq
+  )
 
-  missing_data <- data.table()
-  missing_data[,
-    (date_col) := complete_seq[!complete_seq %in% ts_data[, get(date_col)]]
-  ]
-  missing_data[, (quantity) := fill_missing]
+  if (is.null(group_by)) {
+    series <- list(ts_data)
+  } else {
+    series <- split(ts_data, by = group_by, keep.by = TRUE)
+    #'split' separates ts data according to groups
+    #keep.by=F to remove group column
+  }
 
-  ts_data <- rbind(ts_data, missing_data)
+  # handle missing data and date order for each group using lapply
+  series <- lapply(series, function(x) {
+    missing_data <- data.table()
+    missing_data[,
+      (date_col) := complete_seq[
+        !complete_seq %in% x[[date_col]]
+      ]
+    ]
 
-  return(ts_data[order(get(date_col))])
+    if (!is.null(group_by)) {
+      for (group_col in group_by) {
+        missing_data[, (group_col) := x[[group_col]][1]]
+      }
+    }
+
+    missing_data[, (value_col) := fill_missing]
+    x <- rbind(x, missing_data)[order(get(date_col))]
+  })
+
+  if (return_list) {
+    return(series)
+  }
+
+  rbindlist(series)
 }
 
 
