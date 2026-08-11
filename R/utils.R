@@ -131,8 +131,8 @@ extract_ts <- function(
     series <- list(ts_data)
   } else {
     series <- split(ts_data, by = group_by, keep.by = TRUE)
-    #'split' separates ts data according to groups
-    #keep.by=F to remove group column
+    # split() separates ts data according to groups
+    # keep.by = TRUE retains the group columns in each split
   }
 
   # handle missing data and date order for each group using lapply
