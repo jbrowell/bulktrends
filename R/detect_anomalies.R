@@ -14,7 +14,6 @@
 #'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance
 #' using `scale()`. Default `FALSE`.
-#' @param freq See `?extract_ts()`
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
 #' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
@@ -35,7 +34,6 @@ detect_anomalies <- function(
   date_col = "DATE_START",
   model_selection_metric = AIC,
   scale_ts = FALSE,
-  freq = NULL,
   verbose = FALSE,
   tso_params = list()
 ) {
@@ -98,11 +96,9 @@ detect_anomalies <- function(
 #' @param id Identifier for the time series.
 #' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
-#' @param scale_ts Logical; whether to scale the response before outlier detection.
 #' @param model_selection_metric A function used for model selection, e.g. `AIC`
 #'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
-#' @param freq See `?extract_ts()`
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
 #' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.

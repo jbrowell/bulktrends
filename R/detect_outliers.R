@@ -4,7 +4,7 @@
 #' using `tsoutliers::tso()`.
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
-#' @param quantity Name of the column containing the time series values,
+#' @param response_col Name of the column containing the time series values,
 #'  e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param xreg matrix of external regressors passed to `tso()`. Default `NULL`.

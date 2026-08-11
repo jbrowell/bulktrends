@@ -37,16 +37,22 @@ detect_date_frequency <- function(dates) {
 #' This function extracts the sum of a given quantity from import_data for
 #' any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 #'
-#' @param import_data A `data.table` containing trade data. Must include columns
+#' @param data A `data.table` containing trade data. Must include columns
 #' `COMCODE` and specified `quantity`.
-#' @param code A character string representing any HS2/HS4/HS6/CN8 code.
+#' @param code Any single or groups of HS2/HS4/HS6/CN8 code.
 #' @param date_col Name of column containing timestamps.
 #' @param quantity Quantity to be extracted and aggregated as time series, e.g.
 #' `NET_MASS` or `STAT_VALUE` or `volume`.
 #' @param fill_missing This function returns a continuous time series. Values
 #' for missing dates are filled with this value.
 #' @param freq Frequency of time series data. See details.
-#'
+#' @param group_by Optional vector of column names used to create
+#' separate time series. For example, use `"PORT_CODE"` to return one series
+#' per port, or `c("PORT_CODE", "COO_ALPHA")` for one series per port-country of origin
+#' combination. Default set to `NULL`, which returns time series for the selected
+#' commodity code.
+#' @param return_list If `TRUE`, returns a list of completed time
+#' series per code and group. If `FALSE`, returns one combined `data.table`.
 #' @return A `data.table` with date and quantity columns.
 #'
 #' @details Daily or monthly data is expected and detected automatically. Missing
@@ -350,8 +356,7 @@ open_userguide <- function(path = NULL) {
 #'
 #' @param data A `data.table` containing trade data. Must include columns
 #' `COMCODE` and specified `quantity`.
-#' @param quantity Quantity to be extracted and aggregated as time series, e.g.
-#' `NET_MASS` or `STAT_VALUE` or `volume`.
+#' @param quantity Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`.
 #' @param hierarchy Hierarchy columns to use as tsibble keys
 #' and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
 #' Expected commodity hierarchy columns are `"HS2"`, `"HS4"`,`"HS6"`, `"CN8"`, and `"CN10"`.
@@ -426,7 +431,7 @@ uktrade_tsibble <- function(
     imports_tsibble,
     index = date_col,
     key = c(hierarchy, groups)
-  ) %>%
+  ) |>
     fill_gaps(value = 0)
 
   hierarchy_terms <- if (length(hierarchy) > 0) paste(hierarchy, collapse = "/")
@@ -442,7 +447,7 @@ uktrade_tsibble <- function(
     collapse = " * "
   ))
 
-  ts_table <- imports_tsibble %>% aggregate_key(!!level, value = sum(value))
+  ts_table <- imports_tsibble |> aggregate_key(!!level, value = sum(value))
   setnames(ts_table, "value", quantity)
   return(ts_table)
 }
