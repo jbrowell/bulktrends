@@ -8,7 +8,7 @@
 
 #' @param data A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.
 #' @param codes A vector of HS2/HS4/HS6/CN8 codes
-#' @param quantity Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
+#' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
 #' @param model_selection_metric A function used for model selection, e.g. `AIC`
 #'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
@@ -91,7 +91,27 @@ detect_anomalies <- function(
   ))
 }
 
-#' Detect anomalies in a single time series (Internal)
+#' Detect anomalies in a single time series
+#'
+#' @param ts_data A single time series as a tsibble, data.table, or data frame.
+#' @param id Identifier for the time series.
+#' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
+#' @param date_col Name of column containing timestamps.
+#' @param scale_ts Logical; whether to scale the response before outlier detection.
+#' @param model_selection_metric A function used for model selection, e.g. `AIC`
+#'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
+#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
+#' @param freq See `?extract_ts()`
+#' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
+#' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
+#'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
+#'   Default `list()`.
+#' @param p A `progressr` progressor function.
+#'
+#' @return A list containing detected outliers, the augmented time series,
+#'   the updated model formula, and the series identifier.
+#'
+#' @keywords internal
 #'
 detect_anomalies_single_ts <- function(
   ts_data,
@@ -244,7 +264,12 @@ detect_anomalies_single_ts <- function(
   # back to tsibble if tsibble
   if (is_tsibble_input) {
     ts_data <- data.table::as.data.table(outliers$data)
-    ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
+    if (inherits(original_ts[[date_col]], "yearmonth")) {
+      ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
+    } else {
+      ts_data[[date_col]] <- as.Date(ts_data[[date_col]])
+    }
+    #ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
     covariate_names <- setdiff(names(ts_data), names(original_ts))
     covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
     if (length(covariate_names) > 0) {
