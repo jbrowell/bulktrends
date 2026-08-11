@@ -79,16 +79,27 @@ extract_ts <- function(
     names(ts_list) <- code
 
     for (i in seq_along(code)) {
-      ts_list[[i]] <- extract_ts(
-        data = data,
-        code = code[i],
-        date_col = date_col,
-        quantity = quantity,
-        fill_missing = fill_missing,
-        freq = freq,
-        group_by = group_by,
-        return_list = return_list
+      #ts_list[[i]]
+      result <- try(
+        extract_ts(
+          data = data,
+          code = code[i],
+          date_col = date_col,
+          quantity = quantity,
+          fill_missing = fill_missing,
+          freq = freq,
+          group_by = group_by,
+          return_list = return_list
+        ),
+        silent = T
       )
+
+      if (inherits(result, "try-error")) {
+        message("Skipping code", code[i], ":", result)
+        next
+      }
+
+      ts_list[[i]] <- result
     }
 
     if (return_list) {
