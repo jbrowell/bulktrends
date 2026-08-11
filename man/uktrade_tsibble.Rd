@@ -17,8 +17,7 @@ uktrade_tsibble(
 \item{data}{A `data.table` containing trade data. Must include columns
 `COMCODE` and specified `quantity`.}
 
-\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.
-`NET_MASS` or `STAT_VALUE` or `volume`.}
+\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`.}
 
 \item{hierarchy}{Hierarchy columns to use as tsibble keys
 and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/detect_anomalies.R
 \name{detect_anomalies_single_ts}
 \alias{detect_anomalies_single_ts}
-\title{Detect anomalies in a single time series (Internal)}
+\title{Detect anomalies in a single time series}
 \usage{
 detect_anomalies_single_ts(
   ts_data,
@@ -16,6 +16,33 @@ detect_anomalies_single_ts(
   p
 )
 }
-\description{
-Detect anomalies in a single time series (Internal)
+\arguments{
+\item{ts_data}{A single time series as a tsibble, data.table, or data frame.}
+
+\item{id}{Identifier for the time series.}
+
+\item{response_col}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
+
+\item{date_col}{Name of column containing timestamps.}
+
+\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+
+\item{model_selection_metric}{A function used for model selection, e.g. `AIC`
+or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
+
+\item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
+
+\item{tso_params}{A named list of additional arguments passed to [tsoutliers::tso()], e.g.
+`list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
+Default `list()`.}
+
+\item{p}{A `progressr` progressor function.}
 }
+\value{
+A list containing detected outliers, the augmented time series,
+  the updated model formula, and the series identifier.
+}
+\description{
+Detect anomalies in a single time series
+}
+\keyword{internal}

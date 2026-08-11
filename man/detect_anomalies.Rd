@@ -10,32 +10,29 @@ detect_anomalies(
   date_col = "DATE_START",
   model_selection_metric = AIC,
   scale_ts = FALSE,
-  freq = NULL,
   verbose = FALSE,
   tso_params = list()
 )
 }
 \arguments{
-\item{data}{A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.}
+\item{data}{A named list of individual time series, or a keyed tsibble containing
+one or more trade time series.}
+
+\item{response_col}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
 
 \item{date_col}{Name of column containing timestamps.}
 
 \item{model_selection_metric}{A function used for model selection, e.g. `AIC`
 or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
-
-\item{freq}{See `?extract_ts()`}
+\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance
+using `scale()`. Default `FALSE`.}
 
 \item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
 
 \item{tso_params}{A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 Default `list()`.}
-
-\item{codes}{A vector of HS2/HS4/HS6/CN8 codes}
-
-\item{quantity}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
 }
 \value{
 A list with three elements: (i) `outliers`, a `data.table` with one row per

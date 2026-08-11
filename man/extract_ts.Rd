@@ -16,7 +16,10 @@ extract_ts(
 )
 }
 \arguments{
-\item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
+\item{data}{A `data.table` containing trade data. Must include columns
+`COMCODE` and specified `quantity`.}
+
+\item{code}{Any single or groups of HS2/HS4/HS6/CN8 code.}
 
 \item{date_col}{Name of column containing timestamps.}
 
@@ -28,8 +31,14 @@ for missing dates are filled with this value.}
 
 \item{freq}{Frequency of time series data. See details.}
 
-\item{import_data}{A `data.table` containing trade data. Must include columns
-`COMCODE` and specified `quantity`.}
+\item{group_by}{Optional vector of column names used to create
+separate time series. For example, use `"PORT_CODE"` to return one series
+per port, or `c("PORT_CODE", "COO_ALPHA")` for one series per port-country of origin
+combination. Default set to `NULL`, which returns time series for the selected
+commodity code.}
+
+\item{return_list}{If `TRUE`, returns a list of completed time
+series per code and group. If `FALSE`, returns one combined `data.table`.}
 }
 \value{
 A `data.table` with date and quantity columns.
