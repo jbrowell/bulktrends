@@ -6,13 +6,14 @@
 #' `select_best_model()` chooses a regression specification (including structural-break detection),
 #' and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
 
-#' @param data A `data.table` containing trade data. Must include columns `COMCODE` and specified `quantity`.
-#' @param codes A vector of HS2/HS4/HS6/CN8 codes
+#' @param data A named list of individual time series, or a keyed tsibble containing
+#' one or more trade time series.
 #' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
 #' @param model_selection_metric A function used for model selection, e.g. `AIC`
 #'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
+#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance
+#' using `scale()`. Default `FALSE`.
 #' @param freq See `?extract_ts()`
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
 #' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
@@ -127,9 +128,8 @@ detect_anomalies_single_ts <- function(
   is_tsibble_input <- inherits(ts_data, "tbl_ts")
   original_ts <- ts_data
   if (is_tsibble_input) {
-    data <- ts_data %>%
-      dplyr::select(dplyr::all_of(c(date_col, response_col))) %>%
-      data.table::as.data.table()
+    data <- data.table::as.data.table(ts_data)
+    data <- data[, c(date_col, response_col), with = FALSE]
   } else {
     data <- data.table::as.data.table(ts_data)
     data <- data.table::as.data.table(ts_data)[,
