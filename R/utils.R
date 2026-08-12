@@ -41,7 +41,7 @@ detect_date_frequency <- function(dates) {
 #' `COMCODE` and specified `quantity`.
 #' @param code Any single or groups of HS2/HS4/HS6/CN8 code.
 #' @param date_col Name of column containing timestamps.
-#' @param quantity Quantity to be extracted and aggregated as time series, e.g.
+#' @param response_col Quantity to be extracted and aggregated as time series, e.g.
 #' `NET_MASS` or `STAT_VALUE` or `volume`.
 #' @param fill_missing This function returns a continuous time series. Values
 #' for missing dates are filled with this value.
@@ -68,7 +68,7 @@ extract_ts <- function(
   data,
   code,
   date_col = "DATE_START",
-  quantity = "NET_MASS",
+  response_col = "NET_MASS",
   fill_missing = NA,
   freq = NULL,
   group_by = NULL,
@@ -85,7 +85,7 @@ extract_ts <- function(
           data = data,
           code = code[i],
           date_col = date_col,
-          quantity = quantity,
+          response_col = response_col,
           fill_missing = fill_missing,
           freq = freq,
           group_by = group_by,
@@ -105,7 +105,7 @@ extract_ts <- function(
     if (return_list) {
       return(unlist(ts_list, recursive = FALSE))
     }
-    return(rbindlist(ts_list, idcol = "code"))
+    return(rbindlist(ts_list)) #, idcol = "code"))
   }
 
   #filter by code
@@ -116,19 +116,19 @@ extract_ts <- function(
     warning("Some timestamps are NA and have been omitted.")
   }
 
-  value_col <- quantity
+  value_col <- response_col
 
-  if (quantity == "volume") {
+  if (response_col == "volume") {
     ts_data <- data[,
       .(volume = .N),
       by = c(group_by, date_col)
     ]
   } else {
     ts_data <- data[,
-      .(agg = sum(get(quantity), na.rm = TRUE)),
+      .(agg = sum(get(response_col), na.rm = TRUE)),
       by = c(group_by, date_col)
     ]
-    setnames(ts_data, "agg", quantity)
+    setnames(ts_data, "agg", response_col)
   }
 
   if (is.null(freq)) {
@@ -171,11 +171,16 @@ extract_ts <- function(
     x <- rbind(x, missing_data)[order(get(date_col))]
   })
 
+  for (i in seq_along(series)) {
+    series[[i]][, code := code]
+    setcolorder(series[[i]], "code")
+  }
+
   if (return_list) {
     return(series)
   }
 
-  rbindlist(series)
+  return(rbindlist(series))
 }
 
 
@@ -367,7 +372,7 @@ open_userguide <- function(path = NULL) {
 #'
 #' @param data A `data.table` containing trade data. Must include columns
 #' `COMCODE` and specified `quantity`.
-#' @param quantity Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`.
+#' @param response_col Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`.
 #' @param hierarchy Hierarchy columns to use as tsibble keys
 #' and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
 #' Expected commodity hierarchy columns are `"HS2"`, `"HS4"`,`"HS6"`, `"CN8"`, and `"CN10"`.
@@ -391,7 +396,7 @@ open_userguide <- function(path = NULL) {
 #' @export
 uktrade_tsibble <- function(
   data,
-  quantity = "NET_MASS",
+  response_col = "NET_MASS",
   hierarchy = c("HS2", "HS4"),
   groups = NULL,
   date_col = "DATE_START",
@@ -434,7 +439,7 @@ uktrade_tsibble <- function(
   group_cols <- c(date_col, hierarchy, groups)
   imports_tsibble <- data[
     HS2 != "  ",
-    .(value = sum(get(quantity), na.rm = TRUE)),
+    .(value = sum(get(response_col), na.rm = TRUE)),
     by = group_cols
   ]
 
@@ -459,6 +464,6 @@ uktrade_tsibble <- function(
   ))
 
   ts_table <- imports_tsibble |> aggregate_key(!!level, value = sum(value))
-  setnames(ts_table, "value", quantity)
+  setnames(ts_table, "value", response_col)
   return(ts_table)
 }
