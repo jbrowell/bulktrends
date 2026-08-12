@@ -134,7 +134,7 @@ extract_ts <- function(
   if (is.null(freq)) {
     freq <- detect_date_frequency(ts_data[[date_col]])
   } else if (!freq %in% c("day", "week", "month")) {
-    stop('"freq" must be "day", "week" or "month"')
+    stop('"freq" must be "day", "week", "month" or NULL. If NULL, "freq" will be detected automatically.')
   }
 
   #identical dates for all groups
