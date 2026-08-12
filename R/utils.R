@@ -42,7 +42,7 @@ detect_date_frequency <- function(dates) {
 #' @param code Any single or groups of HS2/HS4/HS6/CN8 code.
 #' @param date_col Name of column containing timestamps.
 #' @param response_col Quantity to be extracted and aggregated as time series, e.g.
-#' `NET_MASS` or `STAT_VALUE` or `volume`.
+#' `NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.
 #' @param fill_missing This function returns a continuous time series. Values
 #' for missing dates are filled with this value.
 #' @param freq Frequency of time series data. See details.
