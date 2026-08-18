@@ -118,7 +118,8 @@ extract_ts <- function(
 
   value_col <- response_col
 
-  if (response_col == "volume") {
+  if (response_col == "volume" && !"volume" %in% names(data)) {
+    message("No existing `volume` column; rows will be counted.")
     ts_data <- data[,
       .(volume = .N),
       by = c(group_by, date_col)
@@ -447,7 +448,9 @@ uktrade_tsibble <- function(
   #tsibble prep
   group_cols <- c(date_col, comcode_level, group_by)
 
-  if (response_col == "volume") {
+  if (response_col == "volume" && !"volume" %in% names(data)) {
+    message("No existing `volume` column; rows will be counted.")
+
     imports_tsibble <- data[
       HS2 != "  ",
       .(value = .N),
