@@ -171,11 +171,45 @@ comcode_description("16041428", Commodity)
 head(imports[COMCODE %in% comcode_groups$animal_SPS])
 ```
 
+### Time series extraction
+
+Time series can be extracted for any single or multiple sets of commodity codes. The function can optionally group the data by any available variable, for example `PORT_CODE` for port location and `COO_ALPHA` for country of origin, or a combination of grouping columns. 
+
+When `return_list = TRUE`, the time series are returned separately for each code or combination of code and group. Alternatively, a combined output consisting of the grouping columns, date column, and quantity is returned.
+
+```{r}
+#| warning: false
+
+
+extract_ts(imports, 
+           response_col = "NET_MASS",
+           code = c("01", "02"), 
+           return_list = TRUE)
+
+extract_ts(
+  imports,
+  response_col = "NET_MASS",
+  code = c("01", "02", "03"),
+  group_by = c("PORT_CODE"),
+  return_list = FALSE
+)
+
+extract_ts(
+  imports,
+  response_col = "volume",
+  code = "01",
+  group_by = c("PORT_CODE", "COO_ALPHA"),
+  return_list = FALSE
+)
+
+```
+
+
 ### Anomaly detection: individual
 
 The anomaly detection workflow considers two types of anomalies; structural breaks and temporary outliers.
 
-For a given commodity code and quantity, a series of helper functions have been created; (i) `extract_ts` to extract an aggregated time series by summing all commodities with the specified code by time period, (ii) `select_best_model` to automatically find an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` to specifically detect temporary outliers ("AO" additive outliers, "TC" temporary changes, "IO" innovative outliers) using an outlier detection algorithm.
+For a given commodity code and quantity, (i) `extract_ts` extracts a list of time series by summing all commodities with the specified codes by time period, (ii) `select_best_model` automatically finds an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` specifically detects temporary outliers ("AO" additive outliers, "TC" temporary changes, "IO" innovative outliers) using an outlier detection algorithm.
 
 In this workflow, structural break detection is performed within `select_best_model()` by using `break_detection = TRUE`. If any break is identified, the detected break information is stored in the `break_entry` output. 
 
@@ -205,7 +239,7 @@ plot.tsoutliers(detected_anomaly$tso)
 
 ### Anomaly detection: large-scale
 
-This procedure can be performed for a list of commodity codes using the `detect_anomalies()` function. It returns (i) a table of all detected anomalies (breaks and outliers) across all codes (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
+This procedure can be performed for a list of commodity codes using the `detect_anomalies()` function. It returns (i) a table of all detected anomalies (breaks and outliers) across all codes, (ii) a `data.table` for each code containing the original time series, the time index, and the associated anomaly covariates and, (iii) the final model formula for each time series.
 
 ```{r detect_anomalies_datatable_example}
 #| warning: false
@@ -223,6 +257,13 @@ hs2_anomalies <- detect_anomalies(data = ts_list,
 
 print(hs2_anomalies$outliers)
 ```
+
+
+#### Tsibble conversion and anomaly detection
+
+Large-scale anomaly detection can be performed with `detect_anomalies()` using data in tsibble format.
+`uktrade_tsibble()` converts a `data.table` into a `tsibble`: a time-series table format that supports later analysis, including the hierarchical forecasting algorithm.
+
 
 ```{r detect_anomalies_tsibble_example}
 #| warning: false
@@ -309,7 +350,8 @@ detect_anomaly <- detect_outliers(data = selected_model$data,
                     response_col= "NET_MASS",
                     scale_ts = FALSE,
                     return_tso = TRUE,
-                    xreg = model.matrix(selected_model$formula, data = selected_model$data))
+                    xreg = model.matrix(selected_model$formula, data = selected_model$data),
+                    tso_params = list(cval= 4))
 
 print(selected_model$break_entry)
 print(detect_anomaly)
@@ -330,20 +372,27 @@ Similarly, the function returns (i) a table of all detected anomalies (breaks an
 
 hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
-hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2023-01-01"],
-                                  codes = hs2_codes[1:5],
+netmass_list <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
+                           response_col = "NET_MASS",
+                           code = hs2_codes[1:5], 
+                           return_list = T)
+
+hs2_anomalies_netmass <- detect_anomalies(data = netmass_list,
                                   response_col = "NET_MASS",
                                   scale_ts = TRUE,
-                                  freq = "day",
                                   verbose = FALSE,
                                   tso_params = list(cval= 4,
                                                     types = c("AO", "TC", "IO")))
 
-hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[1:5],
+
+volume_list <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
+                          response_col = "volume",
+                          code = hs2_codes[1:5], 
+                          return_list = T)
+
+hs2_anomalies_volume <- detect_anomalies(data = volume_list,
                                   response_col = "volume",
                                   scale_ts = TRUE,
-                                  freq = "day",
                                   verbose = FALSE,
                                   tso_params = list(cval= 4,
                                                     types = c("AO", "TC", "IO")))
