@@ -134,7 +134,9 @@ extract_ts <- function(
   if (is.null(freq)) {
     freq <- detect_date_frequency(ts_data[[date_col]])
   } else if (!freq %in% c("day", "week", "month")) {
-    stop('"freq" must be "day", "week", "month" or NULL. If NULL, "freq" will be detected automatically.')
+    stop(
+      '"freq" must be "day", "week", "month" or NULL. If NULL, "freq" will be detected automatically.'
+    )
   }
 
   #identical dates for all groups
@@ -370,11 +372,12 @@ open_userguide <- function(path = NULL) {
 #'
 #' @param data A `data.table` containing trade data. Must include columns
 #' `COMCODE` and specified `quantity`.
-#' @param response_col Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`.
-#' @param hierarchy Hierarchy columns to use as tsibble keys
+#' @param response_col Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`, `volume`
+#' @param comcode_level Hierarchy columns to use as tsibble keys
 #' and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
 #' Expected commodity hierarchy columns are `"HS2"`, `"HS4"`,`"HS6"`, `"CN8"`, and `"CN10"`.
-#' @param groups Include `"category"` to aggregate by plants and animals. Default is null.
+#' @param group_by Optional classification group in `data`, e.g. `PORT_CODE`. Use `"category"` to
+#' group commodities by plants and animals. Default is `NULL`.
 #' @param date_col Name of column containing timestamps.
 #' @param freq Frequency of time series data. See details.
 #'
@@ -395,20 +398,26 @@ open_userguide <- function(path = NULL) {
 uktrade_tsibble <- function(
   data,
   response_col = "NET_MASS",
-  hierarchy = c("HS2", "HS4"),
-  groups = NULL,
+  comcode_level = c("HS2", "HS4"),
+  group_by = NULL,
   date_col = "DATE_START",
   freq = NULL
 ) {
   #create categories
   data <- copy(data)
-  data[,
-    category := ifelse(
-      COMCODE %in% comcode_groups$animal_SPS,
-      "Animal",
-      ifelse(COMCODE %in% comcode_groups$plant_SPS, "Plant", NA)
-    )
-  ]
+  if ("category" %in% group_by) {
+    data[,
+      category := ifelse(
+        COMCODE %in% comcode_groups$animal_SPS,
+        "Animal",
+        ifelse(COMCODE %in% comcode_groups$plant_SPS, "Plant", NA)
+      )
+    ]
+  } else if (!is.null(group_by)) {
+    if (!group_by %in% names(data)) {
+      stop("`group_by` column not found in `data`: ", group_by)
+    }
+  }
   #add hierarchies
   data[, HS2 := substr(COMCODE, 1, 2)]
   data[, HS4 := substr(COMCODE, 1, 4)]
@@ -434,24 +443,34 @@ uktrade_tsibble <- function(
   }
 
   #tsibble prep
-  group_cols <- c(date_col, hierarchy, groups)
-  imports_tsibble <- data[
-    HS2 != "  ",
-    .(value = sum(get(response_col), na.rm = TRUE)),
-    by = group_cols
-  ]
+  group_cols <- c(date_col, comcode_level, group_by)
 
+  if (response_col == "volume") {
+    imports_tsibble <- data[
+      HS2 != "  ",
+      .(value = .N),
+      by = group_cols
+    ]
+  } else {
+    imports_tsibble <- data[
+      HS2 != "  ",
+      .(value = sum(get(response_col), na.rm = TRUE)),
+      by = group_cols
+    ]
+  }
   imports_tsibble <- as_tsibble(
     imports_tsibble,
     index = date_col,
-    key = c(hierarchy, groups)
+    key = c(comcode_level, group_by)
   ) |>
     fill_gaps(value = 0)
 
-  hierarchy_terms <- if (length(hierarchy) > 0) paste(hierarchy, collapse = "/")
+  hierarchy_terms <- if (length(comcode_level) > 0) {
+    paste(comcode_level, collapse = "/")
+  }
 
-  group_terms <- if (!is.null(groups) && length(groups) > 0) {
-    paste(groups, collapse = "*")
+  group_terms <- if (!is.null(group_by) && length(group_by) > 0) {
+    paste(group_by, collapse = "*")
   } else {
     NULL
   }
