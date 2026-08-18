@@ -380,7 +380,8 @@ open_userguide <- function(path = NULL) {
 #' group commodities by plants and animals. Default is `NULL`.
 #' @param date_col Name of column containing timestamps.
 #' @param freq Frequency of time series data. See details.
-#'
+#' @param fill_missing This function returns a continuous time series. Values
+#' for missing dates are filled with this value.
 #' @return A hierarchical tsibble with date, quantity and aggregated hierarchy levels columns.
 #'
 #' @details Daily or monthly data is expected and detected automatically. Missing
@@ -401,7 +402,8 @@ uktrade_tsibble <- function(
   comcode_level = c("HS2", "HS4"),
   group_by = NULL,
   date_col = "DATE_START",
-  freq = NULL
+  freq = NULL,
+  fill_missing = NA
 ) {
   #create categories
   data <- copy(data)
@@ -463,7 +465,7 @@ uktrade_tsibble <- function(
     index = date_col,
     key = c(comcode_level, group_by)
   ) |>
-    fill_gaps(value = 0)
+    fill_gaps(value = !!fill_missing)
 
   hierarchy_terms <- if (length(comcode_level) > 0) {
     paste(comcode_level, collapse = "/")
@@ -480,7 +482,8 @@ uktrade_tsibble <- function(
     collapse = " * "
   ))
 
-  ts_table <- imports_tsibble |> aggregate_key(!!level, value = sum(value))
+  ts_table <- imports_tsibble |>
+    aggregate_key(!!level, value = sum(value, na.rm = TRUE))
   setnames(ts_table, "value", response_col)
   return(ts_table)
 }
