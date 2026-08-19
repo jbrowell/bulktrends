@@ -105,7 +105,7 @@ extract_ts <- function(
     if (return_list) {
       return(unlist(ts_list, recursive = FALSE))
     }
-    return(rbindlist(ts_list)) #, idcol = "code"))
+    return(rbindlist(ts_list))
   }
 
   #filter by code
@@ -118,8 +118,14 @@ extract_ts <- function(
 
   value_col <- response_col
 
-  if (response_col == "volume" && !"volume" %in% names(data)) {
-    message("No existing `volume` column; rows will be counted.")
+  if (response_col == "volume") {
+    if ("volume" %in% names(data)) {
+      message(
+        "A `volume` column exists but is ignored; ",
+        "`volume` is calculated as per the number of rows."
+      )
+    }
+
     ts_data <- data[,
       .(volume = .N),
       by = c(group_by, date_col)
@@ -448,8 +454,13 @@ uktrade_tsibble <- function(
   #tsibble prep
   group_cols <- c(date_col, comcode_level, group_by)
 
-  if (response_col == "volume" && !"volume" %in% names(data)) {
-    message("No existing `volume` column; rows will be counted.")
+  if (response_col == "volume") {
+    if ("volume" %in% names(data)) {
+      message(
+        "A `volume` column exists but is ignored; ",
+        "`volume` is calculated as per the number of rows."
+      )
+    }
 
     imports_tsibble <- data[
       HS2 != "  ",

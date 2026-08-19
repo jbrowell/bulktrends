@@ -68,12 +68,12 @@ detect_outliers <- function(
     #identify outlier columns
     outlier_cols <- colnames(xreg)
     outlier_cols <- outlier_cols[
-      substr(outlier_cols, 1, 2) %in% c("AO", "TC", "IO")
+      substr(outlier_cols, 1, 2) %in% c("AO", "TC")
     ]
 
     if (length(outlier_cols) > 0) {
       xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = FALSE])
-      # Rename columns to sequential AO1, AO2, TC1, TC2, IO1, IO2 etc.
+      # Rename columns to sequential AO1, AO2, TC1, TC2 etc.
       types <- substr(outlier_cols, 1, 2)
       type_counts <- ave(seq_along(types), types, FUN = seq_along)
       colnames(xreg_outliers) <- paste0(types, type_counts)
