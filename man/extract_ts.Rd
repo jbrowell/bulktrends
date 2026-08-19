@@ -8,7 +8,7 @@ extract_ts(
   data,
   code,
   date_col = "DATE_START",
-  quantity = "NET_MASS",
+  response_col = "NET_MASS",
   fill_missing = NA,
   freq = NULL,
   group_by = NULL,
@@ -23,8 +23,8 @@ extract_ts(
 
 \item{date_col}{Name of column containing timestamps.}
 
-\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.
-`NET_MASS` or `STAT_VALUE` or `volume`.}
+\item{response_col}{Quantity to be extracted and aggregated as time series, e.g.
+`NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.}
 
 \item{fill_missing}{This function returns a continuous time series. Values
 for missing dates are filled with this value.}

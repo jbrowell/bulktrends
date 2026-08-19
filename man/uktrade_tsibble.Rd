@@ -6,28 +6,33 @@
 \usage{
 uktrade_tsibble(
   data,
-  quantity = "NET_MASS",
-  hierarchy = c("HS2", "HS4"),
-  groups = NULL,
+  response_col = "NET_MASS",
+  comcode_level = c("HS2", "HS4"),
+  group_by = NULL,
   date_col = "DATE_START",
-  freq = NULL
+  freq = NULL,
+  fill_missing = NA
 )
 }
 \arguments{
 \item{data}{A `data.table` containing trade data. Must include columns
 `COMCODE` and specified `quantity`.}
 
-\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`.}
+\item{response_col}{Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`, `volume`}
 
-\item{hierarchy}{Hierarchy columns to use as tsibble keys
+\item{comcode_level}{Hierarchy columns to use as tsibble keys
 and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
 Expected commodity hierarchy columns are `"HS2"`, `"HS4"`,`"HS6"`, `"CN8"`, and `"CN10"`.}
 
-\item{groups}{Include `"category"` to aggregate by plants and animals. Default is null.}
+\item{group_by}{Optional classification group in `data`, e.g. `PORT_CODE`. Use `"category"` to
+group commodities by plants and animals. Default is `NULL`.}
 
 \item{date_col}{Name of column containing timestamps.}
 
 \item{freq}{Frequency of time series data. See details.}
+
+\item{fill_missing}{This function returns a continuous time series. Values
+for missing dates are filled with this value.}
 }
 \value{
 A hierarchical tsibble with date, quantity and aggregated hierarchy levels columns.
