@@ -239,7 +239,7 @@ plot.tsoutliers(detected_anomaly$tso)
 
 ### Anomaly detection: large-scale
 
-This procedure can be performed for a list of commodity codes using the `detect_anomalies()` function. It returns (i) a table of all detected anomalies (breaks and outliers) across all codes, (ii) a `data.table` for each code containing the original time series, the time index, and the associated anomaly covariates and, (iii) the final model formula for each time series.
+Detecting anomalies can be performed for a list of commodity codes using the `detect_anomalies()` function. The data to be supplied can either be lists of single time series or a `tsibble` data frame, a time-series table format that supports later analysis. The function returns (i) a table of all detected anomalies (breaks and outliers) across all codes, (ii) a `data.table` for each code containing the original time series, the time index, and the associated anomaly covariates and, (iii) the final model formula for each time series.
 
 ```{r detect_anomalies_datatable_example}
 #| warning: false
@@ -261,8 +261,7 @@ print(hs2_anomalies$outliers)
 
 #### Tsibble conversion and anomaly detection
 
-Large-scale anomaly detection can be performed with `detect_anomalies()` using data in tsibble format.
-`uktrade_tsibble()` converts a `data.table` into a `tsibble`: a time-series table format that supports later analysis, including the hierarchical forecasting algorithm.
+To perform large-scale anomaly detection using data in tsibble format, the function `uktrade_tsibble()` can be used to convert a `data.table` into a `tsibble` data frame. This allows for automatic classification and relevant aggregation according to hierarchies and groups specified. Once in a tsibble format, the data can be used in detect_anomalies() as follows:
 
 
 ```{r detect_anomalies_tsibble_example}
