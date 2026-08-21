@@ -4,7 +4,7 @@
 #' using `tsoutliers::tso()`.
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
-#' @param quantity Name of the column containing the time series values,
+#' @param response_col Name of the column containing the time series values,
 #'  e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
 #' @param xreg matrix of external regressors passed to `tso()`. Default `NULL`.
@@ -21,7 +21,7 @@
 #' @export
 detect_outliers <- function(
   data,
-  quantity,
+  response_col,
   scale_ts = FALSE,
   xreg = NULL,
   return_tso = FALSE,
@@ -37,9 +37,9 @@ detect_outliers <- function(
   tso_params <- modifyList(
     list(
       y = if (scale_ts) {
-        as.ts(scale(data[[quantity]]))
+        as.ts(scale(data[[response_col]]))
       } else {
-        as.ts(data[[quantity]])
+        as.ts(data[[response_col]])
       },
       xreg = xreg,
       types = c("AO", "TC"),
@@ -68,16 +68,15 @@ detect_outliers <- function(
     #identify outlier columns
     outlier_cols <- colnames(xreg)
     outlier_cols <- outlier_cols[
-      substr(outlier_cols, 1, 2) %in% c("AO", "TC", "IO")
+      substr(outlier_cols, 1, 2) %in% c("AO", "TC")
     ]
 
     if (length(outlier_cols) > 0) {
-      xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = F])
-
-      #types <- sub("[0-9]+$", "", names(xreg_outliers))
-      types <- substr(names(xreg_outliers), 1, 2)
-      setnames(xreg_outliers, paste0(types, ave(types, types, FUN = seq_along)))
-
+      xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = FALSE])
+      # Rename columns to sequential AO1, AO2, TC1, TC2 etc.
+      types <- substr(outlier_cols, 1, 2)
+      type_counts <- ave(seq_along(types), types, FUN = seq_along)
+      colnames(xreg_outliers) <- paste0(types, type_counts)
       data <- cbind(data, xreg_outliers)
     }
   }

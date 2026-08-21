@@ -60,14 +60,10 @@ select_best_model <- function(
       )
 
       formulas <- lapply(formulas, function(f) {
-        rhs <- f[[2]]
-        as.formula(paste(response_col, "~", deparse(rhs)))
+        as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
 
-      data[, linear_trend := .I]
-      data[, day_of_year := as.integer(format(data[[date_col]], "%j"))]
-      data[, annual_sin := sin(2 * pi * day_of_year / 365)]
-      data[, annual_cos := cos(2 * pi * day_of_year / 365)]
+      data <- add_date_features(data, date_col, freq = "month")
     } else if (freq == "day") {
       formulas <- list(
         ~ -1,
@@ -80,12 +76,10 @@ select_best_model <- function(
       )
 
       formulas <- lapply(formulas, function(f) {
-        rhs <- f[[2]]
-        as.formula(paste(response_col, "~", deparse(rhs)))
+        as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
 
-      data[, linear_trend := .I]
-      data <- add_date_features(data, date_col)
+      data <- add_date_features(data, date_col, freq = "day")
     } else {
       stop("\"formulas=NULL\" and data isn't daily or monthly.")
     }
@@ -105,12 +99,11 @@ select_best_model <- function(
     if ("try-error" %in% class(model_fit)) {
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
-    } else {
-      new_metric <- metric(model_fit)
-      if (new_metric < current_metric) {
-        current_metric <- new_metric
-        output <- list(data = data, formula = formulas[[i]])
-      }
+    }
+    new_metric <- metric(model_fit)
+    if (new_metric < current_metric) {
+      current_metric <- new_metric
+      output <- list(data = data, formula = formulas[[i]])
     }
   }
 
@@ -126,7 +119,7 @@ select_best_model <- function(
         silent = TRUE
       )
       if ("try-error" %in% class(breaks)) {
-        warning("Breaks detection failed", "\n")
+        warning("Breaks detection failed: ", deparse(formulas[[i]]), "\n")
         next
       }
       if (is.null(breaks)) {
@@ -144,16 +137,15 @@ select_best_model <- function(
       if ("try-error" %in% class(model_fit)) {
         warning("Model failed: ", deparse(fmla), "\n")
         next
-      } else {
-        new_metric <- metric(model_fit)
-        if (new_metric < current_metric) {
-          current_metric <- new_metric
-          output = list(
-            data = cbind(data, segments),
-            formula = fmla,
-            break_entry = breaks$break_entry
-          )
-        }
+      }
+      new_metric <- metric(model_fit)
+      if (new_metric < current_metric) {
+        current_metric <- new_metric
+        output <- list(
+          data = cbind(data, segments),
+          formula = fmla,
+          break_entry = breaks$break_entry
+        )
       }
     }
   }

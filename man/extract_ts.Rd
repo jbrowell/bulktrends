@@ -5,29 +5,42 @@
 \title{Extract of monthly or daily time series for a given commodity code}
 \usage{
 extract_ts(
-  import_data,
+  data,
   code,
   date_col = "DATE_START",
-  quantity = "NET_MASS",
+  response_col = "NET_MASS",
   fill_missing = NA,
-  freq = NULL
+  freq = NULL,
+  group_by = NULL,
+  return_list = FALSE
 )
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include columns
+\item{data}{A `data.table` containing trade data. Must include columns
 `COMCODE` and specified `quantity`.}
 
-\item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
+\item{code}{Any single or groups of HS2/HS4/HS6/CN8 code.}
 
 \item{date_col}{Name of column containing timestamps.}
 
-\item{quantity}{Quantity to be extracted and aggregated as time series, e.g.
-`NET_MASS` or `STAT_VALUE` or `volume`.}
+\item{response_col}{Quantity to be extracted and aggregated as time series, e.g.
+`NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.
+`volume` is a special response returning the corresponding number of rows; any
+column called volume is ignored with a `warning`.}
 
 \item{fill_missing}{This function returns a continuous time series. Values
 for missing dates are filled with this value.}
 
 \item{freq}{Frequency of time series data. See details.}
+
+\item{group_by}{Optional vector of column names used to create
+separate time series. For example, use `"PORT_CODE"` to return one series
+per port, or `c("PORT_CODE", "COO_ALPHA")` for one series per port-country of origin
+combination. Default set to `NULL`, which returns time series for the selected
+commodity code.}
+
+\item{return_list}{If `TRUE`, returns a list of completed time
+series per code and group. If `FALSE`, returns one combined `data.table`.}
 }
 \value{
 A `data.table` with date and quantity columns.
