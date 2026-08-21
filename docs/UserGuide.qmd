@@ -180,7 +180,6 @@ When `return_list = TRUE`, the time series are returned separately for each code
 ```{r}
 #| warning: false
 
-
 extract_ts(imports, 
            response_col = "NET_MASS",
            code = c("01", "02"), 
@@ -209,7 +208,7 @@ extract_ts(
 
 The anomaly detection workflow considers two types of anomalies; structural breaks and temporary outliers.
 
-For a given commodity code and quantity, (i) `extract_ts` extracts a list of time series by summing all commodities with the specified codes by time period, (ii) `select_best_model` automatically finds an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` specifically detects temporary outliers ("AO" additive outliers, "TC" temporary changes, "IO" innovative outliers) using an outlier detection algorithm.
+For a given commodity code and quantity, (i) `extract_ts` extracts a list of time series by summing all commodities with the specified codes by time period, (ii) `select_best_model` automatically finds an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` specifically detects temporary outliers ("AO" additive outliers and "TC" temporary changes) using an outlier detection algorithm.
 
 In this workflow, structural break detection is performed within `select_best_model()` by using `break_detection = TRUE`. If any break is identified, the detected break information is stored in the `break_entry` output. 
 
@@ -366,7 +365,7 @@ plot.tsoutliers(detected_anomaly$tso)
 
 Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection. Based on IPAFFS data availability, the function can skip time series that are too short or incomplete. A verbose option is also provided, when set to `TRUE`, progress messages are displayed to help track execution steps. 
 
-Similarly, the function returns (i) a table of all detected anomalies (breaks and temporary outliers) across all codes, and (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
+Similarly, the function works with both lists of time series and `tsibble` data format, and also returns (i) a table of all detected anomalies (breaks and outliers) across all codes, (ii) a `data.table` for each code containing the original time series, the time index, and the associated anomaly covariates and, (iii) the final model formula for each time series.
 
 ```{r}
 #| eval: false
