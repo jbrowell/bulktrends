@@ -16,7 +16,7 @@ uktrade_tsibble(
 }
 \arguments{
 \item{data}{A `data.table` containing trade data. Must include columns
-`COMCODE` and specified `quantity`.}
+`COMCODE` and specified `response_col`.}
 
 \item{response_col}{Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`, `volume`}
 

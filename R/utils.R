@@ -380,7 +380,7 @@ open_userguide <- function(path = NULL) {
 #'
 #'
 #' @param data A `data.table` containing trade data. Must include columns
-#' `COMCODE` and specified `quantity`.
+#' `COMCODE` and specified `response_col`.
 #' @param response_col Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`, `volume`
 #' @param comcode_level Hierarchy columns to use as tsibble keys
 #' and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
