@@ -195,7 +195,8 @@ extract_ts <- function(
 
 #' Add date features
 #'
-#' A function that identifies the features (bank holidays) of dates provided.
+#' A function that identifies the features (bank holidays) of dates provided, and
+#' creates the linear_trend covariates (formerly in select_best_model() ) based on date stamp not row number.
 #'
 #' @param data A `data.table` containing trade data.
 #' @param date_col Name of column containing timestamps.
@@ -204,6 +205,8 @@ extract_ts <- function(
 #' @param holidays A `data.frame` or `data.table` of bank holidays with at least
 #'   `date` and `title` columns, as returned by [get_uk_bank_holidays()].
 #'   Defaults to the bundled [uk_bank_holidays] dataset.
+#' @param freq Frequency of the input time series. If `NULL` it will be
+#'   auto-detected (`'day'`, `'week'`, or `'month'`).
 #'
 #' @return A `data.table` with the original data and additional calendar features, including
 #' day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
@@ -222,7 +225,8 @@ add_date_features <- function(
   data,
   date_col,
   division = "england-and-wales",
-  holidays = NULL
+  holidays = bulktrends::uk_bank_holidays,
+  freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
     data <- as.data.table(data)
@@ -233,58 +237,76 @@ add_date_features <- function(
     stop("Input must be of class \"Date\".")
   }
 
-  if (is.null(holidays)) {
-    holidays <- uk_bank_holidays
+  # Auto-detect freq if not provided
+  if (is.null(freq)) {
+    freq <- detect_date_frequency(data[[date_col]])
+  } else if (!freq %in% c("day", "week", "month")) {
+    stop("\"freq\" must be \"day\", \"week\" or \"month\"")
   }
 
-  division <- match.arg(
-    division,
-    c("england-and-wales", "scotland", "northern-ireland")
-  )
+  # Warn about ignored arguments for non-daily data
+  if (freq != "day") {
+    if (!missing(holidays) || division != "england-and-wales") {
+      warning(
+        "`division` and `holidays` are ignored for non-daily data.",
+        call. = FALSE
+      )
+    }
+  }
 
-  div_holidays <- holidays[holidays$division == division, ]
-
-  # Warn if any dates fall outside the coverage of the holidays dataset
   dates <- data[[date_col]]
-  coverage_min <- min(div_holidays$date)
-  coverage_max <- max(div_holidays$date)
-  out_of_range <- dates[
-    !is.na(dates) & (dates < coverage_min | dates > coverage_max)
-  ]
-  if (length(out_of_range) > 0) {
-    warning(
-      length(out_of_range),
-      " date(s) in `data` fall outside the coverage of the ",
-      "holidays dataset for '",
-      division,
-      "' (",
-      coverage_min,
-      " to ",
-      coverage_max,
-      "). ",
-      "UK holidays will be marked NA for those dates. ",
-      "Use get_uk_bank_holidays() to fetch up-to-date data and pass it via the ",
-      "`holidays` argument.",
-      call. = FALSE
-    )
-  }
 
-  # Build a named vector: date (as character) -> holiday title
-  holiday_lookup <- setNames(
-    div_holidays$title,
-    as.character(div_holidays$date)
-  )
-
-  data$day_of_week <- weekdays(dates)
-  data$day_of_year <- as.integer(format(dates, "%j"))
-  data$holiday <- unname(holiday_lookup[as.character(dates)])
-  data$is_holiday <- !is.na(data$holiday)
-
+  data[, linear_trend := lubridate::decimal_date(dates)]
+  data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
 
+  # Daily-only features
+  if (freq == "day") {
+    division <- match.arg(
+      division,
+      c("england-and-wales", "scotland", "northern-ireland")
+    )
+
+    div_holidays <- holidays[holidays$division == division, ]
+
+    # Warn if any dates fall outside the coverage of the holidays dataset
+    # dates <- data[[date_col]]
+    coverage_min <- min(div_holidays$date)
+    coverage_max <- max(div_holidays$date)
+    out_of_range <- dates[
+      !is.na(dates) & (dates < coverage_min | dates > coverage_max)
+    ]
+    if (length(out_of_range) > 0) {
+      warning(
+        length(out_of_range),
+        " date(s) in `data` fall outside the coverage of the holidays dataset for '",
+        division,
+        "' (",
+        coverage_min,
+        " to ",
+        coverage_max,
+        "). ",
+        "UK holidays will be marked NA for those dates. ",
+        "Use get_uk_bank_holidays() to refresh via the `holidays` argument.",
+        call. = FALSE
+      )
+    }
+
+    # Build a named vector: date (as character) -> holiday title
+    holiday_lookup <- setNames(
+      div_holidays$title,
+      as.character(div_holidays$date)
+    )
+
+    data[, day_of_week := weekdays(dates)]
+    data[, holiday := unname(holiday_lookup[as.character(dates)])]
+    data[, is_holiday := !is.na(holiday)]
+  }
+
   return(data)
 }
+
 
 #' Get UK Bank Holidays from gov.uk
 #'
