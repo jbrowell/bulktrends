@@ -6,7 +6,7 @@
 \usage{
 detect_outliers(
   data,
-  quantity,
+  response_col,
   scale_ts = FALSE,
   xreg = NULL,
   return_tso = FALSE,
@@ -16,7 +16,7 @@ detect_outliers(
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{quantity}{Name of the column containing the time series values,
+\item{response_col}{Name of the column containing the time series values,
 e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
