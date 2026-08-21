@@ -43,6 +43,8 @@ detect_date_frequency <- function(dates) {
 #' @param date_col Name of column containing timestamps.
 #' @param response_col Quantity to be extracted and aggregated as time series, e.g.
 #' `NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.
+#' `volume` is a special response returning the corresponding number of rows; any
+#' column called volume is ignored with a `warning`.
 #' @param fill_missing This function returns a continuous time series. Values
 #' for missing dates are filled with this value.
 #' @param freq Frequency of time series data. See details.
@@ -120,9 +122,9 @@ extract_ts <- function(
 
   if (response_col == "volume") {
     if ("volume" %in% names(data)) {
-      message(
-        "A `volume` column exists but is ignored; ",
-        "`volume` is calculated as per the number of rows."
+      warning(
+        "Column called `volume` column exists but is being ignored; ",
+        "`volume` is a special response equal to the number of rows."
       )
     }
 
@@ -474,12 +476,12 @@ uktrade_tsibble <- function(
       by = group_cols
     ]
   }
-  imports_tsibble <- as_tsibble(
+  imports_tsibble <- tsibble::as_tsibble(
     imports_tsibble,
     index = date_col,
     key = c(comcode_level, group_by)
   ) |>
-    fill_gaps(value = !!fill_missing)
+    tsibble::fill_gaps(value = !!fill_missing)
 
   hierarchy_terms <- if (length(comcode_level) > 0) {
     paste(comcode_level, collapse = "/")
@@ -497,7 +499,7 @@ uktrade_tsibble <- function(
   ))
 
   ts_table <- imports_tsibble |>
-    aggregate_key(!!level, value = sum(value, na.rm = TRUE))
+    fabletools::aggregate_key(!!level, value = sum(value, na.rm = TRUE))
   setnames(ts_table, "value", response_col)
   return(ts_table)
 }

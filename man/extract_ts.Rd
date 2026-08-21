@@ -24,7 +24,9 @@ extract_ts(
 \item{date_col}{Name of column containing timestamps.}
 
 \item{response_col}{Quantity to be extracted and aggregated as time series, e.g.
-`NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.}
+`NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.
+`volume` is a special response returning the corresponding number of rows; any
+column called volume is ignored with a `warning`.}
 
 \item{fill_missing}{This function returns a continuous time series. Values
 for missing dates are filled with this value.}

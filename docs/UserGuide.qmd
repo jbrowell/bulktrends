@@ -39,10 +39,10 @@ library(bulktrends)
 data_directory <- "../data/Rbuildignore/"
 ```
 
-Parallel computation is supported in `bulktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan".
+Parallel computation is supported in `bulktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan". NB: This is currently unreliable, see [Issue #45](https://github.com/jbrowell/bulktrends/issues/45).
 ```{r future_setup}
 #| warning: false
-future::plan("multicore")
+future::plan("sequential")
 ```
 To view progress bars, ask `progressr` to handle them.
 ```{r progressr_setup}
@@ -59,7 +59,7 @@ This package has been developed to work with HMRC Monthly Import data. For more 
 ```{r load-trade-data-hidden}
 #| include: false
 if ( !exists("imports") ){
-  if (file.exists(file.path(data_directory,"imports.rds"))) {
+  if (file.exists(file.path(data_directory,"imports.gz"))) {
     imports <- fread(file.path(data_directory,"imports.gz"))
   } else {
     stop("Run script 'data-raw/imports.R' to generate dataset")
@@ -294,7 +294,7 @@ The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and
 
 ```{r load-ipaffs-data}
 #| warning: false
-imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_ipaffs"))
+imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_fsa_ipaffs"))
 
 ```
 
@@ -324,7 +324,7 @@ comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
 
 ts_data <- extract_ts(imports_ipaffs,
                       code = "15",
-                      quantity = "NET_MASS",
+                      response_col = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing = 0,
                       freq = "day")
