@@ -61,7 +61,7 @@ Date filtering uses the YYMM suffix embedded in HMRC filenames
 (e.g. `BDSImp2401.zip` → January 2024). Files whose dates cannot be parsed
 from the filename are always kept.
 
-\strong{Incomplete semi-annual files.} The most recent 6-month file (e.g.
+**Incomplete semi-annual files.** The most recent 6-month file (e.g.
 `BDSImp_jan-jun26.zip`) is published progressively and may not yet contain
 all 6 months of data. When a semi-annual file is already present in
 `dest_dir`, the function counts the files inside the ZIP and re-downloads it

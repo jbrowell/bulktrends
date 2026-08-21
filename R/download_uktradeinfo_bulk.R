@@ -250,12 +250,12 @@ download_uktradeinfo_bulk <- function(
 # Package-level lookup: regex patterns for each bulk data type.
 # Used by download_uktradeinfo_bulk().
 .bulk_type_patterns <- list(
-  imports          = "(?i)bdsimp(?!det)",
-  exports          = "(?i)bdsexp(?!det)",
-  control          = "(?i)smka12",
+  imports = "(?i)bdsimp(?!det)",
+  exports = "(?i)bdsexp(?!det)",
+  control = "(?i)smka12",
   importer_details = "(?i)bdsimpdet",
   exporter_details = "(?i)bdsexpdet",
-  preference       = "(?i)bdspref"
+  preference = "(?i)bdspref"
 )
 
 # Regex that matches semi-annual filenames (e.g. BDSImp_jan-jun26.zip or
@@ -269,7 +269,9 @@ download_uktradeinfo_bulk <- function(
 extract_coverage_field <- function(fnames, field) {
   vapply(
     lapply(fnames, extract_file_coverage),
-    `[[`, as.Date(NA), field
+    `[[`,
+    as.Date(NA),
+    field
   )
 }
 
@@ -456,7 +458,7 @@ find_duplicate_coverage <- function(zip_paths) {
 
 filter_links_by_date <- function(links, from_date, to_date) {
   file_from <- extract_coverage_field(basename(links), "from")
-  file_to   <- extract_coverage_field(basename(links), "to")
+  file_to <- extract_coverage_field(basename(links), "to")
   parseable <- !is.na(file_from)
   n_skip <- sum(!parseable)
 

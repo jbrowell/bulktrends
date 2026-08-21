@@ -39,10 +39,10 @@ library(bulktrends)
 data_directory <- "../data/Rbuildignore/"
 ```
 
-Parallel computation is supported in `bulktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan".
+Parallel computation is supported in `bulktrends` using on the [`future` framework](https://future.futureverse.org/). Its use is optional but recommended. To use parallel computation, simply set a "plan". NB: This is currently unreliable, see [Issue #45](https://github.com/jbrowell/bulktrends/issues/45).
 ```{r future_setup}
 #| warning: false
-future::plan("multicore")
+future::plan("sequential")
 ```
 To view progress bars, ask `progressr` to handle them.
 ```{r progressr_setup}
@@ -171,11 +171,44 @@ comcode_description("16041428", Commodity)
 head(imports[COMCODE %in% comcode_groups$animal_SPS])
 ```
 
+### Time series extraction
+
+Time series can be extracted for any single or multiple sets of commodity codes. The function can optionally group the data by any available variable, for example `PORT_CODE` for port location and `COO_ALPHA` for country of origin, or a combination of grouping columns. 
+
+When `return_list = TRUE`, the time series are returned separately for each code or combination of code and group. Alternatively, a combined output consisting of the grouping columns, date column, and quantity is returned.
+
+```{r}
+#| warning: false
+
+extract_ts(imports, 
+           response_col = "NET_MASS",
+           code = c("01", "02"), 
+           return_list = TRUE)
+
+extract_ts(
+  imports,
+  response_col = "NET_MASS",
+  code = c("01", "02", "03"),
+  group_by = c("PORT_CODE"),
+  return_list = FALSE
+)
+
+extract_ts(
+  imports,
+  response_col = "volume",
+  code = "01",
+  group_by = c("PORT_CODE", "COO_ALPHA"),
+  return_list = FALSE
+)
+
+```
+
+
 ### Anomaly detection: individual
 
 The anomaly detection workflow considers two types of anomalies; structural breaks and temporary outliers.
 
-For a given commodity code and quantity, a series of helper functions have been created; (i) `extract_ts` to extract an aggregated time series by summing all commodities with the specified code by time period, (ii) `select_best_model` to automatically find an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` to specifically detect temporary outliers ("AO" additive outliers, "TC" temporary changes, "IO" innovative outliers) using an outlier detection algorithm.
+For a given commodity code and quantity, (i) `extract_ts` extracts a list of time series by summing all commodities with the specified codes by time period, (ii) `select_best_model` automatically finds an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` specifically detects temporary outliers ("AO" additive outliers and "TC" temporary changes) using an outlier detection algorithm.
 
 In this workflow, structural break detection is performed within `select_best_model()` by using `break_detection = TRUE`. If any break is identified, the detected break information is stored in the `break_entry` output. 
 
@@ -185,45 +218,72 @@ When `return_tso = TRUE` in `detect_outliers`, the full output object returned b
 ```{r tso_example}
 #| warning: false
 
-ts_data <- extract_ts(imports, "03", quantity="NET_MASS")
+ts_data <- extract_ts(imports, "01", response_col="NET_MASS")
 
 selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_detection = TRUE)
 
-detect_anomaly <- detect_outliers(data = selected_model$data,
-                    quantity= "NET_MASS",
-                    scale_ts = FALSE,
+detected_anomaly <- detect_outliers(data = selected_model$data,
+                    response_col= "NET_MASS",
+                    scale_ts = TRUE,
                     return_tso = TRUE,
-                    xreg = model.matrix(selected_model$formula, data = selected_model$data))
+                    xreg = model.matrix(selected_model$formula, data = selected_model$data),
+                    tso_params = list(cval= 4))
 
 print(selected_model$break_entry)
-print(detect_anomaly)
-plot.tsoutliers(detect_anomaly$tso)
+print(detected_anomaly)
+plot.tsoutliers(detected_anomaly$tso)
 
 
 ```
 
 ### Anomaly detection: large-scale
 
-This procedure can be performed for a list of commodity codes using the `detect_anomalies()` function. It returns (i) a table of all detected anomalies (breaks and outliers) across all codes (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
+Detecting anomalies can be performed for a list of commodity codes using the `detect_anomalies()` function. The data to be supplied can either be lists of single time series or a `tsibble` data frame, a time-series table format that supports later analysis. 
 
-```{r detect_anomalies_example}
+The function returns (i) a table of all detected anomalies (breaks and outliers) across all codes, (ii) a `data.table` for each code containing the original time series, the time index, and the associated anomaly covariates and, (iii) the final model formula for each time series.
+
+```{r detect_anomalies_datatable_example}
 #| warning: false
 #| paged-print: true
 
 hs2_codes <- unique(substr(imports$COMCODE, 1,2))
 
+ts_list <- extract_ts(imports, code = hs2_codes[1:5], return_list = T)
 
-hs2_anomalies <- detect_anomalies(import_data = imports,
-                                  codes = hs2_codes[1:5],
-                                  quantity = "NET_MASS",
+hs2_anomalies <- detect_anomalies(data = ts_list,
+                                  response_col = "NET_MASS",
                                   scale_ts = TRUE,
-                                  freq = "month",
                                   verbose = FALSE,
-                                  tso_params = list(cval= 4,
-                                                    types = c("AO", "TC", "IO")))
+                                  tso_params = list(cval = 4))
 
 print(hs2_anomalies$outliers)
 ```
+
+
+#### Tsibble conversion and anomaly detection
+
+To perform large-scale anomaly detection using data in tsibble format, the function `uktrade_tsibble()` can be used to convert a `data.table` into a `tsibble` data frame. This allows for automatic classification and relevant aggregation according to hierarchies and groups specified. Once in a tsibble format, the data can be used in detect_anomalies() as follows:
+
+
+```{r detect_anomalies_tsibble_example}
+#| warning: false
+
+tsibble_data <- uktrade_tsibble(
+  response_col = "NET_MASS",
+  data = imports[DATE_START >= "2024-01-01"],
+  comcode_level = c("HS2", "HS4"),
+  group_by = "category"
+)
+
+hs2_anomalies <- detect_anomalies(data = tsibble_data[tsibble_data[["HS2"]] == "01",],
+                                  response_col = "NET_MASS",
+                                  scale_ts = TRUE,
+                                  verbose = FALSE,
+                                  tso_params = list(cval = 4, types = c("AO", "TC")))
+
+print(hs2_anomalies$outliers)
+```
+
 
 ## Daily IPAFFS Data
 
@@ -233,7 +293,7 @@ The Food Standards Agency (FSA) makes some Import of Products, Animals, Food and
 
 ```{r load-ipaffs-data}
 #| warning: false
-imports_ipaffs <- read_ipaffs(path = file.path(data_directory,"imports_fsa_ipaffs"))
+imports_ipaffs <- read_ipaffs(path = paste0(data_directory,"imports_fsa_ipaffs"))
 
 ```
 
@@ -263,7 +323,7 @@ comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
 
 ts_data <- extract_ts(imports_ipaffs,
                       code = "15",
-                      quantity = "NET_MASS",
+                      response_col = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing = 0,
                       freq = "day")
@@ -281,29 +341,31 @@ The anomaly detection procedure described using the monthly HMRC data can also b
 
 ts_data <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
                       code = "07",
-                      quantity = "NET_MASS",
+                      response_col = "NET_MASS",
                       date_col = "DATE_START",
                       fill_missing=0)
 
 selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_detection = TRUE)
 
-detect_anomaly <- detect_outliers(data = selected_model$data,
-                    quantity= "NET_MASS",
+detected_anomaly <- detect_outliers(data = selected_model$data,
+                    response_col= "NET_MASS",
                     scale_ts = FALSE,
                     return_tso = TRUE,
-                    xreg = model.matrix(selected_model$formula, data = selected_model$data))
+                    xreg = model.matrix(selected_model$formula, data = selected_model$data),
+                    tso_params = list(cval= 4))
 
 print(selected_model$break_entry)
-print(detect_anomaly)
-plot.tsoutliers(detect_anomaly$tso)
+print(detected_anomaly)
+plot.tsoutliers(detected_anomaly$tso)
 
 
 ```
+
 ### Anomaly detection: large-scale
 
 Here is also an example of using the `detect_anomalies()` function to a selected group of commodity codes from the IPAFFS dataset for large-scale anomaly detection. Based on IPAFFS data availability, the function can skip time series that are too short or incomplete. A verbose option is also provided, when set to `TRUE`, progress messages are displayed to help track execution steps. 
 
-Similarly, the function returns (i) a table of all detected anomalies (breaks and temporary outliers) across all codes, and (ii) a table for each code containing the time index, the original time series and the associated anomaly covariates.
+Similarly, the function works with both lists of time series and `tsibble` data format, and also returns (i) a table of all detected anomalies (breaks and outliers) across all codes, (ii) a `data.table` for each code containing the original time series, the time index, and the associated anomaly covariates and, (iii) the final model formula for each time series.
 
 ```{r}
 #| eval: false
@@ -311,23 +373,28 @@ Similarly, the function returns (i) a table of all detected anomalies (breaks an
 
 hs2_codes <- sort(unique(substr(imports_ipaffs$COMCODE, 1,2)))
 
-hs2_anomalies_netmass <- detect_anomalies(import_data = imports_ipaffs[DATE_START>="2023-01-01"],
-                                  codes = hs2_codes[1:5],
-                                  quantity = "NET_MASS",
-                                  scale_ts = TRUE,
-                                  freq = "day",
-                                  verbose = FALSE,
-                                  tso_params = list(cval= 4,
-                                                    types = c("AO", "TC", "IO")))
+netmass_list <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
+                           response_col = "NET_MASS",
+                           code = hs2_codes[1:5], 
+                           return_list = T)
 
-hs2_anomalies_volume <- detect_anomalies(import_data = imports_ipaffs,
-                                  codes = hs2_codes[1:5],
-                                  quantity = "volume",
+hs2_anomalies_netmass <- detect_anomalies(data = netmass_list,
+                                  response_col = "NET_MASS",
                                   scale_ts = TRUE,
-                                  freq = "day",
                                   verbose = FALSE,
-                                  tso_params = list(cval= 4,
-                                                    types = c("AO", "TC", "IO")))
+                                  tso_params = list(cval= 4))
+
+
+volume_list <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
+                          response_col = "volume",
+                          code = hs2_codes[1:5], 
+                          return_list = T)
+
+hs2_anomalies_volume <- detect_anomalies(data = volume_list,
+                                  response_col = "volume",
+                                  scale_ts = TRUE,
+                                  verbose = FALSE,
+                                  tso_params = list(cval= 4))
 
 head(hs2_anomalies_netmass$outliers)
 head(hs2_anomalies_volume$outliers)
