@@ -5,7 +5,7 @@ library(bulktrends)
 
 ```{r}
 # Directory where commodity tariffs from 2021 will be stored
-lookup_dir <- "C:/Users/ip47p/Desktop/bulktrends-copy/data"
+lookup_dir <- "data"
 
 # Create the directory if it doesn't exist
 if (!dir.exists(lookup_dir)) {
