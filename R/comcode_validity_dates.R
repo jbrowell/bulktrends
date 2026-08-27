@@ -1,5 +1,5 @@
-update_tariff_commodities <- function(lookup_dir = system.file("data", package = "bulktrends")) {
-  
+system.file("data", package = "bulktrends")
+
   # Create the directory if it doesn't exist
   if (!dir.exists(lookup_dir)) {
     dir.create(lookup_dir, recursive = TRUE)
