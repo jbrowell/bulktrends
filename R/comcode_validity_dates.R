@@ -1,12 +1,9 @@
-# Directory where commodity tariffs from 2021 will be stored
-lookup_dir <- system.file("data", package = "bulktrends")
-
-# Create the directory if it doesn't exist
-if (!dir.exists(lookup_dir)) {
-  dir.create(lookup_dir, recursive = TRUE)
-}
-
-update_tariff_commodities <- function() {
+update_tariff_commodities <- function(lookup_dir = system.file("data", package = "bulktrends")) {
+  
+  # Create the directory if it doesn't exist
+  if (!dir.exists(lookup_dir)) {
+    dir.create(lookup_dir, recursive = TRUE)
+  }
   
   url <- paste0(
     "https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/",
@@ -41,9 +38,6 @@ update_tariff_commodities <- function() {
     character(1)
   )
   
-  # Make sure all codes have 10 digits, not needed, every single comcode has 10 digits
-  #comcode <- sprintf("%010s", comcode)
-  
   # Create lookup table
   tariff_commodities_2021 <- data.frame(
     comcode = comcode,
@@ -68,13 +62,12 @@ update_tariff_commodities <- function() {
     tariff_commodities_2021,
     file = file.path(
       lookup_dir,
-      "tariff_commodities_2021.rda"   
+      "tariff_commodities_2021.rda"
     )
   )
   
   invisible(tariff_commodities_2021)
 }
-
 
 #' Request data from GOV.UK Trade Tariff API
 #'
