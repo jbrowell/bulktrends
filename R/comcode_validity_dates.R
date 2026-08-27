@@ -1,5 +1,5 @@
-system.file("data", package = "bulktrends")
-
+update_tariff_commodities <- function(lookup_dir = here::here("data")) {
+  
   # Create the directory if it doesn't exist
   if (!dir.exists(lookup_dir)) {
     dir.create(lookup_dir, recursive = TRUE)
@@ -10,61 +10,36 @@ system.file("data", package = "bulktrends")
     "latest/tables/commodities/data?format=csv&download"
   )
   
-  # Read everything as character
   raw <- utils::read.csv(
     url,
     colClasses = "character",
     stringsAsFactors = FALSE
   )
   
-  # Clean commodity codes, remove white spaces
   comcode <- trimws(raw$item_id)
   
-  # Convert scientific notation to ordinary numbers
-  is_scientific <- grepl(
-    "^[0-9.]+[eE][+-]?[0-9]+$",
-    comcode
-  )
+  is_scientific <- grepl("^[0-9.]+[eE][+-]?[0-9]+$", comcode)
   
   comcode[is_scientific] <- vapply(
     comcode[is_scientific],
-    function(x) {
-      format(
-        as.numeric(x),
-        scientific = FALSE,
-        trim = TRUE
-      )
-    },
+    function(x) format(as.numeric(x), scientific = FALSE, trim = TRUE),
     character(1)
   )
   
-  # Create lookup table
   tariff_commodities_2021 <- data.frame(
     comcode = comcode,
-    
-    valid_from = as.Date(ifelse(
-      raw$validity_start %in% c("", "NULL", "#NA", NA),
-      NA,
-      raw$validity_start
-    )),
-    
-    valid_to = as.Date(ifelse(
-      raw$validity_end %in% c("", "NULL", "#NA", NA),
-      NA,
-      raw$validity_end
-    )),
-    
+    valid_from = as.Date(ifelse(raw$validity_start %in% c("", "NULL", "#NA", NA), NA, raw$validity_start)),
+    valid_to   = as.Date(ifelse(raw$validity_end   %in% c("", "NULL", "#NA", NA), NA, raw$validity_end)),
     stringsAsFactors = FALSE
   )
   
-  # Save to the lookup directory
   save(
     tariff_commodities_2021,
-    file = file.path(
-      lookup_dir,
-      "tariff_commodities_2021.rda"
-    )
+    file = file.path(lookup_dir, "tariff_commodities_2021.rda")
   )
+  
+  # Make it available under this name for comcode_validity_dates() to use
+  #assign("tariff_commodities_2021", tariff_commodities_2021, envir = globalenv())
   
   invisible(tariff_commodities_2021)
 }
@@ -114,6 +89,16 @@ comcode_validity_dates <- function(
     as_of = NULL,
     search_to = 1990L
 ) {
+  
+  if (!exists("tariff_commodities_2021", envir = .GlobalEnv)) {
+    load(
+      file.path(
+        here::here("data"),
+        "tariff_commodities_2021.rda"
+      ),
+      envir = .GlobalEnv
+    )
+  }
   
   # ------------------------------------------------------------
   # Check input
