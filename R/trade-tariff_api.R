@@ -3,7 +3,7 @@
 #' Downloads a bulk CSV of all UK Trade Tariff commodity codes with validity
 #' dates from the Department for Business and Trade Data API, cleans the commodity codes (restoring codes that were coerced to
 #' scientific notation), saves the
-#' result as \code{tariff_commodities_2021.rda} in the package \code{data/} folder
+#' result as \code{tariff_commodities.rda} in the package \code{data/} folder
 #' directory file for later use by [comcode_validity_dates()].
 #'
 #' @param lookup_dir Directory in which to save the lookup file. Defaults
@@ -12,7 +12,7 @@
 #'
 #' @return A data.frame with columns `comcode`, `valid_from` and
 #'   `valid_to`, invisibly. The same object is also saved to
-#'   `<lookup_dir>/tariff_commodities_2021.rda`.
+#'   `<lookup_dir>/tariff_commodities.rda`.
 #'
 #' @importFrom here here
 #' @importFrom utils read.csv
@@ -47,7 +47,7 @@ update_tariff_commodities <- function(lookup_dir = here::here("data")) {
     character(1)
   )
   
-  tariff_commodities_2021 <- data.frame(
+  tariff_commodities <- data.frame(
     comcode = comcode,
     valid_from = as.Date(ifelse(raw$validity_start %in% c("", "NULL", "#NA", NA), NA, raw$validity_start)),
     valid_to   = as.Date(ifelse(raw$validity_end   %in% c("", "NULL", "#NA", NA), NA, raw$validity_end)),
@@ -55,14 +55,14 @@ update_tariff_commodities <- function(lookup_dir = here::here("data")) {
   )
   
   save(
-    tariff_commodities_2021,
-    file = file.path(lookup_dir, "tariff_commodities_2021.rda")
+    tariff_commodities,
+    file = file.path(lookup_dir, "tariff_commodities.rda")
   )
   
   # Make it available under this name for comcode_validity_dates() to use
-  #assign("tariff_commodities_2021", tariff_commodities_2021, envir = globalenv())
+  #assign("tariff_commodities", tariff_commodities, envir = globalenv())
   
-  invisible(tariff_commodities_2021)
+  invisible(tariff_commodities)
 }
 
 #' Request data from GOV.UK Trade Tariff API
@@ -118,11 +118,11 @@ comcode_validity_dates <- function(
     search_to = 1990L
 ) {
   
-  if (!exists("tariff_commodities_2021", envir = .GlobalEnv)) {
+  if (!exists("tariff_commodities", envir = .GlobalEnv)) {
     load(
       file.path(
         here::here("data"),
-        "tariff_commodities_2021.rda"
+        "tariff_commodities.rda"
       ),
       envir = .GlobalEnv
     )
@@ -170,9 +170,9 @@ comcode_validity_dates <- function(
   
   if (nchar(supplied_code) == 8) {
     
-    matches <- tariff_commodities_2021[
+    matches <- tariff_commodities[
       substr(
-        tariff_commodities_2021$comcode,
+        tariff_commodities$comcode,
         1,
         8
       ) == supplied_code,
@@ -399,8 +399,8 @@ comcode_validity_dates <- function(
   # Get ALL historical records for this 10-digit code
   # ------------------------------------------------------------
   
-  historical <- tariff_commodities_2021[
-    tariff_commodities_2021$comcode == supplied_code,
+  historical <- tariff_commodities[
+    tariff_commodities$comcode == supplied_code,
     c(
       "comcode",
       "valid_from",
