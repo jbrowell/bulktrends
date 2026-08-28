@@ -1,3 +1,24 @@
+#' Download and save the Trade Tariff commodity code lookup table
+#'
+#' Downloads a bulk CSV of all UK Trade Tariff commodity codes with validity
+#' dates from the Department for Business and Trade Data API, cleans the commodity codes (restoring codes that were coerced to
+#' scientific notation), saves the
+#' result as \code{tariff_commodities_2021.rda} in the package \code{data/} folder
+#' directory file for later use by [comcode_validity_dates()].
+#'
+#' @param lookup_dir Directory in which to save the lookup file. Defaults
+#'   to `here::here("data")`, which is created if it does not already
+#'   exist.
+#'
+#' @return A data.frame with columns `comcode`, `valid_from` and
+#'   `valid_to`, invisibly. The same object is also saved to
+#'   `<lookup_dir>/tariff_commodities_2021.rda`.
+#'
+#' @importFrom here here
+#' @importFrom utils read.csv
+#' @return Invisibly returns the \code{data.frame} that was saved.
+#'
+#' @keywords internal
 update_tariff_commodities <- function(lookup_dir = here::here("data")) {
   
   # Create the directory if it doesn't exist
@@ -46,8 +67,15 @@ update_tariff_commodities <- function(lookup_dir = here::here("data")) {
 
 #' Request data from GOV.UK Trade Tariff API
 #'
-#' @param endpoint Endpoint appended to the base API URL.
-#' @param as_of Optional date passed as the `as_of` query parameter.
+#' @param endpoint Endpoint appended to the base API URL. See details.
+#' @param as_of Optional date (character \code{"YYYY-MM-DD"} or \code{Date})
+#'   passed as the \code{as_of} query parameter. When supplied, the API returns
+#'   data as it existed on that date, allowing retrieval of commodity codes that
+#'   are no longer valid today.
+#'
+#' @details
+#' For endpoint documentation visit https://docs.trade-tariff.service.gov.uk/.
+#' `endpoint` is appended to "https://www.trade-tariff.service.gov.uk/api/v2/".
 #'
 #' @return Result of API query.
 #'
