@@ -16,8 +16,6 @@
 #' All goods nomenclature entries from the UK Integrated Online Tariff,
 #' downloaded from the Department for Business and Trade Data API.
 #'
-#' @name tariff_commodities
-#'
 #' @format A `data.frame` with three columns:
 #' \describe{
 #'   \item{comcode}{10-digit commodity code as a character string, with
@@ -28,10 +26,10 @@
 #' }
 #'
 #' @source Department for Business and Trade Data API.
-#' <https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/latest/tables/commodities/data?format=csv&download>
+#'   <https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/latest/tables/commodities/data?format=csv&download>
 #'
 #' @keywords datasets
-NULL
+"tariff_commodities"
 
 #' UK Bank Holidays
 #'
