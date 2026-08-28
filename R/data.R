@@ -14,22 +14,21 @@
 #' UK Trade Tariff commodity code lookup table
 #'
 #' All goods nomenclature entries from the UK Integrated Online Tariff,
-#' downloaded from the Department for Business and Trade Data API. Use
-#' \code{update_tariff_commodities()} to refresh this dataset.
+#' downloaded from the Department for Business and Trade Data API.
 #'
-#' @format ## `tariff_commodities`
-#' A \code{data.frame} with one row per goods nomenclature entry and four columns:
+#' @format A `data.frame` with three columns:
 #' \describe{
-#'   \item{comcode}{10-digit commodity code as a character string (leading zeros preserved).}
-#'   \item{suffix}{Producline suffix. \code{"80"} indicates a declarable commodity;
-#'     other values (e.g. \code{"10"}) indicate intermediate nomenclature nodes.}
-#'   \item{valid_from}{Date from which the entry is valid.}
-#'   \item{valid_to}{Date until which the entry is valid. \code{NA} for codes with
-#'     no end date (currently active).}
+#'   \item{comcode}{10-digit commodity code as a character string, with
+#'     leading zeros preserved.}
+#'   \item{valid_from}{Date from which the commodity code is valid.}
+#'   \item{valid_to}{Date until which the commodity code is valid. `NA`
+#'     indicates that no end date is recorded.}
 #' }
-#' @source Department for Business and Trade Data API,
-#'   \url{https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/latest/tables/commodities/data?format=csv&download}.
-#'   Coverage begins 1 January 2021.
+#'
+#' @source Department for Business and Trade Data API.
+#'   <https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/latest/tables/commodities/data?format=csv&download>
+#'
+#' @keywords datasets
 "tariff_commodities"
 
 #' UK Bank Holidays
