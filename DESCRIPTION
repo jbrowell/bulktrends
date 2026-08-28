@@ -9,7 +9,6 @@ Description: This package contains functions tailored to UK Trade Data as provid
 License: BSD 3 Clause
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.3
 Depends:
     R (>= 3.5.0),
     jsonlite (>= 2.0.0),
@@ -25,3 +24,4 @@ Suggests:
     usethis (>= 2.1.0),
     rvest (>= 1.0.0),
     R.utils
+Config/roxygen2/version: 8.1.0

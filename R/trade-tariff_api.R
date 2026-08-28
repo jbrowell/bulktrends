@@ -440,7 +440,7 @@ comcode_validity_dates <- function(
   }
   
   # ------------------------------------------------------------
-  # Put supplied code first
+  # Put supplied code first and create the dataframe
   # ------------------------------------------------------------
   
   result <- result[
