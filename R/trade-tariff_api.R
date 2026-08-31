@@ -118,15 +118,31 @@ comcode_validity_dates <- function(
     search_to = 1990L
 ) {
   
-  if (!exists("tariff_commodities", envir = .GlobalEnv)) {
-    load(
-      file.path(
-        here::here("data"),
-        "tariff_commodities.rda"
-      ),
-      envir = .GlobalEnv
+  # ------------------------------------------------------------
+  # Load bundled tariff commodity dataset
+  # ------------------------------------------------------------
+  
+  data_file <- system.file(
+    "data",
+    "tariff_commodities.rda",
+    package = "bulktrends"
+  )
+  
+  if (!nzchar(data_file)) {
+    stop(
+      "Could not find 'tariff_commodities.rda' in the bulktrends package."
     )
   }
+  
+  data_env <- new.env()
+  
+  load(
+    data_file,
+    envir = data_env
+  )
+  
+  tariff_commodities <- data_env$tariff_commodities
+  
   
   # ------------------------------------------------------------
   # Check input
