@@ -11,6 +11,26 @@
 #' @source `bulktrends`
 "comcode_groups"
 
+#' UK Trade Tariff commodity code lookup table
+#'
+#' All goods nomenclature entries from the UK Integrated Online Tariff,
+#' downloaded from the Department for Business and Trade Data API.
+#'
+#' @format A `data.frame` with three columns:
+#' \describe{
+#'   \item{comcode}{10-digit commodity code as a character string, with
+#'     leading zeros preserved.}
+#'   \item{valid_from}{Date from which the commodity code is valid.}
+#'   \item{valid_to}{Date until which the commodity code is valid. `NA`
+#'     indicates that no end date is recorded.}
+#' }
+#'
+#' @source Department for Business and Trade Data API.
+#'   <https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/latest/tables/commodities/data?format=csv&download>
+#'
+#' @keywords datasets
+"tariff_commodities"
+
 #' UK Bank Holidays
 #'
 #' A dataset of UK bank holidays sourced from the official gov.uk published
