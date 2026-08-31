@@ -10,13 +10,10 @@
 #'   to `here::here("data")`, which is created if it does not already
 #'   exist.
 #'
-#' @return A data.frame with columns `comcode`, `valid_from` and
+#' @return Invisibly returns the  \code{data.frame} with columns `comcode`, `valid_from` and
 #'   `valid_to`, invisibly. The same object is also saved to
 #'   `<lookup_dir>/tariff_commodities.rda`.
 #'
-#' @importFrom here here
-#' @importFrom utils read.csv
-#' @return Invisibly returns the \code{data.frame} that was saved.
 #'
 #' @keywords internal
 update_tariff_commodities <- function(lookup_dir = here::here("data")) {

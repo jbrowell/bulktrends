@@ -12,11 +12,9 @@ to `here::here("data")`, which is created if it does not already
 exist.}
 }
 \value{
-A data.frame with columns `comcode`, `valid_from` and
+Invisibly returns the  \code{data.frame} with columns `comcode`, `valid_from` and
   `valid_to`, invisibly. The same object is also saved to
   `<lookup_dir>/tariff_commodities.rda`.
-
-Invisibly returns the \code{data.frame} that was saved.
 }
 \description{
 Downloads a bulk CSV of all UK Trade Tariff commodity codes with validity
