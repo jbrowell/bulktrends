@@ -28,4 +28,6 @@ Imports:
 Suggests:
     usethis (>= 2.1.0),
     rvest (>= 1.0.0),
-    R.utils
+    R.utils,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
