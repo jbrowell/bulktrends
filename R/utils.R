@@ -503,7 +503,7 @@ uktrade_tsibble <- function(
     index = date_col,
     key = c(comcode_level, group_by)
   ) |>
-    tsibble::fill_gaps(value = !!fill_missing)
+    tsibble::fill_gaps(.full = TRUE, value = !!fill_missing)
 
   hierarchy_terms <- if (length(comcode_level) > 0) {
     paste(comcode_level, collapse = "/")
