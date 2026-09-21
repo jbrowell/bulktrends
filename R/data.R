@@ -57,3 +57,11 @@
 #' @source \url{https://www.gov.uk/bank-holidays}
 #' @source \url{https://github.com/alphagov/calendars}
 "uk_bank_holidays"
+
+#' Commodity Code Look-up Table
+#'
+#' A dataset of ...
+#'
+#' @source \url{...}
+"Commodity"
+
