@@ -142,6 +142,8 @@ The `comcode_plot()` function produces time plots of imports by various measures
 Here are some examples:
 
 ```{r plot-examples}
+#| warning: false
+
 comcode_plot(imports, "01", comcode_lookup=Commodity)
 
 comcode_plot(imports, "0602", variable="STAT_VALUE", comcode_lookup=Commodity)
@@ -327,7 +329,8 @@ ts_data <- extract_ts(imports_ipaffs,
                       date_col = "DATE_START",
                       fill_missing = 0,
                       freq = "day")
-plot(ts_data)
+
+plot(NET_MASS ~ DATE_START, data = ts_data)
 
 ```
 
