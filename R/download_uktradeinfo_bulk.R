@@ -42,6 +42,12 @@
 #' (e.g. `BDSImp2401.zip` → January 2024). Files whose dates cannot be parsed
 #' from the filename are always kept.
 #'
+#' **Incomplete semi-annual files.** The most recent 6-month file (e.g.
+#' `BDSImp_jan-jun26.zip`) is published progressively and may not yet contain
+#' all 6 months of data. When a semi-annual file is already present in
+#' `dest_dir`, the function counts the files inside the ZIP and re-downloads it
+#' if fewer than six are found. This applies even when `overwrite = FALSE`.
+#'
 #' Requires the \pkg{rvest} package. Install it with
 #' `install.packages("rvest")` if needed.
 #'
@@ -144,16 +150,10 @@ download_uktradeinfo_bulk <- function(
   ))
   all_links <- paste0(base_url, zip_hrefs)
 
-  patterns <- list(
-    imports = "(?i)bdsimp(?!det)",
-    exports = "(?i)bdsexp(?!det)",
-    control = "(?i)smka12",
-    importer_details = "(?i)bdsimpdet",
-    exporter_details = "(?i)bdsexpdet",
-    preference = "(?i)bdspref"
+  combined_pattern <- paste(
+    unname(unlist(.bulk_type_patterns[type])),
+    collapse = "|"
   )
-
-  combined_pattern <- paste(unname(unlist(patterns[type])), collapse = "|")
   matched_links <- all_links[
     grepl(combined_pattern, basename(all_links), perl = TRUE)
   ]
@@ -184,20 +184,35 @@ download_uktradeinfo_bulk <- function(
     dest_path <- file.path(dest_dir, fname)
 
     if (!overwrite && file.exists(dest_path)) {
-      message("Skipping (already exists): ", fname)
-      next
+      should_skip <- TRUE
+      # Semi-annual files are published progressively; re-download if the local
+      # copy contains fewer than six monthly data files.
+      if (grepl(.semi_annual_pattern, fname, perl = TRUE)) {
+        n_files <- tryCatch(
+          length(unzip(dest_path, list = TRUE)$Name),
+          error = function(e) NA_integer_
+        )
+        if (!is.na(n_files) && n_files < 6L) {
+          message("Re-downloading incomplete semi-annual file: ", fname)
+          should_skip <- FALSE
+        }
+      }
+      if (should_skip) {
+        message("Skipping (already exists): ", fname)
+        next
+      }
     }
 
     message("Downloading: ", fname)
     result <- tryCatch(
       {
-        utils::download.file(
+        status <- utils::download.file(
           url,
           destfile = dest_path,
           mode = "wb",
           quiet = TRUE
         )
-        TRUE
+        identical(status, 0L)
       },
       error = function(e) {
         warning(
@@ -230,6 +245,34 @@ download_uktradeinfo_bulk <- function(
   }
 
   invisible(downloaded)
+}
+
+# Package-level lookup: regex patterns for each bulk data type.
+# Used by download_uktradeinfo_bulk().
+.bulk_type_patterns <- list(
+  imports = "(?i)bdsimp(?!det)",
+  exports = "(?i)bdsexp(?!det)",
+  control = "(?i)smka12",
+  importer_details = "(?i)bdsimpdet",
+  exporter_details = "(?i)bdsexpdet",
+  preference = "(?i)bdspref"
+)
+
+# Regex that matches semi-annual filenames (e.g. BDSImp_jan-jun26.zip or
+# BDSImp_jan-jun26archive.zip). Used to detect incomplete semi-annual files
+# that should be re-downloaded.
+.semi_annual_pattern <- "_[a-zA-Z]{3}-[a-zA-Z]{3}\\d{2}(?:archive)?\\.zip$"
+
+# Helper: extract a single Date field ("from" or "to") from a vector of
+# filenames using extract_file_coverage().
+# Returns a Date vector (NA where the filename pattern is not recognised).
+extract_coverage_field <- function(fnames, field) {
+  vapply(
+    lapply(fnames, extract_file_coverage),
+    `[[`,
+    as.Date(NA),
+    field
+  )
 }
 
 # Parse NULL / Date / "YYYY-MM" → first-of-month Date, or stop()
@@ -414,9 +457,8 @@ find_duplicate_coverage <- function(zip_paths) {
 }
 
 filter_links_by_date <- function(links, from_date, to_date) {
-  coverage <- lapply(basename(links), extract_file_coverage)
-  file_from <- vapply(coverage, `[[`, as.Date(NA), "from")
-  file_to <- vapply(coverage, `[[`, as.Date(NA), "to")
+  file_from <- extract_coverage_field(basename(links), "from")
+  file_to <- extract_coverage_field(basename(links), "to")
   parseable <- !is.na(file_from)
   n_skip <- sum(!parseable)
 

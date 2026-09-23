@@ -8,7 +8,8 @@ add_date_features(
   data,
   date_col,
   division = "england-and-wales",
-  holidays = NULL
+  holidays = bulktrends::uk_bank_holidays,
+  freq = NULL
 )
 }
 \arguments{
@@ -22,13 +23,17 @@ add_date_features(
 \item{holidays}{A `data.frame` or `data.table` of bank holidays with at least
 `date` and `title` columns, as returned by [get_uk_bank_holidays()].
 Defaults to the bundled [uk_bank_holidays] dataset.}
+
+\item{freq}{Frequency of the input time series. If `NULL` it will be
+auto-detected (`'day'`, `'week'`, or `'month'`).}
 }
 \value{
 A `data.table` with the original data and additional calendar features, including
 day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
 }
 \description{
-A function that identifies the features (bank holidays) of dates provided.
+A function that identifies the features (bank holidays) of dates provided, and
+creates the linear_trend covariates (formerly in select_best_model() ) based on date stamp not row number.
 }
 \details{
 Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
