@@ -447,7 +447,7 @@ uktrade_tsibble <- function(
       )
     ]
   } else if (!is.null(group_by)) {
-    if (!group_by %in% names(data)) {
+if (!all(group_by %in% names(data))) {
       stop("`group_by` column not found in `data`: ", group_by)
     }
   }
