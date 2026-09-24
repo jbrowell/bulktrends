@@ -10,10 +10,26 @@
 #'
 #' @export
 comcode_description <- function(code, lookup_table) {
+  if (nchar(code) %% 2 != 0) {
+    stop("`code` must have an even number of characters.")
+  }
+
+  if (nchar(code) < 2) {
+    stop("`code` must have at least 2 characters.")
+  }
+
+  if (nchar(code) > 8) {
+    stop("`code` must have maximum 8 characters.")
+  }
+
   lookup_table <- as.data.table(lookup_table)
   meta <- lookup_table[
     Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code
   ]
+
+  if (is.na(meta$Hs2Code[1]) && is.na(meta$Hs4Code[1]) && is.na(meta$Hs6Code[1]) && is.na(meta$Cn8Code[1])){
+    stop("Error: Invalid `code`.")
+  }
 
   desc <- list(
     Hs2 = paste(meta$Hs2Code[1], " — ", meta$Hs2Description[1]),
@@ -21,6 +37,16 @@ comcode_description <- function(code, lookup_table) {
     Hs6 = paste(meta$Hs6Code[1], " — ", meta$Hs6Description[1]),
     Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1])
   )
+
+  if (nchar(code) < 4){
+    desc$Hs4 = "NA  —  NA"
+  }
+  if (nchar(code) < 6){
+    desc$Hs6 = "NA  —  NA"
+  }
+  if (nchar(code) < 8){
+    desc$Cn8 = "NA  —  NA"
+  }
 
   # structured format
   cat("\nHierarchical Description for Code:", code, "\n")
