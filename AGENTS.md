@@ -44,6 +44,9 @@ Rscript -e "devtools::load_all(); code"
 # To redocument the package
 Rscript -e "devtools::document()"
 
+# To run unit tests
+Rscript -e "devtools::test()"
+
 # To check the package with R CMD check
 Rscript -e "devtools::check()"
 
