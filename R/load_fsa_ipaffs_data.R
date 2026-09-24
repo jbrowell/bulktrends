@@ -27,6 +27,16 @@ read_ipaffs <- function(path) {
         "ArrivalAtBip"
       ),
       COMCODE = c("CommodityCode", "Commodities", "Commodity"),
+      COO_ALPHA = c(
+        "CountryOfOrigin",
+        "CountryofOrigin",
+        "countryoforigin"
+      ),
+      PORT_CODE = c(
+        "PortLocation",
+        "Portlocation",
+        "portlocation"
+      ),
       NET_MASS = c(
         "TotalOfNetWeightKG",
         "NetWeightKg",
