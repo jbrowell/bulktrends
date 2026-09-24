@@ -27,7 +27,12 @@ comcode_description <- function(code, lookup_table) {
     Cn8Code == code | Hs2Code == code | Hs4Code == code | Hs6Code == code
   ]
 
-  if (is.na(meta$Hs2Code[1]) && is.na(meta$Hs4Code[1]) && is.na(meta$Hs6Code[1]) && is.na(meta$Cn8Code[1])){
+  if (
+    is.na(meta$Hs2Code[1]) &&
+      is.na(meta$Hs4Code[1]) &&
+      is.na(meta$Hs6Code[1]) &&
+      is.na(meta$Cn8Code[1])
+  ) {
     stop("Error: Invalid `code`.")
   }
 
@@ -38,14 +43,14 @@ comcode_description <- function(code, lookup_table) {
     Cn8 = paste(meta$Cn8Code[1], " — ", meta$Cn8LongDescription[1])
   )
 
-  if (nchar(code) < 4){
-    desc$Hs4 = "NA  —  NA"
+  if (nchar(code) < 4) {
+    desc$Hs4 <- "NA  —  NA"
   }
-  if (nchar(code) < 6){
-    desc$Hs6 = "NA  —  NA"
+  if (nchar(code) < 6) {
+    desc$Hs6 <- "NA  —  NA"
   }
-  if (nchar(code) < 8){
-    desc$Cn8 = "NA  —  NA"
+  if (nchar(code) < 8) {
+    desc$Cn8 <- "NA  —  NA"
   }
 
   # structured format
