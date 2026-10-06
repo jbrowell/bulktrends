@@ -33,7 +33,7 @@ comcode_description <- function(code, lookup_table) {
       is.na(meta$Hs6Code[1]) &&
       is.na(meta$Cn8Code[1])
   ) {
-    stop("Error: Invalid `code`.")
+    stop("`code` was not found in `lookup_table`.")
   }
 
   desc <- list(
