@@ -35,7 +35,8 @@ test_that("comcode_description works for Hs2 codes", {
   data("test_comcode_table", envir = env)
   expect_output(
     comcode_description("01", env$test_comcode_table),
-    ".*01.*Live animals.*NA  —  NA.*NA  —  NA.*NA  —  NA.*"
+    "(?s).*01.*Live animals.*NA  —  NA.*NA  —  NA.*NA  —  NA.*",
+    perl = TRUE
   )
 })
 
