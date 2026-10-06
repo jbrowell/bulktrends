@@ -10,6 +10,10 @@
 #'
 #' @export
 comcode_description <- function(code, lookup_table) {
+  if (!is.character(code) || length(code) != 1L || is.na(code)) {
+    stop("`code` must be a single, non-missing character string.")
+  }
+
   if (nchar(code) %% 2 != 0) {
     stop("`code` must have an even number of characters.")
   }
