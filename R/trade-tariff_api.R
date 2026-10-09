@@ -16,12 +16,7 @@
 #'
 #'
 #' @keywords internal
-update_tariff_commodities <- function(lookup_dir = here::here("data")) {
-  
-  # Create the directory if it doesn't exist
-  if (!dir.exists(lookup_dir)) {
-    dir.create(lookup_dir, recursive = TRUE)
-  }
+get_uk_tariff_2021 <- function() {
   
   url <- paste0(
     "https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/",
@@ -51,15 +46,7 @@ update_tariff_commodities <- function(lookup_dir = here::here("data")) {
     stringsAsFactors = FALSE
   )
   
-  save(
-    tariff_commodities,
-    file = file.path(lookup_dir, "tariff_commodities.rda")
-  )
-  
-  # Make it available under this name for comcode_validity_dates() to use
-  #assign("tariff_commodities", tariff_commodities, envir = globalenv())
-  
-  invisible(tariff_commodities)
+  return(tariff_commodities)
 }
 
 #' Request data from GOV.UK Trade Tariff API

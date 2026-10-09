@@ -1,0 +1,17 @@
+# Download uk-tariff-2021-01-01 csv using `get_uk-tariff-2021-01-01`
+# Apply logic to filter (based on Dan H advice), using `tradetariff_request`
+
+
+
+
+
+# ---------------------------------------------------------------------------
+# Finalise and save
+# ---------------------------------------------------------------------------
+
+setorder(tariff_data, division, date)
+
+# Record the date this script was run as an attribute on the dataset
+attr(tariff_data, "created_at") <- as.character(Sys.Date())
+
+usethis::use_data(tariff_data, overwrite = TRUE)
