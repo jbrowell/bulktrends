@@ -16,7 +16,7 @@
 #'
 #'
 #' @keywords internal
-update_tariff_commodities <- function() {
+get_uk_tariff_2021 <- function() {
   
   url <- paste0(
     "https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/",
