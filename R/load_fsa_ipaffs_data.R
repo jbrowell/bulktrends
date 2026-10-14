@@ -36,7 +36,16 @@ read_ipaffs <- function(path) {
         "TotalNetWeight_kg",
         "TotalNetWeight_KG",
         "TotalNetWeight(kg)"
-      )
+      ),
+      COO_ALPHA = c(
+        "CountryOfOrigin",
+        "CountryofOrigin",
+        "countryoforigin",
+        "CountryOfOriginName",
+        "countrywhereconsigned",
+        "CountryFromWhereConsigned"
+      ),
+      PORT_CODE = c("BorderInspectionPost", "BCPName")
     )
 
     for (i in names(col_names)) {
