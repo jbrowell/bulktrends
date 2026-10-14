@@ -41,9 +41,7 @@ read_ipaffs <- function(path) {
         "CountryOfOrigin",
         "CountryofOrigin",
         "countryoforigin",
-        "CountryOfOriginName",
-        "countrywhereconsigned",
-        "CountryFromWhereConsigned"
+        "CountryOfOriginName"
       ),
       PORT_CODE = c("BorderInspectionPost", "BCPName")
     )
@@ -52,8 +50,15 @@ read_ipaffs <- function(path) {
       old_names <- col_names[[i]]
       match <- intersect(old_names, names(BDS))
 
-      if (length(match)) {
+      if (length(match) == 1) {
         setnames(BDS, match, i)
+      } else if (length(match) > 1) {
+        message(
+          "Multiple columns match ",
+          i,
+          ": ",
+          paste(match, collapse = ", ")
+        )
       }
     }
 
