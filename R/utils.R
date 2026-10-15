@@ -502,8 +502,7 @@ uktrade_tsibble <- function(
     imports_tsibble,
     index = date_col,
     key = c(comcode_level, group_by)
-  ) |>
-    tsibble::fill_gaps(.full = TRUE, value = !!fill_missing)
+  ) #|>  tsibble::fill_gaps(.full = TRUE, value = !!fill_missing)
 
   hierarchy_terms <- if (length(comcode_level) > 0) {
     paste(comcode_level, collapse = "/")
@@ -521,7 +520,8 @@ uktrade_tsibble <- function(
   ))
 
   ts_table <- imports_tsibble |>
-    fabletools::aggregate_key(!!level, value = sum(value, na.rm = TRUE))
+    fabletools::aggregate_key(!!level, value = sum(value, na.rm = TRUE)) |>
+    tsibble::fill_gaps(.full = TRUE, value = fill_missing)
   setnames(ts_table, "value", response_col)
   return(ts_table)
 }
