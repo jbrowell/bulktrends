@@ -53,8 +53,10 @@ read_ipaffs <- function(path) {
       if (length(match) == 1) {
         setnames(BDS, match, i)
       } else if (length(match) > 1) {
-        message(
-          "Multiple columns match ",
+        warning(
+          "Column name correction not possible for: ",
+          path,
+          "\nMultiple columns match ",
           i,
           ": ",
           paste(match, collapse = ", ")
