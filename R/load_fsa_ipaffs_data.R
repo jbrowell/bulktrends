@@ -36,15 +36,31 @@ read_ipaffs <- function(path) {
         "TotalNetWeight_kg",
         "TotalNetWeight_KG",
         "TotalNetWeight(kg)"
-      )
+      ),
+      COO_ALPHA = c(
+        "CountryOfOrigin",
+        "CountryofOrigin",
+        "countryoforigin",
+        "CountryOfOriginName"
+      ),
+      PORT_CODE = c("BorderInspectionPost", "BCPName")
     )
 
     for (i in names(col_names)) {
       old_names <- col_names[[i]]
       match <- intersect(old_names, names(BDS))
 
-      if (length(match)) {
+      if (length(match) == 1) {
         setnames(BDS, match, i)
+      } else if (length(match) > 1) {
+        warning(
+          "Column name correction not possible for: ",
+          path,
+          "\nMultiple columns match ",
+          i,
+          ": ",
+          paste(match, collapse = ", ")
+        )
       }
     }
 
