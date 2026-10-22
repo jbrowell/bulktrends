@@ -77,3 +77,30 @@
 #' @source \url{https://www.gov.uk/bank-holidays}
 #' @source \url{https://github.com/alphagov/calendars}
 "uk_bank_holidays"
+
+
+#' Historical Tariff Commodities Dataset
+#'
+#' A cleaned dataset of historical UK tariff commodities from 2021 fetched from the 
+#' UK Trade API.
+#'
+#' @format A data frame with several columns:
+#' \describe{
+#'   item description fields...
+#'   \item{comcode}{The cleaned commodity code.}
+#'   \item{valid_from}{Start date of validity.}
+#'   \item{valid_to}{End date of validity.}
+#'   \item{trackedmodel_ptr_id}{Tracked model pointer ID.}
+#'   \item{sid}{System ID.}
+#'   \item{suffix}{Tariff code suffix.}
+#' }
+#' @source \url{https://data.api.trade.gov.uk/}
+"tariff_commodities"
+
+
+
+
+
+
+
+

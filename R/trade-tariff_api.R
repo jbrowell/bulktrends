@@ -1,473 +1,615 @@
-#' Download and save the Trade Tariff commodity code lookup table
-#'
-#' Downloads a bulk CSV of all UK Trade Tariff commodity codes with validity
-#' dates from the Department for Business and Trade Data API, cleans the commodity codes (restoring codes that were coerced to
-#' scientific notation), saves the
-#' result as \code{tariff_commodities.rda} in the package \code{data/} folder
-#' directory file for later use by [comcode_validity_dates()].
-#'
-#' @param lookup_dir Directory in which to save the lookup file. Defaults
-#'   to `here::here("data")`, which is created if it does not already
-#'   exist.
-#'
-#' @return Invisibly returns the  \code{data.frame} with columns `comcode`, `valid_from` and
-#'   `valid_to`, invisibly. The same object is also saved to
-#'   `<lookup_dir>/tariff_commodities.rda`.
-#'
-#'
-#' @keywords internal
-update_tariff_commodities <- function(lookup_dir = here::here("data")) {
-  
-  # Create the directory if it doesn't exist
-  if (!dir.exists(lookup_dir)) {
-    dir.create(lookup_dir, recursive = TRUE)
-  }
-  
-  url <- paste0(
-    "https://data.api.trade.gov.uk/v1/datasets/uk-tariff-2021-01-01/versions/",
-    "latest/tables/commodities/data?format=csv&download"
-  )
-  
-  raw <- utils::read.csv(
-    url,
-    colClasses = "character",
-    stringsAsFactors = FALSE
-  )
-  
-  comcode <- trimws(raw$item_id)
-  
-  is_scientific <- grepl("^[0-9.]+[eE][+-]?[0-9]+$", comcode)
-  
-  comcode[is_scientific] <- vapply(
-    comcode[is_scientific],
-    function(x) format(as.numeric(x), scientific = FALSE, trim = TRUE),
-    character(1)
-  )
-  
-  tariff_commodities <- data.frame(
-    comcode = comcode,
-    valid_from = as.Date(ifelse(raw$validity_start %in% c("", "NULL", "#NA", NA), NA, raw$validity_start)),
-    valid_to   = as.Date(ifelse(raw$validity_end   %in% c("", "NULL", "#NA", NA), NA, raw$validity_end)),
-    stringsAsFactors = FALSE
-  )
-  
-  save(
-    tariff_commodities,
-    file = file.path(lookup_dir, "tariff_commodities.rda")
-  )
-  
-  # Make it available under this name for comcode_validity_dates() to use
-  #assign("tariff_commodities", tariff_commodities, envir = globalenv())
-  
-  invisible(tariff_commodities)
-}
 
-#' Request data from GOV.UK Trade Tariff API
+#' Download and clean the historical tariff dataset
 #'
-#' @param endpoint Endpoint appended to the base API URL. See details.
-#' @param as_of Optional date (character \code{"YYYY-MM-DD"} or \code{Date})
-#'   passed as the \code{as_of} query parameter. When supplied, the API returns
-#'   data as it existed on that date, allowing retrieval of commodity codes that
-#'   are no longer valid today.
+#' Downloads the latest available historical tariff dataset,
+#' cleans its columns, and returns the resulting data frame.
 #'
-#' @details
-#' For endpoint documentation visit https://docs.trade-tariff.service.gov.uk/.
-#' `endpoint` is appended to "https://www.trade-tariff.service.gov.uk/api/v2/".
+#' Optionally, the dataset bundled with the locally installed
+#' bulktrends package can be updated.
 #'
-#' @return Result of API query.
+#' @param update_local_package Logical. If TRUE, attempt to overwrite
+#'   the tariff dataset in the locally installed package. Defaults
+#'   to FALSE.
+#'
+#' @return A cleaned data frame of historical tariff records, with
+#'   a created_at attribute recording the download date.
 #'
 #' @export
-tradetariff_request <- function(endpoint, as_of = NULL) {
+update_tariff_commodities <- function(
+    update_local_package = FALSE
+) {
   
-  url <- paste0(
-    "https://www.trade-tariff.service.gov.uk/api/v2/",
-    endpoint
-  )
+  # ------------------------------------------------------------------
+  # 1. Validate arguments
+  # ------------------------------------------------------------------
   
-  if (!is.null(as_of)) {
-    url <- paste0(
-      url,
-      "?as_of=",
-      format(as.Date(as_of), "%Y-%m-%d")
+  if (
+    !is.logical(update_local_package) ||
+    length(update_local_package) != 1L ||
+    is.na(update_local_package)
+  ) {
+    stop(
+      "`update_local_package` must be TRUE or FALSE.",
+      call. = FALSE
     )
   }
   
-  jsonlite::fromJSON(url)
+  # ------------------------------------------------------------------
+  # 2. Download the historical tariff dataset
+  # ------------------------------------------------------------------
+  
+  url <- paste0(
+    "https://data.api.trade.gov.uk/v1/datasets/",
+    "uk-tariff-2021-01-01/versions/latest/",
+    "tables/commodities/data?format=csv&download"
+  )
+  
+  message("Fetching historical tariff data ...")
+  
+  raw <- tryCatch(
+    {
+      utils::read.csv(
+        url,
+        colClasses = "character",
+        stringsAsFactors = FALSE
+      )
+    },
+    error = function(e) {
+      stop(
+        "Unable to download the historical tariff dataset: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+  
+  # ------------------------------------------------------------------
+  # 3. Validate the downloaded dataset
+  # ------------------------------------------------------------------
+  
+  required_columns <- c(
+    "item_id",
+    "validity_start",
+    "validity_end",
+    "trackedmodel_ptr_id",
+    "sid",
+    "suffix"
+  )
+  
+  missing_columns <- setdiff(
+    required_columns,
+    names(raw)
+  )
+  
+  if (length(missing_columns) > 0L) {
+    stop(
+      "The downloaded dataset is missing expected columns: ",
+      paste(missing_columns, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  
+  if (nrow(raw) == 0L) {
+    stop(
+      "The downloaded tariff dataset contains no records.",
+      call. = FALSE
+    )
+  }
+  
+  message("  Success: ", nrow(raw), " records fetched.")
+  
+  # ------------------------------------------------------------------
+  # 4. Clean COMCODEs
+  # ------------------------------------------------------------------
+  
+  comcode <- trimws(raw$item_id)
+  
+  # Identify COMCODEs represented in scientific notation.
+  is_scientific <- grepl(
+    "^[0-9.]+[eE][+-]?[0-9]+$",
+    comcode
+  )
+  
+  # Convert scientific notation to ordinary decimal notation.
+  comcode[is_scientific] <- vapply(
+    comcode[is_scientific],
+    function(x) {
+      format(
+        as.numeric(x),
+        scientific = FALSE,
+        trim = TRUE
+      )
+    },
+    character(1)
+  )
+  
+  # ------------------------------------------------------------------
+  # 5. Clean validity dates
+  # ------------------------------------------------------------------
+  
+  clean_date <- function(x) {
+    
+    x <- trimws(x)
+    x[x %in% c("", "NULL", "#NA")] <- NA_character_
+    
+    as.Date(x)
+  }
+  
+  # ------------------------------------------------------------------
+  # 6. Construct the cleaned dataset
+  # ------------------------------------------------------------------
+  
+  tariff_commodities <- data.frame(
+    comcode = comcode,
+    valid_from = clean_date(raw$validity_start),
+    valid_to = clean_date(raw$validity_end),
+    trackedmodel_ptr_id = raw$trackedmodel_ptr_id,
+    sid = raw$sid,
+    suffix = raw$suffix,
+    stringsAsFactors = FALSE
+  )
+  
+  # Record the date the dataset was downloaded.
+  attr(tariff_commodities, "created_at") <-
+    as.character(Sys.Date())
+  
+  # ------------------------------------------------------------------
+  # 7. Optionally update the locally installed package dataset
+  # ------------------------------------------------------------------
+  
+  if (update_local_package) {
+    
+    installed_file <- system.file(
+      "data",
+      "tariff_commodities.rda",
+      package = "bulktrends"
+    )
+    
+    if (
+      !nzchar(installed_file) ||
+      !file.exists(installed_file)
+    ) {
+      stop(
+        "Cannot locate the installed tariff dataset. ",
+        "Ensure bulktrends is installed with ",
+        "data/tariff_commodities.rda.",
+        call. = FALSE
+      )
+    }
+    
+    # Save to a temporary file in the same directory first.
+    temp_file <- tempfile(
+      pattern = "tariff_commodities_",
+      tmpdir = dirname(installed_file),
+      fileext = ".rda"
+    )
+    
+    on.exit(
+      if (file.exists(temp_file)) {
+        unlink(temp_file)
+      },
+      add = TRUE
+    )
+    
+    save(
+      tariff_commodities,
+      file = temp_file,
+      compress = "xz"
+    )
+    
+    # Replace the installed dataset.
+    copied <- file.copy(
+      from = temp_file,
+      to = installed_file,
+      overwrite = TRUE
+    )
+    
+    if (!copied) {
+      stop(
+        "The updated dataset was downloaded and cleaned, ",
+        "but the installed package dataset could not be ",
+        "overwritten. Check write permissions for: ",
+        installed_file,
+        call. = FALSE
+      )
+    }
+    
+    message(
+      "Updated installed dataset: ",
+      installed_file
+    )
+  }
+  
+  # ------------------------------------------------------------------
+  # 8. Return the cleaned data frame
+  # ------------------------------------------------------------------
+  
+  tariff_commodities
 }
 
 
-#' Get validity dates for one or more commodity codes
+#' Build COMCODE validity history
 #'
-#' @param comcodes Character vector of commodity codes (8 or 10 digits).
-#'   Numeric values are not accepted as leading zeros may be silently dropped.
-#' @param as_of Optional date passed to the API.
-#' @param search_to Integer year. The earliest year tried when searching for
-#'   an expired code. Defaults to 1990.
+#' Uses the saved historical tariff dataset to identify validity periods
+#' for specified COMCODEs. Eight-digit inputs are expanded to all matching
+#' ten-digit codes found in the saved dataset.
 #'
-#' @return A data.frame containing the supplied commodity code, the
-#'   corresponding 10-digit code, API validity dates, and historical
-#'   validity dates from the 2021 tariff dataset.
+#' @param comcodes Character vector containing 8-digit or 10-digit codes.
 #'
+#' @return A data frame containing selected historical records,
+#'   overlapping validity conflicts, and current API check results.
 #' @export
-comcode_validity_dates <- function(
-    comcodes,
-    as_of = NULL,
-    search_to = 1990L
-) {
+build_comcode_validity_history <- function(comcodes) {
   
-  # ------------------------------------------------------------
-  # Load bundled tariff commodity dataset
-  # ------------------------------------------------------------
+  #invalid formats and missing values cause an error, 
+  #while unsupported lengths generate a warning and are skipped.
   
-  data_file <- system.file(
+  # ---- 1. Validate input ----------------------------------------
+  
+  if (!is.character(comcodes) || length(comcodes) == 0L) {
+    stop(
+      "`comcodes` must be a non-empty character vector.",
+      call. = FALSE
+    )
+  }
+  
+  if (anyNA(comcodes) || any(!grepl("^[0-9]+$", comcodes))) {
+    stop(
+      "All COMCODEs must be character strings containing digits only.",
+      call. = FALSE
+    )
+  }
+  
+  invalid_length <- !nchar(comcodes) %in% c(8L, 10L)
+  
+  if (any(invalid_length)) {
+    warning(
+      "Ignoring inputs that are not 8 or 10 digits: ",
+      paste(unique(comcodes[invalid_length]), collapse = ", "),
+      call. = FALSE
+    )
+    
+    comcodes <- comcodes[!invalid_length]
+  }
+  
+  if (length(comcodes) == 0L) {
+    return(data.frame())
+  }
+  
+  # ---- 2. Load the packaged historical dataset -------------------------
+  
+  saved_file <- system.file(
     "data",
     "tariff_commodities.rda",
     package = "bulktrends"
   )
   
-  if (!nzchar(data_file)) {
+  # Also allow execution from the package source directory.
+  if (!nzchar(saved_file)) {
+    local_file <- file.path("data", "tariff_commodities.rda")
+    
+    if (file.exists(local_file)) {
+      saved_file <- local_file
+    }
+  }
+  
+  if (!nzchar(saved_file) || !file.exists(saved_file)) {
     stop(
-      "Could not find 'tariff_commodities.rda' in the bulktrends package."
+      "Cannot find data/tariff_commodities.rda. ",
+      "For package development, run the developer script ",
+      "`data-raw/tariff_commodities.R` from the package root.",
+      call. = FALSE
     )
   }
   
-  data_env <- new.env()
+  #Safe loading the file in a new environment
+  data_env <- new.env(parent = emptyenv())
+  load(saved_file, envir = data_env)
   
-  load(
-    data_file,
-    envir = data_env
+  if (!exists("tariff_commodities", envir = data_env)) {
+    stop(
+      "The saved RDA file does not contain `tariff_commodities`.",
+      call. = FALSE
+    )
+  }
+  
+  tariff_data <- data_env$tariff_commodities
+  
+  # ---- 3. Filter and clean historical records --------------------------
+  
+  required_columns <- c(
+    "comcode", "valid_from", "valid_to",
+    "trackedmodel_ptr_id", "sid", "suffix"
   )
   
-  tariff_commodities <- data_env$tariff_commodities
+  missing_columns <- setdiff(required_columns, names(tariff_data))
   
-  
-  # ------------------------------------------------------------
-  # Check input
-  # ------------------------------------------------------------
-  
-  if (!is.character(comcodes)) {
+  if (length(missing_columns) > 0L) {
     stop(
-      "'comcodes' must be a character vector. Numeric values may ",
-      "silently drop leading zeros."
+      "The saved dataset is missing columns: ",
+      paste(missing_columns, collapse = ", "),
+      call. = FALSE
     )
   }
   
-  # ------------------------------------------------------------
-  # Process multiple codes
-  # ------------------------------------------------------------
+  tariff_data$comcode <- as.character(tariff_data$comcode)
+  tariff_data$suffix <- as.character(tariff_data$suffix)
+  tariff_data$sid <- as.character(tariff_data$sid)
   
-  if (length(comcodes) > 1) {
-    
-    rows <- future.apply::future_lapply(
-      comcodes,
-      comcode_validity_dates,
-      as_of = as_of,
-      search_to = search_to
-    )
-    
-    return(
-      data.table::rbindlist(
-        rows,
-        fill = TRUE
-      )
-    )
-  }
+  # Filter suffix 80 before any other historical processing.
+  tariff_data <- tariff_data[
+    !is.na(tariff_data$suffix) &
+      tariff_data$suffix == "80",
+    ,
+    drop = FALSE
+  ]
   
-  # Keep the code exactly as supplied
-  supplied_code <- comcodes
+  # Convert trackedmodel_ptr_id to numeric for correct ordering.
+  tariff_data$trackedmodel_ptr_id <- suppressWarnings(
+    as.numeric(tariff_data$trackedmodel_ptr_id)
+  )
   
-  # ------------------------------------------------------------
-  # If an 8-digit code is supplied, find its 10-digit code
-  # using the 2021 tariff dataset
-  # ------------------------------------------------------------
+  # ---- 4. Expand 8-digit inputs to all matching 10-digit codes ---------
   
-  if (nchar(supplied_code) == 8) {
+  expanded_inputs <- list()
+  
+  for (input_code in unique(comcodes)) {
     
-    matches <- tariff_commodities[
-      substr(
-        tariff_commodities$comcode,
-        1,
-        8
-      ) == supplied_code,
-    ]
-    
-    primary <- c("00", "10", "99", "90")
-    
-    suffixes <- if (nrow(matches) > 0) {
+    if (nchar(input_code) == 10L) {
       
-      candidates <- substr(
-        matches$comcode,
-        9,
-        10
-      )
+      candidates <- input_code
       
-      c(
-        intersect(primary, candidates),
-        setdiff(candidates, primary),
-        setdiff(primary, candidates),
-        setdiff(
-          sprintf("%02d", 0:99),
-          union(candidates, primary)
+      if (!input_code %in% tariff_data$comcode) {
+        warning(
+          "COMCODE ", input_code,
+          " was not found in the saved historical dataset.",
+          call. = FALSE
         )
-      )
+      }
       
     } else {
       
-      c(
-        primary,
-        setdiff(
-          sprintf("%02d", 0:99),
-          primary
-        )
-      )
-    }
-    
-    # Try each possible 10-digit code
-    for (suffix in suffixes) {
-      
-      result <- comcode_validity_dates(
-        paste0(supplied_code, suffix),
-        as_of = as_of,
-        search_to = search_to
+      warning(
+        "COMCODE ", input_code,
+        " has 8 digits. Searching for all matching 10-digit extensions.",
+        call. = FALSE
       )
       
-      # A successful API result has a non-NA validity date
-      if (
-        nrow(result) > 0 &&
-        (
-          any(!is.na(result$API_valid_from)) ||
-          any(!is.na(result$API_valid_to))
-        )
-      ) {
-        
-        # Restore the original supplied 8-digit code
-        result$COMCODE_supplied <- supplied_code
-        
-        # The recursive call has already produced the correct
-        # 10-digit code and historical records
-        result <- result[
-          ,
-          c(
-            "COMCODE_supplied",
-            "COMCODE_10",
-            "API_valid_from",
-            "API_valid_to",
-            "historical_valid_from",
-            "historical_valid_to"
-          )
+      candidates <- unique(
+        tariff_data$comcode[
+          startsWith(tariff_data$comcode, input_code) &
+            nchar(tariff_data$comcode) == 10L
         ]
-        
-        return(result)
+      )
+      
+      if (length(candidates) == 0L) {
+        warning(
+          "No 10-digit extensions found for ", input_code, ".",
+          call. = FALSE
+        )
       }
     }
     
-    # No 10-digit code found
-    warning(
-      "No valid 10-digit expansion found for '",
-      supplied_code,
-      "'."
-    )
-    
-    return(
-      data.frame(
-        COMCODE_supplied = supplied_code,
-        COMCODE_10 = NA_character_,
-        API_valid_from = as.Date(NA),
-        API_valid_to = as.Date(NA),
-        historical_valid_from = as.Date(NA),
-        historical_valid_to = as.Date(NA),
+    if (length(candidates) > 0L) {
+      expanded_inputs[[input_code]] <- data.frame(
+        input_comcode = input_code,
+        comcode = candidates,
         stringsAsFactors = FALSE
       )
-    )
-  }
-  
-  # ------------------------------------------------------------
-  # Check that the code is 10 digits
-  # ------------------------------------------------------------
-  
-  if (nchar(supplied_code) != 10) {
-    
-    warning(
-      "Commodity codes should be 8 or 10 digits; '",
-      supplied_code,
-      "' has ",
-      nchar(supplied_code),
-      "."
-    )
-    
-    return(
-      data.frame(
-        COMCODE_supplied = supplied_code,
-        COMCODE_10 = NA_character_,
-        API_valid_from = as.Date(NA),
-        API_valid_to = as.Date(NA),
-        historical_valid_from = as.Date(NA),
-        historical_valid_to = as.Date(NA),
-        stringsAsFactors = FALSE
-      )
-    )
-  }
-  
-  # ------------------------------------------------------------
-  # Query API
-  # ------------------------------------------------------------
-  
-  try_request <- function(date) {
-    
-    suppressWarnings(
-      tryCatch(
-        tradetariff_request(
-          paste0(
-            "commodities/",
-            supplied_code
-          ),
-          as_of = date
-        ),
-        error = function(e) NULL
-      )
-    )
-  }
-  
-  # First try the supplied as_of date, or the current API
-  result_api <- try_request(as_of)
-  
-  # If the code is not currently valid, search backwards
-  # through previous years
-  if (
-    is.null(result_api) &&
-    is.null(as_of)
-  ) {
-    
-    years <- seq(
-      as.integer(format(Sys.Date(), "%Y")) - 1L,
-      as.integer(search_to),
-      by = -1L
-    )
-    
-    for (yr in years) {
-      
-      result_api <- try_request(
-        paste0(
-          yr,
-          "-01-01"
-        )
-      )
-      
-      if (!is.null(result_api)) {
-        break
-      }
     }
   }
   
-  # ------------------------------------------------------------
-  # Prepare API information
-  # ------------------------------------------------------------
-  
-  if (is.null(result_api)) {
-    
-    api <- data.frame(
-      COMCODE_supplied = supplied_code,
-      COMCODE_10 = NA_character_,
-      API_valid_from = as.Date(NA),
-      API_valid_to = as.Date(NA),
-      stringsAsFactors = FALSE
-    )
-    
-  } else {
-    
-    attrs <- result_api$data$attributes
-    
-    api <- data.frame(
-      COMCODE_supplied = supplied_code,
-      COMCODE_10 = supplied_code,
-      
-      API_valid_from = as.Date(
-        substr(
-          attrs$validity_start_date,
-          1,
-          10
-        )
-      ),
-      
-      API_valid_to = if (
-        is.null(attrs$validity_end_date) ||
-        is.na(attrs$validity_end_date)
-      ) {
-        as.Date(NA)
-      } else {
-        as.Date(
-          substr(
-            attrs$validity_end_date,
-            1,
-            10
-          )
-        )
-      },
-      
-      stringsAsFactors = FALSE
-    )
+  if (length(expanded_inputs) == 0L) {
+    return(data.frame())
   }
   
-  # ------------------------------------------------------------
-  # Get ALL historical records for this 10-digit code
-  # ------------------------------------------------------------
+  input_map <- unique(do.call(rbind, expanded_inputs))
+  rownames(input_map) <- NULL
   
-  historical <- tariff_commodities[
-    tariff_commodities$comcode == supplied_code,
-    c(
-      "comcode",
-      "valid_from",
-      "valid_to"
-    )
+  # ---- 5. Select the latest trackedmodel_ptr_id for each COMCODE/SID --------------
+  
+  selected_records <- tariff_data[
+    tariff_data$comcode %in% input_map$comcode,
+    ,
+    drop = FALSE
   ]
   
-  names(historical) <- c(
-    "COMCODE_10",
-    "historical_valid_from",
-    "historical_valid_to"
+  if (nrow(selected_records) == 0L) {
+    warning(
+      "No matching historical records were found.",
+      call. = FALSE
+    )
+    return(data.frame())
+  }
+  
+  # Keep the row with the largest numeric trackedmodel_ptr_id within each
+  # COMCODE/SID pair. If IDs are missing, retain the first available row.
+  # Keep the latest revision for each COMCODE/SID pair.
+  selected_records$trackedmodel_ptr_id <- suppressWarnings(
+    as.numeric(selected_records$trackedmodel_ptr_id)
   )
   
-  # Remove only exact duplicate rows.
-  # Different historical validity periods are retained.
-  historical <- unique(historical)
-  
-  # ------------------------------------------------------------
-  # Combine API and historical information
-  # ------------------------------------------------------------
-  
-  if (nrow(historical) == 0) {
-    
-    result <- api
-    
-    result$historical_valid_from <- as.Date(NA)
-    result$historical_valid_to <- as.Date(NA)
-    
-  } else {
-    
-    result <- merge(
-      api,
-      historical,
-      by = "COMCODE_10",
-      all.x = TRUE
-    )
-  }
-  
-  # ------------------------------------------------------------
-  # Put supplied code first and create the dataframe
-  # ------------------------------------------------------------
-  
-  result <- result[
+  #order based on the highhest trackedmode_ptr_id for each comcode/sid pair
+  selected_records <- selected_records[
+    order(
+      selected_records$comcode,
+      selected_records$sid,
+      -selected_records$trackedmodel_ptr_id,
+      na.last = TRUE
+    ),
     ,
-    c(
-      "COMCODE_supplied",
-      "COMCODE_10",
-      "API_valid_from",
-      "API_valid_to",
-      "historical_valid_from",
-      "historical_valid_to"
-    )
+    drop = FALSE
   ]
   
-  result
+  #Remove duplicate COMCODE/SID pairs, keeps only the first row for each unique combination of comcode/sid with the highest trackedmodel_ptr_id
+  selected_records <- selected_records[
+    !duplicated(selected_records[, c("comcode", "sid")]),
+    ,
+    drop = FALSE
+  ]
+  
+  # Keep the original input alongside each expanded COMCODE.
+  selected_records <- merge(
+    input_map,
+    selected_records,
+    by = "comcode",
+    all = FALSE,
+    sort = FALSE
+  )
+  
+  #resets the rows indexes
+  rownames(selected_records) <- NULL
+  
+  # ---- 6. Detect overlapping validity intervals across different SIDs
+  
+  selected_records$overlap_conflict <- FALSE
+  
+  codes_to_check <- unique(selected_records$comcode)
+  
+  for (code in codes_to_check) {
+    
+    idx <- which(selected_records$comcode == code)
+    
+    if (length(idx) < 2L) {
+      next
+    }
+    
+    conflict_rows <- rep(FALSE, length(idx))
+    
+    for (i in seq_along(idx)) {
+      
+      row_i <- selected_records[idx[i], ]
+      
+      for (j in seq_along(idx)) {
+        
+        if (i == j) {
+          next
+        }
+        
+        row_j <- selected_records[idx[j], ]
+        
+        # Only compare different SIDs.
+        if (identical(row_i$sid, row_j$sid)) {
+          next
+        }
+        
+        start_i <- row_i$valid_from
+        end_i <- row_i$valid_to
+        start_j <- row_j$valid_from
+        end_j <- row_j$valid_to
+        
+        # Missing start dates cannot establish an overlap reliably.
+        if (is.na(start_i) || is.na(start_j)) {
+          next
+        }
+        
+        # Missing end dates represent open-ended intervals.
+        end_i_open <- is.na(end_i)
+        end_j_open <- is.na(end_j)
+        
+        overlaps <- (
+          (end_i_open || start_j <= end_i) &&
+            (end_j_open || start_i <= end_j)
+        )
+        
+        if (overlaps) {
+          conflict_rows[i] <- TRUE
+          break
+        }
+      }
+    }
+    
+    selected_records$overlap_conflict[idx] <- conflict_rows
+  }
+  
+  # ---- 7. Check flagged conflicts against the current tariff API ----
+  
+  selected_records$api_checked <- FALSE
+  selected_records$selected_by_current_api <- NA
+  selected_records$api_valid_from <- as.Date(NA)
+  selected_records$api_valid_to <- as.Date(NA)
+  
+  # Query the current API only for COMCODEs with overlapping intervals.
+  conflict_codes <- unique(
+    selected_records$comcode[selected_records$overlap_conflict]
+  )
+  
+  for (code in conflict_codes) {
+    
+    api_result <- tryCatch(
+      jsonlite::fromJSON(
+        paste0(
+          "https://www.trade-tariff.service.gov.uk/api/v2/commodities/",
+          code
+        ),
+        simplifyVector = FALSE
+      ),
+      error = function(e) NULL
+    )
+    
+    rows <- which(selected_records$comcode == code)
+    selected_records$api_checked[rows] <- TRUE
+    
+    if (is.null(api_result) || is.null(api_result$data)) {
+      next
+    }
+    
+    # Extract the current SID and validity dates from the API.
+    current_sid <- api_result$data$id
+    attrs <- api_result$data$attributes
+    
+    if (is.null(attrs)) {
+      next
+    }
+    
+    api_valid_from <- if (!is.null(attrs$validity_start_date)) {
+      as.Date(substr(attrs$validity_start_date, 1, 10))
+    } else {
+      as.Date(NA)
+    }
+    
+    api_valid_to <- if (
+      !is.null(attrs$validity_end_date) &&
+      !is.na(attrs$validity_end_date)
+    ) {
+      as.Date(substr(attrs$validity_end_date, 1, 10))
+    } else {
+      as.Date(NA)
+    }
+    
+    if (is.null(current_sid) || length(current_sid) == 0L) {
+      next
+    }
+    
+    # Indicate which historical SID matches the current API SID.
+    matches_sid <- (
+      as.character(selected_records$sid[rows]) ==
+        as.character(current_sid)
+    )
+    
+    selected_records$selected_by_current_api[rows] <- matches_sid
+    
+    # Store the API validity dates for comparison.
+    selected_records$api_valid_from[rows] <- api_valid_from
+    selected_records$api_valid_to[rows] <- api_valid_to
+  }
+  
+  # ---- 8. Return the final table ------------------------------------
+  
+  selected_records$trackedmodel_ptr_id <- NULL
+  
+  selected_records <- selected_records[
+    order(
+      selected_records$input_comcode,
+      selected_records$comcode,
+      selected_records$sid
+    ),
+    ,
+    drop = FALSE
+  ]
+  
+  rownames(selected_records) <- NULL
+  
+  selected_records
 }
-
