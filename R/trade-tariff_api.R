@@ -111,15 +111,24 @@ update_tariff_commodities <- function(
     comcode
   )
   
-  # Convert scientific notation to ordinary decimal notation.
+  # Convert scientific notation to ordinary decimal notation, pads the comcodes with zeros at the beginning if shorter than 10
   comcode[is_scientific] <- vapply(
     comcode[is_scientific],
     function(x) {
-      format(
+      converted <- format(
         as.numeric(x),
         scientific = FALSE,
         trim = TRUE
       )
+      
+      if (nchar(converted) < 10) {
+        converted <- paste0(
+          strrep("0", 10 - nchar(converted)),
+          converted
+        )
+      }
+      
+      converted
     },
     character(1)
   )
