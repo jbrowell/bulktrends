@@ -439,7 +439,7 @@ build_comcode_validity_history <- function(comcodes) {
     as.numeric(selected_records$trackedmodel_ptr_id)
   )
   
-  #order based on the highhest trackedmode_ptr_id for each comcode/sid pair
+  #order based on the highest trackedmoded_ptr_id for each comcode/sid pair
   selected_records <- selected_records[
     order(
       selected_records$comcode,
