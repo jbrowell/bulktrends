@@ -67,7 +67,7 @@
 #'
 #' @format A data frame with several columns:
 #' \describe{
-#'   item description fields...
+#'   The data frame contains the columns listed below.
 #'   \item{comcode}{The cleaned commodity code.}
 #'   \item{valid_from}{Start date of validity.}
 #'   \item{valid_to}{End date of validity.}
