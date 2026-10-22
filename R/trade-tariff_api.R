@@ -34,34 +34,50 @@ update_tariff_commodities <- function(
     )
   }
   
-  # ------------------------------------------------------------------
-  # 2. Download the historical tariff dataset
-  # ------------------------------------------------------------------
+  # ---- 2. Load the packaged historical dataset -------------------------
   
-  url <- paste0(
-    "https://data.api.trade.gov.uk/v1/datasets/",
-    "uk-tariff-2021-01-01/versions/latest/",
-    "tables/commodities/data?format=csv&download"
+  # First try loading from package data (works for installed package and load_all()).
+  tariff_data <- NULL
+  
+  data_ok <- tryCatch(
+    {
+      utils::data(
+        "tariff_commodities",
+        package = "bulktrends",
+        envir = environment()
+      )
+      exists("tariff_commodities", envir = environment(), inherits = FALSE)
+    },
+    error = function(e) FALSE
   )
   
-  message("Fetching historical tariff data ...")
-  
-  raw <- tryCatch(
-    {
-      utils::read.csv(
-        url,
-        colClasses = "character",
-        stringsAsFactors = FALSE
-      )
-    },
-    error = function(e) {
+  if (data_ok) {
+    tariff_data <- get("tariff_commodities", envir = environment())
+  } else {
+    # Allow execution from package source directory as fallback.
+    local_file <- file.path("data", "tariff_commodities.rda")
+    
+    if (!file.exists(local_file)) {
       stop(
-        "Unable to download the historical tariff dataset: ",
-        conditionMessage(e),
+        "Cannot find `tariff_commodities` dataset. ",
+        "Rebuild package data (e.g. run data-raw/tariff_commodities.R) ",
+        "or reinstall the package.",
         call. = FALSE
       )
     }
-  )
+    
+    data_env <- new.env(parent = emptyenv())
+    load(local_file, envir = data_env)
+    
+    if (!exists("tariff_commodities", envir = data_env, inherits = FALSE)) {
+      stop(
+        "The saved RDA file does not contain `tariff_commodities`.",
+        call. = FALSE
+      )
+    }
+    
+    tariff_data <- data_env$tariff_commodities
+  }
   
   # ------------------------------------------------------------------
   # 3. Validate the downloaded dataset
