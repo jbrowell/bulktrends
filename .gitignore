@@ -5,3 +5,4 @@
 .RDataTmp
 .DS_Store
 /.claude
+data/Rbuildignore/
