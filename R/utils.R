@@ -272,6 +272,66 @@ get_uk_bank_holidays <- function() {
   result
 }
 
+
+# Update the tariff dataset in the locally installed package
+.update_installed_tariff_data <- function(tariff_commodities) {
+  
+  installed_file <- system.file(
+    "data",
+    "tariff_commodities.rda",
+    package = "bulktrends"
+  )
+  
+  if (!nzchar(installed_file) || !file.exists(installed_file)) {
+    stop(
+      "Cannot locate the installed tariff dataset. ",
+      "Ensure bulktrends is installed with ",
+      "data/tariff_commodities.rda.",
+      call. = FALSE
+    )
+  }
+  
+  temp_file <- tempfile(
+    pattern = "tariff_commodities_",
+    tmpdir = dirname(installed_file),
+    fileext = ".rda"
+  )
+  
+  on.exit(
+    if (file.exists(temp_file)) unlink(temp_file),
+    add = TRUE
+  )
+  
+  save(
+    tariff_commodities,
+    file = temp_file,
+    compress = "xz"
+  )
+  
+  copied <- file.copy(
+    from = temp_file,
+    to = installed_file,
+    overwrite = TRUE
+  )
+  
+  if (!copied) {
+    stop(
+      "The updated dataset was downloaded and cleaned, ",
+      "but the installed package dataset could not be ",
+      "overwritten. Check write permissions for: ",
+      installed_file,
+      call. = FALSE
+    )
+  }
+  
+  message("Updated installed dataset: ", installed_file)
+  
+  invisible(installed_file)
+}
+
+
+
+
 #' View User Guide
 #'
 #' A function that opens the `bulktrends` user guide in system browser.

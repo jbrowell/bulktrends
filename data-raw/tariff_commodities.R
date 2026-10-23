@@ -11,7 +11,7 @@
 devtools::load_all(".")
 
 # Download and clean the latest dataset.
-tariff_commodities <- update_tariff_commodities()
+tariff_commodities <- get_tariff_commodities()
 
 # Save the dataset for inclusion in the package.
 usethis::use_data(

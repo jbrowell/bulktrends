@@ -14,8 +14,13 @@
 #' @return A cleaned data frame of historical tariff records, with
 #'   a created_at attribute recording the download date.
 #'
+#' @details
+#' To update the dataset bundled with the package, run
+#' `source("data-raw/tariff_commodities.R")` from the package root.
+#' This downloads and cleans the latest data and saves it to
+#' `data/tariff_commodities.rda`.
 #' @export
-update_tariff_commodities <- function(
+get_tariff_commodities <- function(
     update_local_package = FALSE
 ) {
   
@@ -111,7 +116,9 @@ update_tariff_commodities <- function(
     comcode
   )
   
-  # Convert scientific notation to ordinary decimal notation, pads the comcodes with zeros at the beginning if shorter than 10
+  
+  # Convert scientific notation to ordinary decimal notation
+  # and add a leading zero if the length is odd
   comcode[is_scientific] <- vapply(
     comcode[is_scientific],
     function(x) {
@@ -121,17 +128,15 @@ update_tariff_commodities <- function(
         trim = TRUE
       )
       
-      if (nchar(converted) < 10) {
-        converted <- paste0(
-          strrep("0", 10 - nchar(converted)),
-          converted
-        )
+      if (nchar(converted) %% 2 != 0) {
+        converted <- paste0("0", converted)
       }
       
       converted
     },
     character(1)
   )
+  
   
   # ------------------------------------------------------------------
   # 5. Clean validity dates
@@ -145,6 +150,8 @@ update_tariff_commodities <- function(
     as.Date(x)
   }
   
+
+  
   # ------------------------------------------------------------------
   # 6. Construct the cleaned dataset
   # ------------------------------------------------------------------
@@ -153,9 +160,11 @@ update_tariff_commodities <- function(
     comcode = comcode,
     valid_from = clean_date(raw$validity_start),
     valid_to = clean_date(raw$validity_end),
-    trackedmodel_ptr_id = raw$trackedmodel_ptr_id,
-    sid = raw$sid,
-    suffix = raw$suffix,
+    trackedmodel_ptr_id = suppressWarnings(
+      as.numeric(raw$trackedmodel_ptr_id)
+    ),
+    sid = as.character(raw$sid),
+    suffix = as.character(raw$suffix),
     stringsAsFactors = FALSE
   )
   
@@ -168,66 +177,7 @@ update_tariff_commodities <- function(
   # ------------------------------------------------------------------
   
   if (update_local_package) {
-    
-    installed_file <- system.file(
-      "data",
-      "tariff_commodities.rda",
-      package = "bulktrends"
-    )
-    
-    if (
-      !nzchar(installed_file) ||
-      !file.exists(installed_file)
-    ) {
-      stop(
-        "Cannot locate the installed tariff dataset. ",
-        "Ensure bulktrends is installed with ",
-        "data/tariff_commodities.rda.",
-        call. = FALSE
-      )
-    }
-    
-    # Save to a temporary file in the same directory first.
-    temp_file <- tempfile(
-      pattern = "tariff_commodities_",
-      tmpdir = dirname(installed_file),
-      fileext = ".rda"
-    )
-    
-    on.exit(
-      if (file.exists(temp_file)) {
-        unlink(temp_file)
-      },
-      add = TRUE
-    )
-    
-    save(
-      tariff_commodities,
-      file = temp_file,
-      compress = "xz"
-    )
-    
-    # Replace the installed dataset.
-    copied <- file.copy(
-      from = temp_file,
-      to = installed_file,
-      overwrite = TRUE
-    )
-    
-    if (!copied) {
-      stop(
-        "The updated dataset was downloaded and cleaned, ",
-        "but the installed package dataset could not be ",
-        "overwritten. Check write permissions for: ",
-        installed_file,
-        call. = FALSE
-      )
-    }
-    
-    message(
-      "Updated installed dataset: ",
-      installed_file
-    )
+    .update_installed_tariff_data(tariff_commodities)
   }
   
   # ------------------------------------------------------------------
@@ -288,63 +238,11 @@ build_comcode_validity_history <- function(comcodes) {
   
   # ---- 2. Load the packaged historical dataset -------------------------
   
-  saved_file <- system.file(
-    "data",
-    "tariff_commodities.rda",
-    package = "bulktrends"
-  )
-  
-  # Also allow execution from the package source directory.
-  if (!nzchar(saved_file)) {
-    local_file <- file.path("data", "tariff_commodities.rda")
-    
-    if (file.exists(local_file)) {
-      saved_file <- local_file
-    }
-  }
-  
-  if (!nzchar(saved_file) || !file.exists(saved_file)) {
-    stop(
-      "Cannot find data/tariff_commodities.rda. ",
-      "For package development, run the developer script ",
-      "`data-raw/tariff_commodities.R` from the package root.",
-      call. = FALSE
-    )
-  }
-  
-  #Safe loading the file in a new environment
-  data_env <- new.env(parent = emptyenv())
-  load(saved_file, envir = data_env)
-  
-  if (!exists("tariff_commodities", envir = data_env)) {
-    stop(
-      "The saved RDA file does not contain `tariff_commodities`.",
-      call. = FALSE
-    )
-  }
-  
-  tariff_data <- data_env$tariff_commodities
+  data("tariff_commodities", package = "bulktrends")
+  tariff_data <- tariff_commodities
   
   # ---- 3. Filter and clean historical records --------------------------
   
-  required_columns <- c(
-    "comcode", "valid_from", "valid_to",
-    "trackedmodel_ptr_id", "sid", "suffix"
-  )
-  
-  missing_columns <- setdiff(required_columns, names(tariff_data))
-  
-  if (length(missing_columns) > 0L) {
-    stop(
-      "The saved dataset is missing columns: ",
-      paste(missing_columns, collapse = ", "),
-      call. = FALSE
-    )
-  }
-  
-  tariff_data$comcode <- as.character(tariff_data$comcode)
-  tariff_data$suffix <- as.character(tariff_data$suffix)
-  tariff_data$sid <- as.character(tariff_data$sid)
   
   # Filter suffix 80 before any other historical processing.
   tariff_data <- tariff_data[
@@ -544,8 +442,10 @@ build_comcode_validity_history <- function(comcodes) {
     selected_records$comcode[selected_records$overlap_conflict]
   )
   
+  
   for (code in conflict_codes) {
     
+    #Warning when an API request fails and skips to the next COMCODE.
     api_result <- tryCatch(
       jsonlite::fromJSON(
         paste0(
@@ -554,17 +454,26 @@ build_comcode_validity_history <- function(comcodes) {
         ),
         simplifyVector = FALSE
       ),
-      error = function(e) NULL
+      error = function(e) {
+        warning(
+          "API request failed for COMCODE ", code, ": ",
+          conditionMessage(e),
+          ". Skipping this code.",
+          call. = FALSE
+        )
+        NULL
+      }
     )
     
-    rows <- which(selected_records$comcode == code)
-    selected_records$api_checked[rows] <- TRUE
-    
-    if (is.null(api_result) || is.null(api_result$data)) {
+    if (is.null(api_result)) {
       next
     }
     
-    # Extract the current SID and validity dates from the API.
+    if (is.null(api_result$data)) {
+      next
+    }
+    
+    rows <- which(selected_records$comcode == code)
     current_sid <- api_result$data$id
     attrs <- api_result$data$attributes
     
@@ -572,36 +481,33 @@ build_comcode_validity_history <- function(comcodes) {
       next
     }
     
+    if (is.null(current_sid) || length(current_sid) == 0L) {
+      next
+    }
+    
+    # Extract the validity dates
     api_valid_from <- if (!is.null(attrs$validity_start_date)) {
       as.Date(substr(attrs$validity_start_date, 1, 10))
-    } else {
-      as.Date(NA)
-    }
+    } else as.Date(NA)
     
     api_valid_to <- if (
       !is.null(attrs$validity_end_date) &&
       !is.na(attrs$validity_end_date)
     ) {
       as.Date(substr(attrs$validity_end_date, 1, 10))
-    } else {
-      as.Date(NA)
-    }
+    } else as.Date(NA)
     
-    if (is.null(current_sid) || length(current_sid) == 0L) {
-      next
-    }
-    
-    # Indicate which historical SID matches the current API SID.
-    matches_sid <- (
-      as.character(selected_records$sid[rows]) ==
-        as.character(current_sid)
-    )
+    # Compare the SIDs
+    matches_sid <- as.character(selected_records$sid[rows]) ==
+      as.character(current_sid)
     
     selected_records$selected_by_current_api[rows] <- matches_sid
-    
-    # Store the API validity dates for comparison.
     selected_records$api_valid_from[rows] <- api_valid_from
     selected_records$api_valid_to[rows] <- api_valid_to
+    
+    # Mark the comparison as completed
+    selected_records$api_checked[rows] <- TRUE
+    
   }
   
   # ---- 8. Return the final table ------------------------------------
