@@ -11,6 +11,7 @@
 #' @source `bulktrends`
 "comcode_groups"
 
+
 #' UK Bank Holidays
 #'
 #' A dataset of UK bank holidays sourced from the official gov.uk published
@@ -57,6 +58,35 @@
 #' @source \url{https://www.gov.uk/bank-holidays}
 #' @source \url{https://github.com/alphagov/calendars}
 "uk_bank_holidays"
+
+
+
+#' Historical Tariff Commodities Dataset
+#'
+#' A cleaned dataset of historical UK tariff commodity records,
+#' obtained from the UK Trade API dataset beginning on 1 January 2021.
+#'
+#' The dataset includes an attribute, `created_at`, recording the date
+#' on which the dataset was downloaded and created by the
+#' `get_tariff_commodities()` function.
+#'
+#' The underlying data is made available under the Open Government
+#' Licence v3.0 (OGL).
+#'
+#' @format A data frame with six columns:
+#' \describe{
+#'   \item{comcode}{The cleaned commodity code.}
+#'   \item{valid_from}{The date from which the record is valid.}
+#'   \item{valid_to}{The date until which the record is valid; may be missing.}
+#'   \item{trackedmodel_ptr_id}{The tracked model pointer ID.}
+#'   \item{sid}{The system identifier for the commodity record.}
+#'   \item{suffix}{The tariff code suffix.}
+#' }
+#' @source UK Trade API: \url{https://data.api.trade.gov.uk/}
+#' @source Licence: Open Government Licence v3.0
+#'   \url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
+"tariff_commodities"
+
 
 #' Test data: Sample of Commodity Code Look-up Table
 #'
