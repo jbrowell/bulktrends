@@ -37,13 +37,13 @@ read_ipaffs <- function(path) {
         "TotalNetWeight_KG",
         "TotalNetWeight(kg)"
       ),
-      COO_ALPHA = c(
+      COO = c(
         "CountryOfOrigin",
         "CountryofOrigin",
         "countryoforigin",
         "CountryOfOriginName"
       ),
-      PORT_CODE = c("BorderInspectionPost", "BCPName")
+      PORT_NAME = c("BorderInspectionPost", "BCPName")
     )
 
     for (i in names(col_names)) {
@@ -125,6 +125,9 @@ read_ipaffs <- function(path) {
     while (nrow(BDS[substr(COMCODE, 1, 2) == "00"]) > 0) {
       BDS[substr(COMCODE, 1, 2) == "00", COMCODE := gsub("^00", "", COMCODE)]
     }
+
+    BDS$COO_ALPHA <- ifelse(nchar(BDS$COO) == 2, BDS$COO, NA)
+    BDS$COO_NAME <- ifelse(nchar(BDS$COO) > 2, BDS$COO, NA)
 
     return(BDS)
   } else if (file_test("-d", path)) {
