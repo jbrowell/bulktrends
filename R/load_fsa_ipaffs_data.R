@@ -12,6 +12,9 @@
 #' @details
 #' Leading pairs of 00s dropped
 #' Missing leading 0 added to COMCODE of odd length
+#' Some files contain country names, other country codes. These are harmonised
+#' to both country name and alpha-2 code using the \code{bulktrends::country}
+#' lookup table.
 #'
 #' @export
 read_ipaffs <- function(path) {

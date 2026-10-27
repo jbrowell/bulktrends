@@ -70,17 +70,21 @@
 #' Port ID Information
 #'
 #' Table of port IDs, codes, code-alpha and names returned
-#' by UK Trade Info API. Retrieved on date `attribute(port)$created_at`.
+#' by UK Trade Info API. Retrieved on date \code{attribute(country)$created_at}.
 #'
 #' @source \url{https://www.uktradeinfo.com/api-documentation}
 #' @source \url{https://api.uktradeinfo.com/Port}
+#' @source Licence: Open Government Licence v3.0
+#' \url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
 "port"
 
 #' Country ID Information
 #'
 #' Table of country names and codes returned
-#' by UK Trade Info API. Retrieved on date `attribute(country)$created_at`.
+#' by UK Trade Info API. Retrieved on date \code{attribute(country)$created_at}.
 #'
 #' @source \url{https://www.uktradeinfo.com/api-documentation}
 #' @source \url{https://api.uktradeinfo.com/Country}
+#' @source Licence: Open Government Licence v3.0
+#' \url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
 "country"

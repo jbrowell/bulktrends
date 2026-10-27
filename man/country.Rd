@@ -11,12 +11,15 @@ An object of class \code{data.frame} with 263 rows and 15 columns.
 \url{https://www.uktradeinfo.com/api-documentation}
 
 \url{https://api.uktradeinfo.com/Country}
+
+Licence: Open Government Licence v3.0
+\url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
 }
 \usage{
 country
 }
 \description{
 Table of country names and codes returned
-by UK Trade Info API. Retrieved on date `attribute(country)$created_at`.
+by UK Trade Info API. Retrieved on date \code{attribute(country)$created_at}.
 }
 \keyword{datasets}

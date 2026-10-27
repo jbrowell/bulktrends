@@ -11,12 +11,15 @@ An object of class \code{data.frame} with 190 rows and 4 columns.
 \url{https://www.uktradeinfo.com/api-documentation}
 
 \url{https://api.uktradeinfo.com/Port}
+
+Licence: Open Government Licence v3.0
+\url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
 }
 \usage{
 port
 }
 \description{
 Table of port IDs, codes, code-alpha and names returned
-by UK Trade Info API. Retrieved on date `attribute(port)$created_at`.
+by UK Trade Info API. Retrieved on date \code{attribute(country)$created_at}.
 }
 \keyword{datasets}
