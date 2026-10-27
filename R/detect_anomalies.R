@@ -200,13 +200,13 @@ detect_anomalies_single_ts <- function(
   if (inherits(outliers, "error")) {
     message("Skipping time series", id, ":", outliers)
     p(sprintf("Skipped %s", id))
-    return(NULL)
+    outliers <- list(data = ts_data, outliers = NULL)
   }
 
   if (is.null(outliers)) {
     message(paste("Outlier detection failed:", id))
     p(sprintf("Skipped %s", id))
-    return(NULL)
+    outliers <- list(data = ts_data, outliers = NULL)
   }
 
   ts_data <- outliers$data

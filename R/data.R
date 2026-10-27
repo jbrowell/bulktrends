@@ -57,3 +57,12 @@
 #' @source \url{https://www.gov.uk/bank-holidays}
 #' @source \url{https://github.com/alphagov/calendars}
 "uk_bank_holidays"
+
+#' Test data: Sample of Commodity Code Look-up Table
+#'
+#' Sample of rows from the Commodity Code look-up table returned by
+#' \code{uktrades_request(endpoint = "Commodity")$value} for use in unit tests
+#' only.
+#'
+#' @source \url{https://www.uktradeinfo.com/}
+"test_comcode_table"
