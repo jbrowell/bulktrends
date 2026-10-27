@@ -37,7 +37,7 @@ read_ipaffs <- function(path) {
         "TotalNetWeight_KG",
         "TotalNetWeight(kg)"
       ),
-      COO = c(
+      COO_NAME = c(
         "CountryOfOrigin",
         "CountryofOrigin",
         "countryoforigin",
