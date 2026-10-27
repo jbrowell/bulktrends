@@ -66,3 +66,21 @@
 #'
 #' @source \url{https://www.uktradeinfo.com/}
 "test_comcode_table"
+
+#' Port ID Information
+#'
+#' Table of port IDs, codes, code-alpha and names returned
+#' by UK Trade Info API. Retrieved on date `attribute(port)$created_at`.
+#'
+#' @source \url{https://www.uktradeinfo.com/api-documentation}
+#' @source \url{https://api.uktradeinfo.com/Port}
+"port"
+
+#' Country ID Information
+#'
+#' Table of country names and codes returned
+#' by UK Trade Info API. Retrieved on date `attribute(country)$created_at`.
+#'
+#' @source \url{https://www.uktradeinfo.com/api-documentation}
+#' @source \url{https://api.uktradeinfo.com/Country}
+"country"

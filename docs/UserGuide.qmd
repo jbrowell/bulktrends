@@ -115,10 +115,10 @@ for ( i in lookup_tables ) {
   file <- file.path(data_directory,paste0(i,".rds"))
   
   if( file.exists(file) ){
-    assign(i,readRDS(file))
+    assign(tolower(i),readRDS(file))
     
   } else {
-    assign(i, uktrades_request(endpoint = i)$value)
+    assign(tolower(i), uktrades_request(endpoint = i)$value)
     saveRDS(get(i), file = file)  
     
   }
@@ -127,12 +127,12 @@ for ( i in lookup_tables ) {
 
 ```{r}
 #| eval: false
-Commodity <- uktrades_request(endpoint = "Commodity")$value
+commodity <- uktrades_request(endpoint = "Commodity")$value
 ```
 
 ```{r}
 #| paged-print: true
-head(Commodity)
+head(commodity)
 ```
 
 ### Quick Visualisation
@@ -144,11 +144,11 @@ Here are some examples:
 ```{r plot-examples}
 #| warning: false
 
-comcode_plot(imports, "01", comcode_lookup=Commodity)
+comcode_plot(imports, "01", comcode_lookup = commodity)
 
-comcode_plot(imports, "0602", variable="STAT_VALUE", comcode_lookup=Commodity)
+comcode_plot(imports, "0602", variable = "STAT_VALUE", comcode_lookup = commodity)
 
-comcode_plot(imports, "01", variable="volume",comcode_lookup = Commodity)
+comcode_plot(imports, "01", variable = "volume", comcode_lookup = commodity)
 
 
 ```
@@ -157,9 +157,9 @@ comcode_plot(imports, "01", variable="volume",comcode_lookup = Commodity)
 
 ```{r comcode-descriptions}
 
-comcode_description("01012990", Commodity)
-comcode_description("08039010", Commodity)
-comcode_description("16041428", Commodity)
+comcode_description("01012990", commodity)
+comcode_description("08039010", commodity)
+comcode_description("16041428", commodity)
 
 ```
 
@@ -315,12 +315,12 @@ The `comcode_plot()` function can be used to also visualise daily time series. F
 comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
              code =  "02",
              variable = "NET_MASS",
-             comcode_lookup=Commodity)
+             comcode_lookup = commodity)
 
 comcode_plot(imports_ipaffs[DATE_START>="2024-01-01"],
              code =  "02",
              variable = "volume",
-             comcode_lookup=Commodity)
+             comcode_lookup = commodity)
 
 
 ts_data <- extract_ts(imports_ipaffs,
