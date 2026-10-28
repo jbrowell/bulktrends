@@ -137,19 +137,20 @@ read_ipaffs <- function(path) {
     BDS[COO_NAME == "UK", COO_ALPHA := "GB"]
     BDS$COO_NAME <- ifelse(nchar(BDS$COO_NAME) > 2, BDS$COO_NAME, NA_character_)
 
-    BDS[
-      is.na(COO_NAME),
-      COO_NAME := bulktrends::country$CountryName[
-        match(COO_ALPHA, bulktrends::country$CountryCodeAlpha)
-      ]
-    ]
-
-    BDS[
-      is.na(COO_ALPHA),
-      COO_ALPHA := bulktrends::country$CountryCodeAlpha[
-        match(COO_NAME, bulktrends::country$CountryName)
-      ]
-    ]
+    ## Work in progress. Country name matches are poor. Ref: ISO 3166-1
+    # BDS[
+    #   is.na(COO_NAME),
+    #   COO_NAME := bulktrends::country$CountryName[
+    #     match(COO_ALPHA, bulktrends::country$CountryCodeAlpha)
+    #   ]
+    # ]
+    #
+    # BDS[
+    #   is.na(COO_ALPHA),
+    #   COO_ALPHA := bulktrends::country$CountryCodeAlpha[
+    #     match(COO_NAME, bulktrends::country$CountryName)
+    #   ]
+    # ]
 
     return(BDS)
   } else if (file_test("-d", path)) {

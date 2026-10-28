@@ -24,7 +24,9 @@ attr(port, "created_at") <- as.character(Sys.Date())
 usethis::use_data(port, overwrite = TRUE)
 
 ## Country look-up table
-
+#
+# Note: Country names are not as in ISO 3166-1 making matching hard!
+#
 country <- uktrades_request(endpoint = "Country")$value
 attr(country, "created_at") <- as.character(Sys.Date())
 usethis::use_data(country, overwrite = TRUE)
