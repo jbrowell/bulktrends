@@ -1,4 +1,3 @@
-
 ## Script to update the tariff_commodities dataset.
 ##
 ## Downloads and cleans the latest historical tariff data,

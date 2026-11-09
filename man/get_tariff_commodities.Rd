@@ -13,7 +13,7 @@ to FALSE.}
 }
 \value{
 A cleaned data frame of historical tariff records, with
-  a created_at attribute recording the download date.
+  a `created_at` attribute recording the download date.
 }
 \description{
 Downloads the latest available historical tariff dataset,

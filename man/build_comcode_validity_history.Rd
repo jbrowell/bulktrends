@@ -4,10 +4,15 @@
 \alias{build_comcode_validity_history}
 \title{Build COMCODE validity history}
 \usage{
-build_comcode_validity_history(comcodes)
+build_comcode_validity_history(comcodes, tariff_commodities = NULL)
 }
 \arguments{
 \item{comcodes}{Character vector containing 8-digit or 10-digit codes.}
+
+\item{tariff_commodities}{Optional argument to provide local
+`tariff_commodities` data. Must be in the same format as returned by
+`get_tariff_commodities`. If `NULL` (default), `tariff_commodities` from
+your local installation of `bulktrends` will be used.}
 }
 \value{
 A data frame containing selected historical records,
@@ -17,4 +22,10 @@ A data frame containing selected historical records,
 Uses the saved historical tariff dataset to identify validity periods
 for specified COMCODEs. Eight-digit inputs are expanded to all matching
 ten-digit codes found in the saved dataset.
+}
+\details{
+Tariff data are filtered to return the most up-to-date
+validity period for COMCODEs with suffix `80`. Where a COMCODE
+is been re-used with a different definition, this is identified
+via distinct `sid`.
 }

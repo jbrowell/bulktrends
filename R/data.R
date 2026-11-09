@@ -60,15 +60,22 @@
 "uk_bank_holidays"
 
 
-
 #' Historical Tariff Commodities Dataset
 #'
 #' A cleaned dataset of historical UK tariff commodity records,
-#' obtained from the UK Trade API dataset beginning on 1 January 2021.
+#' obtained from the UK Trade API. Contains data for the period from
+#' when the UK Global Tariff (UKGT) came into effect on January 1, 2021 to
+#' present.
 #'
+#' The source of this dataset is updated regularly.
 #' The dataset includes an attribute, `created_at`, recording the date
 #' on which the dataset was downloaded and created by the
-#' `get_tariff_commodities()` function.
+#' `get_tariff_commodities()` function. Running
+#' `get_tariff_commodities(update_local_package = TRUE)` will update the local
+#' copy stored in your local installation of `bulktrends`.
+#'
+#' Use `build_comcode_validity_history()` to process this data to obtain the
+#' valid periods for a specified commodity code.
 #'
 #' The underlying data is made available under the Open Government
 #' Licence v3.0 (OGL).
