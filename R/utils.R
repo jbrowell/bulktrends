@@ -372,6 +372,93 @@ get_uk_bank_holidays <- function() {
   result
 }
 
+
+# Update a dataset stored as data/<name>.rda in a locally installed package
+.update_installed_data <- function(
+  data,
+  name = deparse(substitute(data)),
+  package = "bulktrends",
+  compress = "xz"
+) {
+  if (
+    !is.character(name) ||
+      length(name) != 1L ||
+      !nzchar(name) ||
+      !identical(name, make.names(name))
+  ) {
+    stop(
+      "`name` must be a single syntactically valid object name.",
+      call. = FALSE
+    )
+  }
+
+  installed_file <- system.file(
+    "data",
+    paste0(name, ".rda"),
+    package = package
+  )
+
+  if (!nzchar(installed_file) || !file.exists(installed_file)) {
+    stop(
+      "Cannot locate the installed dataset '",
+      name,
+      "'. ",
+      "Ensure ",
+      package,
+      " is installed with ",
+      "data/",
+      name,
+      ".rda.",
+      call. = FALSE
+    )
+  }
+
+  temp_file <- tempfile(
+    pattern = paste0(name, "_"),
+    tmpdir = dirname(installed_file),
+    fileext = ".rda"
+  )
+
+  on.exit(
+    if (file.exists(temp_file)) unlink(temp_file),
+    add = TRUE
+  )
+
+  # Save under `name`, whatever the argument was called by the caller
+  save_env <- new.env(parent = emptyenv())
+  assign(name, data, envir = save_env)
+
+  save(
+    list = name,
+    envir = save_env,
+    file = temp_file,
+    compress = compress
+  )
+
+  copied <- file.copy(
+    from = temp_file,
+    to = installed_file,
+    overwrite = TRUE
+  )
+
+  if (!copied) {
+    stop(
+      "The updated dataset '",
+      name,
+      "' was prepared, ",
+      "but the installed package dataset could not be ",
+      "overwritten. Check write permissions for: ",
+      installed_file,
+      call. = FALSE
+    )
+  }
+
+  message("Updated installed dataset: ", installed_file)
+
+  invisible(installed_file)
+}
+
+
 #' View User Guide
 #'
 #' A function that opens the `bulktrends` user guide in system browser.
@@ -447,7 +534,7 @@ uktrade_tsibble <- function(
       )
     ]
   } else if (!is.null(group_by)) {
-if (!all(group_by %in% names(data))) {
+    if (!all(group_by %in% names(data))) {
       stop("`group_by` column not found in `data`: ", group_by)
     }
   }
