@@ -332,13 +332,6 @@ build_comcode_validity_history <- function(
     return(data.frame())
   }
 
-  # Keep the row with the largest numeric trackedmodel_ptr_id within each
-  # COMCODE/SID pair. If IDs are missing, retain the first available row.
-  # Keep the latest revision for each COMCODE/SID pair.
-  selected_records$trackedmodel_ptr_id <- suppressWarnings(
-    as.numeric(selected_records$trackedmodel_ptr_id)
-  )
-
   #order based on the highest trackedmoded_ptr_id for each comcode/sid pair
   selected_records <- selected_records[
     order(
