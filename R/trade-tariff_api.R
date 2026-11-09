@@ -252,10 +252,6 @@ build_comcode_validity_history <- function(comcodes) {
     drop = FALSE
   ]
   
-  # Convert trackedmodel_ptr_id to numeric for correct ordering.
-  tariff_data$trackedmodel_ptr_id <- suppressWarnings(
-    as.numeric(tariff_data$trackedmodel_ptr_id)
-  )
   
   # ---- 4. Expand 8-digit inputs to all matching 10-digit codes ---------
   
