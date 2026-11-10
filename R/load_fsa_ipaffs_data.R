@@ -12,6 +12,9 @@
 #' @details
 #' Leading pairs of 00s dropped
 #' Missing leading 0 added to COMCODE of odd length
+#' Some files contain country names, other country codes. These are harmonised
+#' to both country name and alpha-2 code using the \code{bulktrends::country}
+#' lookup table.
 #'
 #' @export
 read_ipaffs <- function(path) {
@@ -36,15 +39,31 @@ read_ipaffs <- function(path) {
         "TotalNetWeight_kg",
         "TotalNetWeight_KG",
         "TotalNetWeight(kg)"
-      )
+      ),
+      COO_NAME = c(
+        "CountryOfOrigin",
+        "CountryofOrigin",
+        "countryoforigin",
+        "CountryOfOriginName"
+      ),
+      PORT_NAME = c("BorderInspectionPost", "BCPName")
     )
 
     for (i in names(col_names)) {
       old_names <- col_names[[i]]
       match <- intersect(old_names, names(BDS))
 
-      if (length(match)) {
+      if (length(match) == 1) {
         setnames(BDS, match, i)
+      } else if (length(match) > 1) {
+        warning(
+          "Column name correction not possible for: ",
+          path,
+          "\nMultiple columns match ",
+          i,
+          ": ",
+          paste(match, collapse = ", ")
+        )
       }
     }
 
@@ -109,6 +128,29 @@ read_ipaffs <- function(path) {
     while (nrow(BDS[substr(COMCODE, 1, 2) == "00"]) > 0) {
       BDS[substr(COMCODE, 1, 2) == "00", COMCODE := gsub("^00", "", COMCODE)]
     }
+
+    BDS$COO_ALPHA <- ifelse(
+      nchar(BDS$COO_NAME) == 2,
+      BDS$COO_NAME,
+      NA_character_
+    )
+    BDS[COO_NAME == "UK", COO_ALPHA := "GB"]
+    BDS$COO_NAME <- ifelse(nchar(BDS$COO_NAME) > 2, BDS$COO_NAME, NA_character_)
+
+    ## Work in progress. Country name matches are poor. Ref: ISO 3166-1
+    # BDS[
+    #   is.na(COO_NAME),
+    #   COO_NAME := bulktrends::country$CountryName[
+    #     match(COO_ALPHA, bulktrends::country$CountryCodeAlpha)
+    #   ]
+    # ]
+    #
+    # BDS[
+    #   is.na(COO_ALPHA),
+    #   COO_ALPHA := bulktrends::country$CountryCodeAlpha[
+    #     match(COO_NAME, bulktrends::country$CountryName)
+    #   ]
+    # ]
 
     return(BDS)
   } else if (file_test("-d", path)) {
