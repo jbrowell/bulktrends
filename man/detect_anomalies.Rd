@@ -9,6 +9,7 @@ detect_anomalies(
   response_col = "NET_MASS",
   date_col = "DATE_START",
   model_selection_metric = AIC,
+  break_method = NULL,
   scale_ts = FALSE,
   verbose = FALSE,
   tso_params = list()
@@ -24,6 +25,9 @@ one or more trade time series.}
 
 \item{model_selection_metric}{A function used for model selection, e.g. `AIC`
 or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
+
+\item{break_method}{Options are `"Bai-Perron"` or `"PELT"`. See
+`?detect_breaks` for details.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance
 using `scale()`. Default `FALSE`.}

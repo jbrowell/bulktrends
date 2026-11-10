@@ -13,7 +13,8 @@ detect_anomalies_single_ts(
   model_selection_metric,
   verbose,
   tso_params,
-  p
+  p,
+  break_method
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 Default `list()`.}
 
 \item{p}{A `progressr` progressor function.}
+
+\item{break_method}{Options are `"Bai-Perron"` or `"PELT"`. See
+`?detect_breaks` for details.}
 }
 \value{
 A list containing detected outliers, the augmented time series,

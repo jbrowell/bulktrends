@@ -18,6 +18,8 @@
 #' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
+#' @param break_method Options are `"Bai-Perron"` or `"PELT"`. See
+#' `?detect_breaks` for details.
 #'
 #' @return A list with three elements: (i) `outliers`, a `data.table` with one row per
 #'   detected event (or one row with `anomaly_type = "None"` if nothing was found),
@@ -33,6 +35,7 @@ detect_anomalies <- function(
   response_col = "NET_MASS",
   date_col = "DATE_START",
   model_selection_metric = AIC,
+  break_method = NULL,
   scale_ts = FALSE,
   verbose = FALSE,
   tso_params = list()
@@ -70,7 +73,8 @@ detect_anomalies <- function(
       model_selection_metric = model_selection_metric,
       verbose = verbose,
       tso_params = tso_params,
-      p = p
+      p = p,
+      break_method = break_method
     ),
     SIMPLIFY = FALSE,
     future.globals = list(),
@@ -104,6 +108,8 @@ detect_anomalies <- function(
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
 #' @param p A `progressr` progressor function.
+#' @param break_method Options are `"Bai-Perron"` or `"PELT"`. See
+#' `?detect_breaks` for details.
 #'
 #' @return A list containing detected outliers, the augmented time series,
 #'   the updated model formula, and the series identifier.
@@ -119,7 +125,8 @@ detect_anomalies_single_ts <- function(
   model_selection_metric,
   verbose,
   tso_params,
-  p
+  p,
+  break_method
 ) {
   is_tsibble_input <- inherits(ts_data, "tbl_ts")
   original_ts <- ts_data
@@ -160,7 +167,8 @@ detect_anomalies_single_ts <- function(
       response_col = response_col,
       date_col = date_col,
       metric = model_selection_metric,
-      break_detection = TRUE
+      break_detection = TRUE,
+      break_method = break_method
     ),
     error = function(e) e
   )

@@ -4,14 +4,16 @@
 \alias{detect_breaks}
 \title{Detect structural breaks in a time series}
 \usage{
-detect_breaks(data, date_col = "DATE_START", formula)
+detect_breaks(data, formula, date_col = "DATE_START", method = "Bai-Perron")
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
+\item{formula}{A formula specifying the regression model for break detection.}
+
 \item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
 
-\item{formula}{A formula specifying the regression model for break detection.}
+\item{method}{Options are `"Bai-Perron"` or `"PELT"`. See details.}
 }
 \value{
 A list containing (i) `break_entry`, a `data.table` with identified breakpoints and
@@ -22,4 +24,8 @@ Returns `NULL` if no breaks are detected.
 \description{
 This function uses [strucchangeRcpp::breakpoints()] with BIC-based selection to identify
 structural breaks in a given time series.
+}
+\details{
+Method `"Bai-Perron"` uses the implementation in `strucchangeRcpp::breakpoints`;
+method `"PELT"` uses the implementation in `changepoint::cpt.reg`.
 }

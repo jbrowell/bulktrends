@@ -15,6 +15,8 @@
 #' @param metric  A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.
 #' @param break_detection If `TRUE`, structural break detection is
 #' performed and break-adjusted models are also evaluated.
+#' @param break_method Options are `"Bai-Perron"` or `"PELT"`. See
+#' `?detect_breaks` for details.
 #' @param freq Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').
 #'
 #' @return A list containing (i) `data`, the time series' data with any generated regressors
@@ -30,6 +32,7 @@ select_best_model <- function(
   response_col = NULL,
   metric = AIC,
   break_detection = TRUE,
+  break_method = NULL,
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
@@ -113,8 +116,9 @@ select_best_model <- function(
       breaks <- try(
         detect_breaks(
           data = data,
+          formula = formulas[[i]],
           date_col = date_col,
-          formula = formulas[[i]]
+          method = break_method
         ),
         silent = TRUE
       )
