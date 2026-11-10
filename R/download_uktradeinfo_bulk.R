@@ -87,16 +87,27 @@ download_uktradeinfo_bulk <- function(
     )
   }
 
+  allowed_types <- c(
+    "imports",
+    "exports",
+    "control",
+    "importer_details",
+    "exporter_details",
+    "preference"
+  )
+
+  if (any(!type %in% allowed_types)) {
+    invalid <- type[!type %in% allowed_types]
+
+    warning(
+      "Invalid value(s) for `type`: ",
+      paste(invalid, collapse = ", ")
+    )
+  }
+
   type <- match.arg(
     type,
-    c(
-      "imports",
-      "exports",
-      "control",
-      "importer_details",
-      "exporter_details",
-      "preference"
-    ),
+    allowed_types,
     several.ok = TRUE
   )
 
@@ -283,7 +294,7 @@ parse_yearmon <- function(x, arg) {
   if (inherits(x, "Date")) {
     return(as.Date(format(x, "%Y-%m-01")))
   }
-  if (is.character(x) && length(x) == 1L) {
+  if (is.character(x) && length(x) == 1L && nchar(x) == 7) {
     d <- tryCatch(as.Date(paste0(x, "-01")), error = function(e) NA)
     if (!is.na(d)) return(d)
   }
