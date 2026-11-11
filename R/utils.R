@@ -196,7 +196,7 @@ extract_ts <- function(
 #' Add date features
 #'
 #' A function that identifies the features (bank holidays) of dates provided, and
-#' creates the linear_trend covariates (formerly in select_best_model() ) based on date stamp not row number.
+#' creates the `linear_trend` covariate based on the date stamp.
 #'
 #' @param data A `data.table` containing trade data.
 #' @param date_col Name of column containing timestamps.
@@ -209,9 +209,16 @@ extract_ts <- function(
 #'   auto-detected (`'day'`, `'week'`, or `'month'`).
 #'
 #' @return A `data.table` with the original data and additional calendar features, including
-#' day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
+#' `linear_trend`, day of week, day of year, `annual_sin`, `annual_cos`, `holiday`
+#' (holiday title or `NA`), and `is_holiday` (`logical`). Any existing columns
+#' with these names are overwritten.
 #'
 #' @details
+#' `linear_trend` is the decimal year of each date minus 2000, as given by
+#' `lubridate::decimal_date(date) - 2000`; for example, 1 July 2023 is about
+#' 23.5. One unit is therefore one year. The offset keeps the trend close to
+#' zero, so that it is not nearly collinear with an intercept in short series.
+#'
 #' Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
 #' which was compiled from the official gov.uk published data
 #' (\url{https://www.gov.uk/bank-holidays.json}).  The stored dataset includes
@@ -256,7 +263,8 @@ add_date_features <- function(
 
   dates <- data[[date_col]]
 
-  data[, linear_trend := lubridate::decimal_date(dates)]
+  # Offset by 2000 to keep the trend near zero; see @details
+  data[, linear_trend := lubridate::decimal_date(dates) - 2000]
   data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]

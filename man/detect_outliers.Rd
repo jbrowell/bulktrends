@@ -39,3 +39,10 @@ If `return_tso = TRUE`, a third element `tso` is also included. Returns
 This function detects temporary outliers in a given time series
 using `tsoutliers::tso()`.
 }
+\details{
+If `tso()` fails with the default ARIMA model selection, it is retried with
+an ARIMA(0,0,0) model that keeps `xreg`. If that also fails, it is retried
+with ARIMA(0,0,0) and no regressors, i.e. a constant mean. That last model
+ignores trend, seasonality and level shifts, so it detects fewer outliers.
+A message is printed each time a fallback is used.
+}
