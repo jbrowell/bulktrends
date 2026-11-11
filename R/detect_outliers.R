@@ -51,8 +51,25 @@ detect_outliers <- function(
   tso_outliers <- tryCatch(
     do.call(tsoutliers::tso, tso_params),
     error = function(e) {
-      message("Outlier detection failed: ", e)
-      return(NULL)
+      message(
+        "Outlier detection failed, retrying with ARIMA(0,0,0) and no xreg: ",
+        e
+      )
+      fallback_params <- utils::modifyList(
+        tso_params,
+        list(
+          tsmethod = "arima",
+          args.tsmethod = list(order = c(0, 0, 0)),
+          xreg = NULL
+        )
+      )
+      tryCatch(
+        do.call(tsoutliers::tso, fallback_params),
+        error = function(e2) {
+          message("Outlier detection failed: ", e2)
+          NULL
+        }
+      )
     }
   )
 

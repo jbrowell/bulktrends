@@ -30,11 +30,11 @@
 #'   detected event (or one row with `anomaly_type = "None"` if nothing was found).
 #'   The `anomaly_type` column takes values `"Outlier"` (global Chen-Liu detection),
 #'   `"Segment_Outlier"` (local detection within a PELT/Bai-Perron segment), or
-#'   `"Break"` (structural break). The `list_of_ts` element also contains a
-#'   `.adjusted_response` column holding the TSO-adjusted series used for break detection.
+#'   `"Break"` (structural break).
 #'   (ii) `list_of_ts`, a named list of `data.table`s — one
 #'   per series — containing the time series with fitted regressors, outlier effect
-#'   columns, and `.adjusted_response` appended, and (iii) the final model formula for
+#'   columns, and `adjusted_y` (the TSO-adjusted series used for break detection) appended,
+#'   and (iii) the final model formula for
 #'   each time series. Processing runs in parallel via
 #'   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 #'
@@ -272,23 +272,31 @@ detect_anomalies_single_ts <- function(
     }
   }
 
-  ts_data[, .adjusted_response := adjusted_response]
+  ts_data[, adjusted_y := adjusted_response]
 
   # ------------------------------------------------------------
   # 5. Run break detection on the adjusted response
   # ------------------------------------------------------------
 
-  adjusted_formula <- baseline_formula
-  adjusted_formula[[2]] <- as.name(".adjusted_response")
-
   if (verbose) {
     message("Running break detection on the adjusted response for ", id)
   }
 
+  ts_data_adj <- data.table::copy(ts_data)
+  ts_data_adj[, (response_col) := adjusted_response]
+
+  break_detect_formula <- if (
+    !is.null(selected_model$break_detection_formula)
+  ) {
+    selected_model$break_detection_formula
+  } else {
+    baseline_formula
+  }
+
   final_breaks <- tryCatch(
     detect_breaks(
-      data = ts_data,
-      formula = adjusted_formula,
+      data = ts_data_adj,
+      formula = break_detect_formula,
       date_col = date_col,
       method = break_method
     ),
@@ -348,9 +356,9 @@ detect_anomalies_single_ts <- function(
     }
 
     seg_data <- data.table::copy(ts_data[seg_idx])
-    seg_data[, (response_col) := .adjusted_response]
+    seg_data[, (response_col) := ts_data[["adjusted_y"]][seg_idx]]
 
-    seg_xreg <- stats::model.matrix(adjusted_formula, data = seg_data)
+    seg_xreg <- stats::model.matrix(baseline_formula, data = seg_data)
     if (ncol(seg_xreg) == 0) {
       seg_xreg <- NULL
     }

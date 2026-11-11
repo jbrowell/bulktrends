@@ -153,6 +153,7 @@ select_best_model <- function(
           data = cbind(data, segments),
           formula = fmla,
           baseline_formula = output$baseline_formula,
+          break_detection_formula = formulas[[i]],
           break_entry = breaks$break_entry
         )
       }

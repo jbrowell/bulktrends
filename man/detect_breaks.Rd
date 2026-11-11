@@ -4,16 +4,16 @@
 \alias{detect_breaks}
 \title{Detect structural breaks in a time series}
 \usage{
-detect_breaks(data, formula, date_col = "DATE_START", method = "Bai-Perron")
+detect_breaks(data, formula, method, date_col = "DATE_START")
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
 \item{formula}{A formula specifying the regression model for break detection.}
 
-\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
-
 \item{method}{Options are `"Bai-Perron"` or `"PELT"`. See details.}
+
+\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
 }
 \value{
 A list containing (i) `break_entry`, a `data.table` with identified breakpoints and

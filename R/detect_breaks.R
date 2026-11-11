@@ -24,7 +24,6 @@ detect_breaks <- function(
   method,
   date_col = "DATE_START"
 ) {
-
   if (method == "Bai-Perron") {
     bp <- strucchangeRcpp::breakpoints(
       formula,
