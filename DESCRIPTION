@@ -26,7 +26,8 @@ Imports:
     rlang,
     tsibble (>= 1.2.0),
     fable (>= 0.5.0),
-    fabletools (>= 0.6.0)
+    fabletools (>= 0.6.0),
+    changepoint (>= 2.3)
 Suggests:
     usethis (>= 2.1.0),
     rvest (>= 1.0.0),

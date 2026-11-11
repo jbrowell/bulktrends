@@ -18,8 +18,13 @@
 #' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
-#' @param break_method Options are `"Bai-Perron"` or `"PELT"`. See
-#' `?detect_breaks` for details.
+#' @param break_method Options are `"Bai-Perron"` (default) or `"PELT"`. See
+#'details.
+#'
+#' @details
+#' Break method `"Bai-Perron"` uses the implementation in `strucchangeRcpp::breakpoints`;
+#' break method `"PELT"` uses the implementation in `changepoint::cpt.reg`.
+#'
 #'
 #' @return A list with three elements: (i) `outliers`, a `data.table` with one row per
 #'   detected event (or one row with `anomaly_type = "None"` if nothing was found).
@@ -39,7 +44,7 @@ detect_anomalies <- function(
   response_col = "NET_MASS",
   date_col = "DATE_START",
   model_selection_metric = AIC,
-  break_method = NULL,
+  break_method = "Bai-Perron",
   scale_ts = FALSE,
   verbose = FALSE,
   tso_params = list()
