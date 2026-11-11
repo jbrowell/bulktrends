@@ -40,11 +40,15 @@ Default `list()`.}
 }
 \value{
 A list with three elements: (i) `outliers`, a `data.table` with one row per
-  detected event (or one row with `anomaly_type = "None"` if nothing was found),
- (ii) `list_of_ts`, a named list of `data.table`s — one
-  per commodity code — containing the time series with fitted regressors and
-  outlier effect columns appended, and (iii) the final model formula for each time series
-  Processing runs in parallel via
+  detected event (or one row with `anomaly_type = "None"` if nothing was found).
+  The `anomaly_type` column takes values `"Outlier"` (global Chen-Liu detection),
+  `"Segment_Outlier"` (local detection within a PELT/Bai-Perron segment), or
+  `"Break"` (structural break). The `list_of_ts` element also contains a
+  `.adjusted_response` column holding the TSO-adjusted series used for break detection.
+  (ii) `list_of_ts`, a named list of `data.table`s — one
+  per series — containing the time series with fitted regressors, outlier effect
+  columns, and `.adjusted_response` appended, and (iii) the final model formula for
+  each time series. Processing runs in parallel via
   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 }
 \description{

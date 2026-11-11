@@ -88,7 +88,7 @@ select_best_model <- function(
     }
   }
 
-  output <- list(data = data, formula = NULL)
+  output <- list(data = data, formula = NULL, baseline_formula = NULL)
 
   current_metric <- Inf
 
@@ -106,7 +106,11 @@ select_best_model <- function(
     new_metric <- metric(model_fit)
     if (new_metric < current_metric) {
       current_metric <- new_metric
-      output <- list(data = data, formula = formulas[[i]])
+      output <- list(
+        data = data,
+        formula = formulas[[i]],
+        baseline_formula = formulas[[i]]
+      )
     }
   }
 
@@ -148,6 +152,7 @@ select_best_model <- function(
         output <- list(
           data = cbind(data, segments),
           formula = fmla,
+          baseline_formula = output$baseline_formula,
           break_entry = breaks$break_entry
         )
       }
