@@ -23,7 +23,7 @@ was last run to generate this file.
 \url{https://github.com/alphagov/calendars}
 }
 \usage{
-uk_bank_holidays
+data(uk_bank_holidays)
 }
 \description{
 A dataset of UK bank holidays sourced from the official gov.uk published

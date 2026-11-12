@@ -1,4 +1,3 @@
-```r
 #' Detection of temporary time series outliers
 #'
 #' This function detects temporary outliers in a given time series
@@ -165,4 +164,3 @@ detect_outliers <- function(
   
   return(result)
 }
-```
