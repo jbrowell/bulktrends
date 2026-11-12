@@ -227,7 +227,7 @@ extract_ts <- function(
 #' To use the latest published data call [get_uk_bank_holidays()] and pass the
 #' result via the `holidays` argument.
 #'
-#' @export,
+#' @export
 add_date_features <- function(
     data,
     date_col,
