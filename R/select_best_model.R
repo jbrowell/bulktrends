@@ -36,7 +36,7 @@ select_best_model <- function(
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
-    data <- as.data.table(data)
+    data <- data.table::as.data.table(data)
   }
 
   if (is.null(formulas) & is.null(response_col)) {

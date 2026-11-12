@@ -1,21 +1,25 @@
 #' Detect structural breaks in a time series
 #'
-#' This function uses [strucchangeRcpp::breakpoints()] with BIC-based selection to identify
-#' structural breaks in a given time series.
+#' This function identifies structural breaks in a time series using either
+#' the Bai-Perron or PELT method.
 #'
 #' @param data A `data.frame` containing the dependent variable and dates.
 #' @param formula A formula specifying the regression model for break detection.
 #' @param date_col Name of column containing timestamps. Default `"DATE_START"`.
-#' @param method Options are `"Bai-Perron"` or `"PELT"`. See details.
+#' @param method Method used for structural break detection. Options are
+#' `"Bai-Perron"` or `"PELT"`.
 #'
-#' @return A list containing (i) `break_entry`, a `data.table` with identified breakpoints and
-#' their respective timing and, (ii) `segments`, a matrix of segment indicator
-#' variable for use as a regressor.
+#' @return A list containing (i) `break_entry`, a `data.table` with identified
+#' breakpoints and their respective indices and timing, and (ii) `segments`,
+#' a `data.table` containing a factor identifying the segment to which each
+#' observation belongs.
 #' Returns `NULL` if no breaks are detected.
 #'
 #' @details
-#' Method `"Bai-Perron"` uses the implementation in `strucchangeRcpp::breakpoints`;
-#' method `"PELT"` uses the implementation in `changepoint::cpt.reg`.
+#' Method `"Bai-Perron"` uses `strucchangeRcpp::breakpoints()` with
+#' BIC-based model selection.
+#' Method `"PELT"` uses `changepoint::cpt.reg()` with the PELT algorithm
+#' and a specified minimum segment length.
 #'
 #' @export
 detect_breaks <- function(
@@ -36,8 +40,8 @@ detect_breaks <- function(
 
     if (length(breaks) > 0 && !all(is.na(breaks))) {
       time <- data[[date_col]][breaks]
-      output <- data.table(type = "SB", ind = breaks, time = time)
-      segments <- data.table(segments = strucchangeRcpp::breakfactor(bp))
+      output <- data.table::data.table(type = "SB", ind = breaks, time = time)
+      segments <- data.table::data.table(segments = strucchangeRcpp::breakfactor(bp))
       segments[, segments := as.factor(segments)]
       return(list(break_entry = output, segments = segments))
     } else {

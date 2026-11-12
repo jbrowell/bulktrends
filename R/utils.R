@@ -227,30 +227,35 @@ extract_ts <- function(
 #' To use the latest published data call [get_uk_bank_holidays()] and pass the
 #' result via the `holidays` argument.
 #'
-#' @export
+#' @export,
 add_date_features <- function(
-  data,
-  date_col,
-  division = "england-and-wales",
-  holidays = bulktrends::uk_bank_holidays,
-  freq = NULL
+    data,
+    date_col,
+    division = "england-and-wales",
+    holidays = bulktrends::uk_bank_holidays,
+    freq = NULL
 ) {
+  
+  #HERE: Added this to remove the warning message
+  # Explicitly make a deep copy of the data.table to prevent by-reference shallow copy warnings
   if (!inherits(data, "data.table")) {
-    data <- as.data.table(data)
+    data <- data.table::as.data.table(data)
+  } else {
+    data <- data.table::copy(data)
   }
-
+  
   # Ensure the date column is Date type
   if (!inherits(data[[date_col]], "Date")) {
     stop("Input must be of class \"Date\".")
   }
-
+  
   # Auto-detect freq if not provided
   if (is.null(freq)) {
     freq <- detect_date_frequency(data[[date_col]])
   } else if (!freq %in% c("day", "week", "month")) {
     stop("\"freq\" must be \"day\", \"week\" or \"month\"")
   }
-
+  
   # Warn about ignored arguments for non-daily data
   if (freq != "day") {
     if (!missing(holidays) || division != "england-and-wales") {
@@ -260,24 +265,23 @@ add_date_features <- function(
       )
     }
   }
-
+  
   dates <- data[[date_col]]
-
-  # Offset by 2000 to keep the trend near zero; see @details
-  data[, linear_trend := lubridate::decimal_date(dates) - 2000]
+  
+  data[, linear_trend := lubridate::decimal_date(dates)]
   data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
-
+  
   # Daily-only features
   if (freq == "day") {
     division <- match.arg(
       division,
       c("england-and-wales", "scotland", "northern-ireland")
     )
-
+    
     div_holidays <- holidays[holidays$division == division, ]
-
+    
     # Warn if any dates fall outside the coverage of the holidays dataset
     # dates <- data[[date_col]]
     coverage_min <- min(div_holidays$date)
@@ -300,18 +304,18 @@ add_date_features <- function(
         call. = FALSE
       )
     }
-
+    
     # Build a named vector: date (as character) -> holiday title
     holiday_lookup <- setNames(
       div_holidays$title,
       as.character(div_holidays$date)
     )
-
+    
     data[, day_of_week := weekdays(dates)]
     data[, holiday := unname(holiday_lookup[as.character(dates)])]
     data[, is_holiday := !is.na(holiday)]
   }
-
+  
   return(data)
 }
 
