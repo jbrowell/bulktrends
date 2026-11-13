@@ -181,7 +181,6 @@ detect_anomalies_single_ts <- function(
       response_col = response_col,
       date_col = date_col,
       metric = model_selection_metric,
-      break_detection = TRUE,
       break_method = break_method
     ),
     error = function(e) e
