@@ -165,7 +165,10 @@ detect_anomalies_single_ts <- function(
     return(NULL)
   }
 
-  tso_params <- utils::modifyList(tso_params, list(types = c("AO", "TC")))
+  tso_params <- utils::modifyList(
+    list(types = c("AO", "TC")),
+    tso_params
+  )
 
   # ------------------------------------------------------------
   # 2. Select the baseline regression model
