@@ -26,12 +26,12 @@ Imports:
     rlang,
     tsibble (>= 1.2.0),
     fable (>= 0.5.0),
-    fabletools (>= 0.6.0)
+    fabletools (>= 0.6.0),
+    changepoint (>= 2.3)
 Suggests:
     usethis (>= 2.1.0),
     rvest (>= 1.0.0),
     R.utils,
     testthat (>= 3.0.0)
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
-RoxygenNote: 7.3.3

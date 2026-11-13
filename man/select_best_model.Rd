@@ -11,6 +11,7 @@ select_best_model(
   response_col = NULL,
   metric = AIC,
   break_detection = TRUE,
+  break_method = NULL,
   freq = NULL
 )
 }
@@ -31,6 +32,9 @@ but the column containing the response variable must be specified.}
 
 \item{break_detection}{If `TRUE`, structural break detection is
 performed and break-adjusted models are also evaluated.}
+
+\item{break_method}{Options are `"Bai-Perron"` or `"PELT"`. See
+`?detect_breaks` for details.}
 
 \item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
 }

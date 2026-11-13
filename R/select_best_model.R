@@ -13,8 +13,8 @@
 #' @param response_col If `formulas` not provided, default formulas will be used
 #' but the column containing the response variable must be specified.
 #' @param metric  A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.
-#' @param break_detection If `TRUE`, structural break detection is
-#' performed and break-adjusted models are also evaluated.
+#' @param break_method If `NULL`, no break detection is attempted. Options
+#' for break detection are `"Bai-Perron"` or `"PELT"`. See `?detect_breaks` for details.
 #' @param freq Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').
 #'
 #' @return A list containing (i) `data`, the time series' data with any generated regressors
@@ -29,11 +29,11 @@ select_best_model <- function(
   formulas = NULL,
   response_col = NULL,
   metric = AIC,
-  break_detection = TRUE,
+  break_method = NULL,
   freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
-    data <- as.data.table(data)
+    data <- data.table::as.data.table(data)
   }
 
   if (is.null(formulas) & is.null(response_col)) {
@@ -85,7 +85,7 @@ select_best_model <- function(
     }
   }
 
-  output <- list(data = data, formula = NULL)
+  output <- list(data = data, formula = NULL, baseline_formula = NULL)
 
   current_metric <- Inf
 
@@ -103,18 +103,23 @@ select_best_model <- function(
     new_metric <- metric(model_fit)
     if (new_metric < current_metric) {
       current_metric <- new_metric
-      output <- list(data = data, formula = formulas[[i]])
+      output <- list(
+        data = data,
+        formula = formulas[[i]],
+        baseline_formula = formulas[[i]]
+      )
     }
   }
 
   # detect_breaks loop
-  if (break_detection) {
+  if (!is.null(break_method)) {
     for (i in seq_along(formulas)) {
       breaks <- try(
         detect_breaks(
           data = data,
+          formula = formulas[[i]],
           date_col = date_col,
-          formula = formulas[[i]]
+          method = break_method
         ),
         silent = TRUE
       )
@@ -144,6 +149,8 @@ select_best_model <- function(
         output <- list(
           data = cbind(data, segments),
           formula = fmla,
+          baseline_formula = output$baseline_formula,
+          break_detection_formula = formulas[[i]],
           break_entry = breaks$break_entry
         )
       }

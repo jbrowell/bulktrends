@@ -4,22 +4,32 @@
 \alias{detect_breaks}
 \title{Detect structural breaks in a time series}
 \usage{
-detect_breaks(data, date_col = "DATE_START", formula)
+detect_breaks(data, formula, method, date_col = "DATE_START")
 }
 \arguments{
 \item{data}{A `data.frame` containing the dependent variable and dates.}
 
-\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
-
 \item{formula}{A formula specifying the regression model for break detection.}
+
+\item{method}{Method used for structural break detection. Options are
+`"Bai-Perron"` or `"PELT"`.}
+
+\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
 }
 \value{
-A list containing (i) `break_entry`, a `data.table` with identified breakpoints and
-their respective timing and, (ii) `segments`, a matrix of segment indicator
-variable for use as a regressor.
+A list containing (i) `break_entry`, a `data.table` with identified
+breakpoints and their respective indices and timing, and (ii) `segments`,
+a `data.table` containing a factor identifying the segment to which each
+observation belongs.
 Returns `NULL` if no breaks are detected.
 }
 \description{
-This function uses [strucchangeRcpp::breakpoints()] with BIC-based selection to identify
-structural breaks in a given time series.
+This function identifies structural breaks in a time series using either
+the Bai-Perron or PELT method.
+}
+\details{
+Method `"Bai-Perron"` uses `strucchangeRcpp::breakpoints()` with
+BIC-based model selection.
+Method `"PELT"` uses `changepoint::cpt.reg()` with the PELT algorithm
+and a specified minimum segment length.
 }
