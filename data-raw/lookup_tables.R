@@ -3,6 +3,8 @@
 ## Data for unit tests
 
 ### Download
+devtools::load_all(".")
+
 raw_table <- uktrades_request(endpoint = "Commodity")$value
 
 ### Filter the data
