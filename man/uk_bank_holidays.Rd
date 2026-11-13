@@ -5,7 +5,6 @@
 \alias{uk_bank_holidays}
 \title{UK Bank Holidays}
 \format{
-## `uk_bank_holidays`
 A `data.table` with the following columns:
 \describe{
   \item{date}{Date of the bank holiday (`Date`)}
@@ -23,7 +22,7 @@ was last run to generate this file.
 \url{https://github.com/alphagov/calendars}
 }
 \usage{
-uk_bank_holidays
+data(uk_bank_holidays)
 }
 \description{
 A dataset of UK bank holidays sourced from the official gov.uk published
@@ -53,7 +52,7 @@ sources, the higher-priority source wins:
 Each source is fetched independently; the script continues if one is
 unavailable.
 
-Use [get_uk_bank_holidays()] to fetch up-to-date data directly from
+Use `get_uk_bank_holidays()` to fetch up-to-date data directly from
 \url{https://www.gov.uk/bank-holidays.json}.
 }
 \keyword{datasets}

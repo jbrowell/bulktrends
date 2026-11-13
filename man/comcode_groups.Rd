@@ -5,7 +5,6 @@
 \alias{comcode_groups}
 \title{COMCODE Groups}
 \format{
-## `comcode_groups`
 A named `list` containing a group of commodity codes
 \describe{
   \item{name}{Name of group}
@@ -16,7 +15,7 @@ A named `list` containing a group of commodity codes
 `bulktrends`
 }
 \usage{
-comcode_groups
+data(comcode_groups)
 }
 \description{
 Useful groups of commodity codes for filtering import data.
