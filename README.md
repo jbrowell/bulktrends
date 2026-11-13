@@ -1,4 +1,5 @@
 <!-- badges: start -->
+[![Tests](https://github.com/OWNER/REPO/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/OWNER/REPO/actions/workflows/test.yaml)
 [![R-CMD-check](https://github.com/jbrowell/bulktrends/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jbrowell/bulktrends/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
   
