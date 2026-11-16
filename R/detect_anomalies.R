@@ -181,6 +181,9 @@ detect_anomalies_single_ts <- function(
     list(types = c("AO", "TC")),
     tso_params
   )
+  if (any(tso_params$types %in% c("IO", "LS"))) {
+    stop("`tso_params$types` must not include \"IO\" or \"LS\".")
+  }
   
   # ------------------------------------------------------------
   # 2. Select the baseline regression model
