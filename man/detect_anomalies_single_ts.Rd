@@ -14,7 +14,8 @@ detect_anomalies_single_ts(
   verbose,
   tso_params,
   p,
-  break_method
+  break_method,
+  break_params = list()
 )
 }
 \arguments{
@@ -39,8 +40,11 @@ Default `list()`.}
 
 \item{p}{A `progressr` progressor function.}
 
-\item{break_method}{Options are `"Bai-Perron"` or `"PELT"`. See
-`?detect_breaks` for details.}
+\item{break_method}{Function used for structural break detection.
+Options are `"breakpoints"` or `"cpt.reg"`.}
+
+\item{break_params}{A named list of additional arguments passed to the selected
+structural break detection function. Default `list()`.}
 }
 \value{
 A list containing detected outliers, the augmented time series,

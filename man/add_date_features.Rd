@@ -8,7 +8,7 @@ add_date_features(
   data,
   date_col,
   division = "england-and-wales",
-  holidays = bulktrends::uk_bank_holidays,
+  holidays = NULL,
   freq = NULL
 )
 }
