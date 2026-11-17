@@ -429,6 +429,7 @@ open_userguide <- function(path = NULL) {
 #' @export
 uktrade_tsibble <- function(
   data,
+  code = "NULL",
   response_col = "NET_MASS",
   comcode_level = c("HS2", "HS4"),
   group_by = NULL,
@@ -438,6 +439,16 @@ uktrade_tsibble <- function(
 ) {
   #create categories
   data <- copy(data)
+
+  data <- data[
+    substr(
+      as.character(data$COMCODE),
+      1,
+      nchar(as.character(code))
+    ) ==
+      as.character(code)
+  ]
+
   if ("category" %in% group_by) {
     data[,
       category := ifelse(
@@ -447,7 +458,7 @@ uktrade_tsibble <- function(
       )
     ]
   } else if (!is.null(group_by)) {
-    if (!group_by %in% names(data)) {
+    if (!all(group_by %in% names(data))) {
       stop("`group_by` column not found in `data`: ", group_by)
     }
   }
@@ -502,7 +513,8 @@ uktrade_tsibble <- function(
     imports_tsibble,
     index = date_col,
     key = c(comcode_level, group_by)
-  ) #|>  tsibble::fill_gaps(.full = TRUE, value = !!fill_missing)
+  ) |>
+    tsibble::fill_gaps(.full = TRUE, value = !!fill_missing)
 
   hierarchy_terms <- if (length(comcode_level) > 0) {
     paste(comcode_level, collapse = "/")
@@ -520,8 +532,7 @@ uktrade_tsibble <- function(
   ))
 
   ts_table <- imports_tsibble |>
-    fabletools::aggregate_key(!!level, value = sum(value, na.rm = TRUE)) |>
-    tsibble::fill_gaps(.full = TRUE, value = fill_missing)
+    fabletools::aggregate_key(!!level, value = sum(value, na.rm = TRUE))
   setnames(ts_table, "value", response_col)
   return(ts_table)
 }
