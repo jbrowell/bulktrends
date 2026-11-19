@@ -1,4 +1,3 @@
-
 #' Large-scale anomaly detection
 #'
 #' This function detects anomalies across multiple time series. Accepts either a keyed
@@ -179,7 +178,8 @@ detect_anomalies_single_ts <- function(
   
   tso_params <- utils::modifyList(
     list(types = c("AO", "TC")),
-    tso_params)
+    tso_params
+  )
   
   if (any(tso_params$types %in% c("IO", "LS"))) {
     stop("`tso_params$types` must not include \"IO\" or \"LS\".")
@@ -386,139 +386,139 @@ detect_anomalies_single_ts <- function(
     
     seg_data <- data.table::copy(ts_data[seg_idx])
     seg_data[, (response_col) := ts_data[["adjusted_y"]][seg_idx]]
-             
-             # ------------------------------------------------------------
-             # Prepare data for segment-level detection
-             # Remove global AO/TC effects to avoid naming collisions
-             # ------------------------------------------------------------
-
-             seg_detect_data <- data.table::copy(seg_data)
-             
-             global_effects <- grep(
-               "^(AO|TC)",
-               names(seg_detect_data),
-               value = TRUE
-             )
-             
-             if (length(global_effects) > 0) {
-               seg_detect_data[, (global_effects) := NULL]
-             }
-             
-             # ------------------------------------------------------------
-             # Prepare regressors
-             # ------------------------------------------------------------
-             
-             seg_xreg <- stats::model.matrix(
-               baseline_formula,
-               data = seg_detect_data
-             )
-             
-             if (ncol(seg_xreg) == 0) {
-               seg_xreg <- NULL
-             }
-             
-             # ------------------------------------------------------------
-             # Run segment-level outlier detection
-             # ------------------------------------------------------------
-             
-             seg_out <- tryCatch(
-               detect_outliers(
-                 data = seg_detect_data,
-                 response_col = response_col,
-                 scale_ts = FALSE,
-                 xreg = seg_xreg,
-                 return_tso = FALSE,
-                 tso_params = tso_params
-               ),
-               error = function(e) e
-             )
-             
-             if (
-               inherits(seg_out, "error") ||
-               is.null(seg_out) ||
-               is.null(seg_out$data)
-             ) {
-               next
-             }
-             
-             # ------------------------------------------------------------
-             # Retain local AO/TC effect columns in the full time series
-             # ------------------------------------------------------------
-             
-             local_effects <- grep(
-               "^(AO|TC)",
-               names(seg_out$data),
-               value = TRUE
-             )
-             
-             if (length(local_effects) > 0) {
-               
-               segment_number <- match(
-                 seg_id,
-                 levels(ts_data$segments)
-               )
-               
-               for (effect_name in local_effects) {
-                 
-                 base_effect_name <- paste0(
-                   "SEG",
-                   segment_number,
-                   "_",
-                   effect_name
-                 )
-                 
-                 new_effect_name <- make.unique(
-                   c(
-                     names(ts_data),
-                     segment_effect_vars,
-                     base_effect_name
-                   )
-                 )[length(names(ts_data)) +
-                     length(segment_effect_vars) + 1L]
-                 
-                 # Create a full-length effect vector.
-                 # Values outside this segment are zero.
-                 
-                 effect_values <- numeric(nrow(ts_data))
-                 
-                 segment_effect_values <- seg_out$data[[effect_name]]
-                 
-                 if (length(segment_effect_values) != length(seg_idx)) {
-                   next
-                 }
-                 
-                 effect_values[seg_idx] <- segment_effect_values
-                 
-                 ts_data[, (new_effect_name) := effect_values]
-                 
-                 segment_effect_vars <- c(
-                   segment_effect_vars,
-                   new_effect_name
-                 )
-               }
-             }
-             
-             # ------------------------------------------------------------
-             # Retain the local outlier event summary separately
-             # ------------------------------------------------------------
-             
-             if (
-               !is.null(seg_out$outliers) &&
-               nrow(seg_out$outliers) > 0
-             ) {
-               
-               entry <- data.table::as.data.table(
-                 seg_out$outliers
-               )
-               
-               entry[, ind := seg_idx[ind]]
-               entry[, id := id]
-               entry[, time := ts_data[[date_col]][ind]]
-               entry[, anomaly_type := "Segment_Outlier"]
-               entry[, segment := seg_id]
-               
-               segment_entries[[length(segment_entries) + 1L]] <- entry
-             }
+    
+    # ------------------------------------------------------------
+    # Prepare data for segment-level detection
+    # Remove global AO/TC effects to avoid naming collisions
+    # ------------------------------------------------------------
+    
+    seg_detect_data <- data.table::copy(seg_data)
+    
+    global_effects <- grep(
+      "^(AO|TC)",
+      names(seg_detect_data),
+      value = TRUE
+    )
+    
+    if (length(global_effects) > 0) {
+      seg_detect_data[, (global_effects) := NULL]
+    }
+    
+    # ------------------------------------------------------------
+    # Prepare regressors
+    # ------------------------------------------------------------
+    
+    seg_xreg <- stats::model.matrix(
+      baseline_formula,
+      data = seg_detect_data
+    )
+    
+    if (ncol(seg_xreg) == 0) {
+      seg_xreg <- NULL
+    }
+    
+    # ------------------------------------------------------------
+    # Run segment-level outlier detection
+    # ------------------------------------------------------------
+    
+    seg_out <- tryCatch(
+      detect_outliers(
+        data = seg_detect_data,
+        response_col = response_col,
+        scale_ts = FALSE,
+        xreg = seg_xreg,
+        return_tso = FALSE,
+        tso_params = tso_params
+      ),
+      error = function(e) e
+    )
+    
+    if (
+      inherits(seg_out, "error") ||
+      is.null(seg_out) ||
+      is.null(seg_out$data)
+    ) {
+      next
+    }
+    
+    # ------------------------------------------------------------
+    # Retain local AO/TC effect columns in the full time series
+    # ------------------------------------------------------------
+    
+    local_effects <- grep(
+      "^(AO|TC)",
+      names(seg_out$data),
+      value = TRUE
+    )
+    
+    if (length(local_effects) > 0) {
+      
+      segment_number <- match(
+        seg_id,
+        levels(ts_data$segments)
+      )
+      
+      for (effect_name in local_effects) {
+        
+        base_effect_name <- paste0(
+          "SEG",
+          segment_number,
+          "_",
+          effect_name
+        )
+        
+        new_effect_name <- make.unique(
+          c(
+            names(ts_data),
+            segment_effect_vars,
+            base_effect_name
+          )
+        )[length(names(ts_data)) +
+            length(segment_effect_vars) + 1L]
+        
+        # Create a full-length effect vector.
+        # Values outside this segment are zero.
+        
+        effect_values <- numeric(nrow(ts_data))
+        
+        segment_effect_values <- seg_out$data[[effect_name]]
+        
+        if (length(segment_effect_values) != length(seg_idx)) {
+          next
+        }
+        
+        effect_values[seg_idx] <- segment_effect_values
+        
+        ts_data[, (new_effect_name) := effect_values]
+        
+        segment_effect_vars <- c(
+          segment_effect_vars,
+          new_effect_name
+        )
+      }
+    }
+    
+    # ------------------------------------------------------------
+    # Retain the local outlier event summary separately
+    # ------------------------------------------------------------
+    
+    if (
+      !is.null(seg_out$outliers) &&
+      nrow(seg_out$outliers) > 0
+    ) {
+      
+      entry <- data.table::as.data.table(
+        seg_out$outliers
+      )
+      
+      entry[, ind := seg_idx[ind]]
+      entry[, id := id]
+      entry[, time := ts_data[[date_col]][ind]]
+      entry[, anomaly_type := "Segment_Outlier"]
+      entry[, segment := seg_id]
+      
+      segment_entries[[length(segment_entries) + 1L]] <- entry
+    }
   }
   
   segment_entry <- if (length(segment_entries) > 0) {
@@ -702,7 +702,6 @@ detect_anomalies_single_ts <- function(
     )
   }
   
-  
   # ------------------------------------------------------------
   # 10. Update the final formula to include detected outlier effects
   # ------------------------------------------------------------
@@ -735,7 +734,6 @@ detect_anomalies_single_ts <- function(
       )
     )
   }
-  
   
   # ------------------------------------------------------------
   # 11. Restore original tsibble structure when applicable
