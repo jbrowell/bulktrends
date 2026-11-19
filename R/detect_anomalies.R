@@ -179,11 +179,16 @@ detect_anomalies_single_ts <- function(
   
   tso_params <- utils::modifyList(
     list(types = c("AO", "TC")),
-    tso_params
-  )
+    tso_params)
+  
   if (any(tso_params$types %in% c("IO", "LS"))) {
     stop("`tso_params$types` must not include \"IO\" or \"LS\".")
   }
+  
+  tso_params <- utils::modifyList(
+    list(types = c("AO", "TC")),
+    tso_params
+  )
   
   # ------------------------------------------------------------
   # 2. Select the baseline regression model
@@ -369,8 +374,10 @@ detect_anomalies_single_ts <- function(
   }
   
   segment_entries <- list()
+  segment_effect_vars <- character()
   
   for (seg_id in levels(ts_data$segments)) {
+    
     seg_idx <- which(ts_data$segments == seg_id)
     
     if (length(seg_idx) < 8) {
@@ -379,51 +386,153 @@ detect_anomalies_single_ts <- function(
     
     seg_data <- data.table::copy(ts_data[seg_idx])
     seg_data[, (response_col) := ts_data[["adjusted_y"]][seg_idx]]
-    
-    seg_xreg <- stats::model.matrix(baseline_formula, data = seg_data)
-    if (ncol(seg_xreg) == 0) {
-      seg_xreg <- NULL
-    }
-    
-    seg_out <- tryCatch(
-      detect_outliers(
-        data = seg_data,
-        response_col = response_col,
-        scale_ts = FALSE,
-        xreg = seg_xreg,
-        return_tso = FALSE,
-        tso_params = tso_params
-      ),
-      error = function(e) e
-    )
-    
-    if (
-      inherits(seg_out, "error") ||
-      is.null(seg_out) ||
-      is.null(seg_out$outliers) ||
-      nrow(seg_out$outliers) == 0
-    ) {
-      next
-    }
-    
-    entry <- data.table::as.data.table(seg_out$outliers)
-    entry[, ind := seg_idx[ind]]
-    entry[, id := id]
-    entry[, time := ts_data[[date_col]][ind]]
-    entry[, anomaly_type := "Segment_Outlier"]
-    entry[, segment := seg_id]
-    
-    segment_entries[[length(segment_entries) + 1L]] <- entry
+             
+             # ------------------------------------------------------------
+             # Prepare data for segment-level detection
+             # Remove global AO/TC effects to avoid naming collisions
+             # ------------------------------------------------------------
+
+             seg_detect_data <- data.table::copy(seg_data)
+             
+             global_effects <- grep(
+               "^(AO|TC)",
+               names(seg_detect_data),
+               value = TRUE
+             )
+             
+             if (length(global_effects) > 0) {
+               seg_detect_data[, (global_effects) := NULL]
+             }
+             
+             # ------------------------------------------------------------
+             # Prepare regressors
+             # ------------------------------------------------------------
+             
+             seg_xreg <- stats::model.matrix(
+               baseline_formula,
+               data = seg_detect_data
+             )
+             
+             if (ncol(seg_xreg) == 0) {
+               seg_xreg <- NULL
+             }
+             
+             # ------------------------------------------------------------
+             # Run segment-level outlier detection
+             # ------------------------------------------------------------
+             
+             seg_out <- tryCatch(
+               detect_outliers(
+                 data = seg_detect_data,
+                 response_col = response_col,
+                 scale_ts = FALSE,
+                 xreg = seg_xreg,
+                 return_tso = FALSE,
+                 tso_params = tso_params
+               ),
+               error = function(e) e
+             )
+             
+             if (
+               inherits(seg_out, "error") ||
+               is.null(seg_out) ||
+               is.null(seg_out$data)
+             ) {
+               next
+             }
+             
+             # ------------------------------------------------------------
+             # Retain local AO/TC effect columns in the full time series
+             # ------------------------------------------------------------
+             
+             local_effects <- grep(
+               "^(AO|TC)",
+               names(seg_out$data),
+               value = TRUE
+             )
+             
+             if (length(local_effects) > 0) {
+               
+               segment_number <- match(
+                 seg_id,
+                 levels(ts_data$segments)
+               )
+               
+               for (effect_name in local_effects) {
+                 
+                 base_effect_name <- paste0(
+                   "SEG",
+                   segment_number,
+                   "_",
+                   effect_name
+                 )
+                 
+                 new_effect_name <- make.unique(
+                   c(
+                     names(ts_data),
+                     segment_effect_vars,
+                     base_effect_name
+                   )
+                 )[length(names(ts_data)) +
+                     length(segment_effect_vars) + 1L]
+                 
+                 # Create a full-length effect vector.
+                 # Values outside this segment are zero.
+                 
+                 effect_values <- numeric(nrow(ts_data))
+                 
+                 segment_effect_values <- seg_out$data[[effect_name]]
+                 
+                 if (length(segment_effect_values) != length(seg_idx)) {
+                   next
+                 }
+                 
+                 effect_values[seg_idx] <- segment_effect_values
+                 
+                 ts_data[, (new_effect_name) := effect_values]
+                 
+                 segment_effect_vars <- c(
+                   segment_effect_vars,
+                   new_effect_name
+                 )
+               }
+             }
+             
+             # ------------------------------------------------------------
+             # Retain the local outlier event summary separately
+             # ------------------------------------------------------------
+             
+             if (
+               !is.null(seg_out$outliers) &&
+               nrow(seg_out$outliers) > 0
+             ) {
+               
+               entry <- data.table::as.data.table(
+                 seg_out$outliers
+               )
+               
+               entry[, ind := seg_idx[ind]]
+               entry[, id := id]
+               entry[, time := ts_data[[date_col]][ind]]
+               entry[, anomaly_type := "Segment_Outlier"]
+               entry[, segment := seg_id]
+               
+               segment_entries[[length(segment_entries) + 1L]] <- entry
+             }
   }
   
   segment_entry <- if (length(segment_entries) > 0) {
-    data.table::rbindlist(segment_entries, fill = TRUE)
+    data.table::rbindlist(
+      segment_entries,
+      fill = TRUE
+    )
   } else {
     data.table::data.table()
   }
   
   # ------------------------------------------------------------
-  # 8. Proximity filter — suppress events within ±5 of a break
+  # 8. Proximity filter — suppress events and effects within ±5
+  #    observations of a structural break
   # ------------------------------------------------------------
   
   prox_filter <- function(dt, bi) {
@@ -434,8 +543,139 @@ detect_anomalies_single_ts <- function(
     dt[sapply(ind, function(i) !any(abs(i - bi) <= 5))]
   }
   
-  global_entry <- prox_filter(global_entry, break_indices)
-  segment_entry <- prox_filter(segment_entry, break_indices)
+  # Identify events that will be suppressed
+  suppressed_global <- if (
+    nrow(global_entry) > 0 && length(break_indices) > 0
+  ) {
+    global_entry[
+      sapply(ind, function(i) any(abs(i - break_indices) <= 5))
+    ]
+  } else {
+    data.table::data.table()
+  }
+  
+  suppressed_segment <- if (
+    nrow(segment_entry) > 0 && length(break_indices) > 0
+  ) {
+    segment_entry[
+      sapply(ind, function(i) any(abs(i - break_indices) <= 5))
+    ]
+  } else {
+    data.table::data.table()
+  }
+  
+  # ------------------------------------------------------------
+  # Identify global effect columns associated with suppressed events
+  # ------------------------------------------------------------
+  
+  global_effects_to_remove <- character()
+  
+  if (nrow(suppressed_global) > 0) {
+    
+    for (i in seq_len(nrow(suppressed_global))) {
+      
+      event_type <- suppressed_global$type[i]
+      event_ind  <- suppressed_global$ind[i]
+      
+      candidates <- grep(
+        paste0("^", event_type, "\\d+$"),
+        names(ts_data),
+        value = TRUE
+      )
+      
+      candidates <- candidates[
+        vapply(
+          candidates,
+          function(v) {
+            !is.na(ts_data[[v]][event_ind]) &&
+              ts_data[[v]][event_ind] != 0
+          },
+          logical(1)
+        )
+      ]
+      
+      global_effects_to_remove <- c(
+        global_effects_to_remove,
+        candidates
+      )
+    }
+  }
+  
+  # ------------------------------------------------------------
+  # Identify segment-specific effect columns associated with
+  # suppressed segment events
+  # ------------------------------------------------------------
+  
+  segment_effects_to_remove <- character()
+  
+  if (nrow(suppressed_segment) > 0) {
+    
+    for (i in seq_len(nrow(suppressed_segment))) {
+      
+      event_type <- suppressed_segment$type[i]
+      event_ind  <- suppressed_segment$ind[i]
+      event_seg  <- suppressed_segment$segment[i]
+      
+      segment_number <- match(
+        event_seg,
+        levels(ts_data$segments)
+      )
+      
+      candidates <- grep(
+        paste0("^SEG", segment_number, "_", event_type, "\\d+$"),
+        segment_effect_vars,
+        value = TRUE
+      )
+      
+      candidates <- candidates[
+        vapply(
+          candidates,
+          function(v) {
+            !is.na(ts_data[[v]][event_ind]) &&
+              ts_data[[v]][event_ind] != 0
+          },
+          logical(1)
+        )
+      ]
+      
+      segment_effects_to_remove <- c(
+        segment_effects_to_remove,
+        candidates
+      )
+    }
+  }
+  
+  # ------------------------------------------------------------
+  # Remove the suppressed effects from the augmented time series
+  # ------------------------------------------------------------
+  
+  effects_to_remove <- unique(
+    c(global_effects_to_remove, segment_effects_to_remove)
+  )
+  
+  if (length(effects_to_remove) > 0) {
+    
+    ts_data[, (effects_to_remove) := NULL]
+    
+    segment_effect_vars <- setdiff(
+      segment_effect_vars,
+      segment_effects_to_remove
+    )
+  }
+  
+  # ------------------------------------------------------------
+  # Filter suppressed events from the event tables
+  # ------------------------------------------------------------
+  
+  global_entry <- prox_filter(
+    global_entry,
+    break_indices
+  )
+  
+  segment_entry <- prox_filter(
+    segment_entry,
+    break_indices
+  )
   
   # ------------------------------------------------------------
   # 9. Add structural-break events and combine
@@ -462,19 +702,40 @@ detect_anomalies_single_ts <- function(
     )
   }
   
+  
   # ------------------------------------------------------------
   # 10. Update the final formula to include detected outlier effects
   # ------------------------------------------------------------
   
-  tso_vars <- grep("^(AO|TC|IO)", names(ts_data), value = TRUE)
-  final_formula <- baseline_formula
+  # Global outlier effects
+  tso_vars <- grep(
+    "^(AO|TC)",
+    names(ts_data),
+    value = TRUE
+  )
   
-  if (length(tso_vars) > 0) {
+  # Start with the break-adjusted specification when breaks exist.
+  final_formula <- if (!is.null(final_breaks)) {
+    stats::update(break_detect_formula, . ~ . * segments)
+  } else {
+    baseline_formula
+  }
+  
+  # Add global AO/TC effects and retained segment-specific effects.
+  all_effect_vars <- unique(
+    c(tso_vars, segment_effect_vars)
+  )
+  
+  if (length(all_effect_vars) > 0) {
     final_formula <- stats::update(
-      baseline_formula,
-      paste(". ~ . +", paste(tso_vars, collapse = " + "))
+      final_formula,
+      paste(
+        ". ~ . +",
+        paste(all_effect_vars, collapse = " + ")
+      )
     )
   }
+  
   
   # ------------------------------------------------------------
   # 11. Restore original tsibble structure when applicable
