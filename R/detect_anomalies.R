@@ -369,6 +369,7 @@ detect_anomalies_single_ts <- function(
   }
   
   segment_entries <- list()
+  segment_effect_vars <- character()
   
   for (seg_id in levels(ts_data$segments)) {
     seg_idx <- which(ts_data$segments == seg_id)
@@ -414,6 +415,36 @@ detect_anomalies_single_ts <- function(
     entry[, segment := seg_id]
     
     segment_entries[[length(segment_entries) + 1L]] <- entry
+
+    if (ncol(seg_out$data) <= ncol(seg_data)) {
+      next
+    }
+    effect_names <- paste0(
+      entry$type,
+      stats::ave(seq_len(nrow(entry)), entry$type, FUN = seq_along)
+    )
+    effect_data <- seg_out$data[
+      , seq.int(ncol(seg_data) + 1L, ncol(seg_out$data)), with = FALSE
+    ]
+    keep <- vapply(
+      entry$ind,
+      function(i) !any(abs(i - break_indices) <= 5),
+      logical(1)
+    )
+    for (j in which(keep)) {
+      effect_col <- match(effect_names[j], names(effect_data))
+      if (is.na(effect_col)) {
+        next
+      }
+      effect_name <- utils::tail(make.unique(c(
+        names(ts_data), names(original_ts),
+        paste0("segment_", match(seg_id, levels(ts_data$segments)), "_", effect_names[j])
+      )), 1L)
+      effect <- numeric(nrow(ts_data))
+      effect[seg_idx] <- effect_data[[effect_col]]
+      data.table::set(ts_data, j = effect_name, value = effect)
+      segment_effect_vars <- c(segment_effect_vars, effect_name)
+    }
   }
   
   segment_entry <- if (length(segment_entries) > 0) {
@@ -466,7 +497,10 @@ detect_anomalies_single_ts <- function(
   # 10. Update the final formula to include detected outlier effects
   # ------------------------------------------------------------
   
-  tso_vars <- grep("^(AO|TC|IO)", names(ts_data), value = TRUE)
+  tso_vars <- c(
+    grep("^(AO|TC|IO)", names(ts_data), value = TRUE),
+    segment_effect_vars
+  )
   final_formula <- baseline_formula
   
   if (length(tso_vars) > 0) {
