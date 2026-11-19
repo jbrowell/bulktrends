@@ -173,7 +173,7 @@ detect_breaks <- function(
     
     # Assign observations to segments
     segments <- data.table::data.table(
-      segments = findInterval(seq_len(nrow(data)), breaks) + 1L
+      segments = findInterval(seq_len(nrow(data)) - 1L, breaks) + 1L
     )
     
     segments[, segments := as.factor(segments)]
