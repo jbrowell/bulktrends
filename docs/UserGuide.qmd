@@ -212,7 +212,7 @@ The anomaly detection workflow considers two types of anomalies; structural brea
 
 For a given commodity code and quantity, (i) `extract_ts` extracts a list of time series by summing all commodities with the specified codes by time period, (ii) `select_best_model` automatically finds an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` specifically detects temporary outliers ("AO" additive outliers and "TC" temporary changes) using an outlier detection algorithm.
 
-By default, `select_best_model()` does not perform structural break detection. To enable it, set `break_method = "breakpoints"` (the Bai-Perron method). If any break is identified, the detected break information is stored in the `break_entry` output.
+By default, `select_best_model()` does not perform structural break detection. To enable it, set `break_method = "breakpoints"` (the Bai-Perron method) or `break_method = "cpt.reg"` (the changepoint regression method). The `cpt.reg` method supports PELT and AMOC; PELT is the default, and AMOC can be selected with `break_params = list(method = "AMOC")`. If any break is identified, the detected break information is stored in the `break_entry` output.
 
 When `return_tso = TRUE` in `detect_outliers`, the full output object returned by tsoutliers::tso() is retained, allowing users to inspect the detected outliers, model diagnostics, fitted regressors, and temporary outlier effects in detail.
 
