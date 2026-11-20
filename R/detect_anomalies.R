@@ -57,7 +57,7 @@ detect_anomalies <- function(
 ) {
   if (inherits(data, "tbl_ts")) {
     key_tbl <- dplyr::group_keys(tsibble::group_by_key(data))
-    
+
     if (ncol(key_tbl) == 0) {
       series_list <- list(series = data)
       time_series_ids <- "series"
@@ -72,7 +72,7 @@ detect_anomalies <- function(
   } else {
     stop("`data` must be a tsibble or a named list of time series.")
   }
-  
+
   # time_series_ids <- names(data)
   
   p <- progressr::progressor(along = time_series_ids)
@@ -746,11 +746,27 @@ detect_anomalies_single_ts <- function(
       ts_data[[date_col]] <- as.Date(ts_data[[date_col]])
     }
     
-    covariate_names <- setdiff(names(ts_data), names(original_ts))
-    
+    join_cols <- unique(c(
+      tsibble::key_vars(original_ts),
+      tsibble::index_var(original_ts)
+    ))
+    covariate_names <- setdiff(names(ts_data), join_cols)
+
     if (length(covariate_names) > 0) {
-      covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
-      all_ts <- dplyr::left_join(original_ts, covariates, by = date_col)
+      overlapping_covariates <- intersect(
+        names(original_ts),
+        covariate_names
+      )
+
+      if (length(overlapping_covariates) > 0) {
+        original_ts <- dplyr::select(
+          original_ts,
+          -dplyr::all_of(overlapping_covariates)
+        )
+      }
+
+      covariates <- ts_data[, c(join_cols, covariate_names), with = FALSE]
+      all_ts <- dplyr::left_join(original_ts, covariates, by = join_cols)
     } else {
       all_ts <- original_ts
     }
