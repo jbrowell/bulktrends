@@ -13,7 +13,9 @@ detect_anomalies_single_ts(
   model_selection_metric,
   verbose,
   tso_params,
-  p
+  p,
+  break_method,
+  break_params = list()
 )
 }
 \arguments{
@@ -37,6 +39,12 @@ or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 Default `list()`.}
 
 \item{p}{A `progressr` progressor function.}
+
+\item{break_method}{Function used for structural break detection.
+Options are `"breakpoints"` or `"cpt.reg"`.}
+
+\item{break_params}{A named list of additional arguments passed to the selected
+structural break detection function. Default `list()`.}
 }
 \value{
 A list containing detected outliers, the augmented time series,

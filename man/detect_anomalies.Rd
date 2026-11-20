@@ -9,6 +9,8 @@ detect_anomalies(
   response_col = "NET_MASS",
   date_col = "DATE_START",
   model_selection_metric = AIC,
+  break_method = "cpt.reg",
+  break_params = list(),
   scale_ts = FALSE,
   verbose = FALSE,
   tso_params = list()
@@ -25,6 +27,14 @@ one or more trade time series.}
 \item{model_selection_metric}{A function used for model selection, e.g. `AIC`
 or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
 
+\item{break_method}{Function used for structural break detection.
+Options are `"breakpoints"` or `"cpt.reg"`. Default `"cpt.reg"`.}
+
+\item{break_params}{A named list of additional arguments passed to the selected
+structural break detection function. For `"cpt.reg"`, this includes the
+algorithm selection (`method = "PELT"` or `"AMOC"`) and other arguments
+such as `minseglen`. Default `list()`.}
+
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance
 using `scale()`. Default `FALSE`.}
 
@@ -36,11 +46,15 @@ Default `list()`.}
 }
 \value{
 A list with three elements: (i) `outliers`, a `data.table` with one row per
-  detected event (or one row with `anomaly_type = "None"` if nothing was found),
- (ii) `list_of_ts`, a named list of `data.table`s — one
-  per commodity code — containing the time series with fitted regressors and
-  outlier effect columns appended, and (iii) the final model formula for each time series
-  Processing runs in parallel via
+  detected event (or one row with `anomaly_type = "None"` if nothing was found).
+  The `anomaly_type` column takes values `"Outlier"` (global Chen-Liu detection),
+  `"Segment_Outlier"` (local detection within a structural-break segment), or
+  `"Break"` (structural break).
+  (ii) `list_of_ts`, a named list of `data.table`s — one
+  per series — containing the time series with fitted regressors, outlier effect
+  columns, and `adjusted_y` (the TSO-adjusted series used for break detection) appended,
+  and (iii) the final model formula for
+  each time series. Processing runs in parallel via
   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 }
 \description{
@@ -49,4 +63,10 @@ This function detects anomalies across multiple time series. Accepts either a ke
 a named list of time series objects. For each series,
 `select_best_model()` chooses a regression specification (including structural-break detection),
 and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
+}
+\details{
+Break method `"breakpoints"` uses the implementation in `strucchangeRcpp::breakpoints()`.
+Break method `"cpt.reg"` uses the implementation in `changepoint::cpt.reg()`,
+which supports the PELT and AMOC algorithms. PELT is used by default.
+Additional arguments can be supplied through `break_params`.
 }

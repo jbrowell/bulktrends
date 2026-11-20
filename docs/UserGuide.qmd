@@ -212,7 +212,7 @@ The anomaly detection workflow considers two types of anomalies; structural brea
 
 For a given commodity code and quantity, (i) `extract_ts` extracts a list of time series by summing all commodities with the specified codes by time period, (ii) `select_best_model` automatically finds an optimal regression model from a pool of candidate models of base models and models with structural breaks, and (iii) `detect_outliers` specifically detects temporary outliers ("AO" additive outliers and "TC" temporary changes) using an outlier detection algorithm.
 
-In this workflow, structural break detection is performed within `select_best_model()` by using `break_detection = TRUE`. If any break is identified, the detected break information is stored in the `break_entry` output. 
+In this workflow, structural break detection is performed within `select_best_model()` by using `break_method = "breakpoints"`. If any break is identified, the detected break information is stored in the `break_entry` output.
 
 When `return_tso = TRUE` in `detect_outliers`, the full output object returned by tsoutliers::tso() is retained, allowing users to inspect the detected outliers, model diagnostics, fitted regressors, and temporary outlier effects in detail.
 
@@ -222,7 +222,7 @@ When `return_tso = TRUE` in `detect_outliers`, the full output object returned b
 
 ts_data <- extract_ts(imports, "01", response_col="NET_MASS")
 
-selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_detection = TRUE)
+selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_method = "breakpoints")
 
 detected_anomaly <- detect_outliers(data = selected_model$data,
                     response_col= "NET_MASS",
@@ -348,7 +348,7 @@ ts_data <- extract_ts(imports_ipaffs[DATE_START>="2023-01-01"],
                       date_col = "DATE_START",
                       fill_missing=0)
 
-selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_detection = TRUE)
+selected_model <- select_best_model(ts_data, response_col = "NET_MASS", break_method = "breakpoints")
 
 detected_anomaly <- detect_outliers(data = selected_model$data,
                     response_col= "NET_MASS",

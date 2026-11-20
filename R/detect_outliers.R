@@ -14,26 +14,41 @@
 #'   e.g. `list(cval = 5, types = c("AO", "TC", "IO"))`. Default `list()`.
 #'
 #' @return A list with elements (i) `data`, the original time series dataset with outlier covariates
-#' columns appended when detected, and (ii) `outliers`, the outlier summary table returned by `tso()`.
-#' If `return_tso = TRUE`, a third element `tso` is also included. Returns
-#'   `NULL` if `tso()` errors.
+#' columns appended when detected, (ii) `outliers`, the outlier summary table returned by `tso()`,
+#' and (iii) `model_used`, identifying the successful ARIMA fitting strategy.
+#' If `return_tso = TRUE`, an additional element `tso` is included.
+#' Returns `NULL` if all attempts to fit `tso()` fail.
+#'
+#' @details
+#' If `tso()` fails with the default ARIMA model selection, it is retried with
+#' an ARIMA(0,0,0) model that keeps `xreg`. If that also fails, it is retried
+#' with ARIMA(0,0,0) and no regressors, i.e. a constant mean. That last model
+#' ignores trend, seasonality and level shifts, so it may detect fewer outliers.
+#' A message is printed each time a fallback is used.
 #'
 #' @export
 detect_outliers <- function(
-  data,
-  response_col,
-  scale_ts = FALSE,
-  xreg = NULL,
-  return_tso = FALSE,
-  tso_params = list()
+    data,
+    response_col,
+    scale_ts = FALSE,
+    xreg = NULL,
+    return_tso = FALSE,
+    tso_params = list()
 ) {
   if (!is.null(xreg)) {
     xreg <- as.matrix(xreg)
+    
+    # Drop any intercept column: the ARIMA model fitted by tso() estimates its
+    # own mean, so an intercept in xreg is collinear with it and fitting fails    
+    if ("(Intercept)" %in% colnames(xreg)) {
+      xreg <- xreg[, colnames(xreg) != "(Intercept)", drop = FALSE]
+    }
+    
     if (ncol(xreg) == 0) {
       xreg <- NULL
     }
   }
-
+  
   tso_params <- modifyList(
     list(
       y = if (scale_ts) {
@@ -47,44 +62,105 @@ detect_outliers <- function(
     ),
     tso_params
   )
-
-  tso_outliers <- tryCatch(
-    do.call(tsoutliers::tso, tso_params),
-    error = function(e) {
-      message("Outlier detection failed: ", e)
-      return(NULL)
-    }
+  
+  # Helper function to run tso() and capture errors
+  run_tso <- function(params) {
+    tryCatch(
+      do.call(tsoutliers::tso, params),
+      error = function(e) e
+    )
+  }
+  
+  # ARIMA(0,0,0) fallback specification
+  arima000 <- list(
+    tsmethod = "arima",
+    args.tsmethod = list(order = c(0, 0, 0))
   )
-
-  if (is.null(tso_outliers)) {
+  
+  # First attempt: default ARIMA model selection
+  model_used <- "default"
+  tso_outliers <- run_tso(tso_params)
+  
+  # Fallback 1: ARIMA(0,0,0), retaining external regressors, so that trend and
+  # seasonality are still removed before outliers are tested
+  if (inherits(tso_outliers, "error") && !is.null(tso_params$xreg)) {
+    message(
+      "Outlier detection failed, retrying with ARIMA(0,0,0): ",
+      conditionMessage(tso_outliers)
+    )
+    
+    tso_outliers <- run_tso(
+      utils::modifyList(tso_params, arima000)
+    )
+    
+    if (!inherits(tso_outliers, "error")) {
+      model_used <- "ARIMA(0,0,0)_with_xreg"
+    }
+  }
+  
+  # Fallback 2: ARIMA(0,0,0), without external regressors (constant mean only)
+  if (inherits(tso_outliers, "error")) {
+    message(
+      "Outlier detection failed, retrying with ARIMA(0,0,0) and no xreg: ",
+      conditionMessage(tso_outliers)
+    )
+    
+    fallback_params <- utils::modifyList(tso_params, arima000)
+    fallback_params["xreg"] <- list(NULL)
+    
+    tso_outliers <- run_tso(fallback_params)
+    
+    if (!inherits(tso_outliers, "error")) {
+      model_used <- "ARIMA(0,0,0)_without_xreg"
+    }
+  }
+  
+  # Return NULL if all fitting attempts fail
+  if (inherits(tso_outliers, "error")) {
+    message(
+      "Outlier detection failed: ",
+      conditionMessage(tso_outliers)
+    )
     return(NULL)
   }
-
+  
+  # Extract fitted regressors
   xreg <- tso_outliers$fit$xreg
-
+  
   if (!is.null(xreg)) {
     xreg <- as.matrix(xreg)
-
-    #identify outlier columns
+    
+    # Identify outlier columns
     outlier_cols <- colnames(xreg)
     outlier_cols <- outlier_cols[
       substr(outlier_cols, 1, 2) %in% c("AO", "TC")
     ]
-
+    
     if (length(outlier_cols) > 0) {
-      xreg_outliers <- as.data.table(xreg[, outlier_cols, drop = FALSE])
+      xreg_outliers <- data.table::as.data.table(
+        xreg[, outlier_cols, drop = FALSE]
+      )
+      
       # Rename columns to sequential AO1, AO2, TC1, TC2 etc.
       types <- substr(outlier_cols, 1, 2)
       type_counts <- ave(seq_along(types), types, FUN = seq_along)
+      
       colnames(xreg_outliers) <- paste0(types, type_counts)
+      
       data <- cbind(data, xreg_outliers)
     }
   }
-  result <- list(data = data, outliers = tso_outliers$outliers)
-
+  
+  # Compile results
+  result <- list(
+    data = data,
+    outliers = tso_outliers$outliers,
+    model_used = model_used
+  )
+  
   if (return_tso) {
     result$tso <- tso_outliers
   }
-
+  
   return(result)
 }

@@ -10,7 +10,8 @@ select_best_model(
   formulas = NULL,
   response_col = NULL,
   metric = AIC,
-  break_detection = TRUE,
+  break_method = NULL,
+  break_params = list(),
   freq = NULL
 )
 }
@@ -27,18 +28,23 @@ data `day_of_week` and `is_holiday` are also available.}
 \item{response_col}{If `formulas` not provided, default formulas will be used
 but the column containing the response variable must be specified.}
 
-\item{metric}{A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.}
+\item{metric}{A function used to evaluate model fit, e.g. [AIC] or [BIC].
+Default `AIC`.}
 
-\item{break_detection}{If `TRUE`, structural break detection is
-performed and break-adjusted models are also evaluated.}
+\item{break_method}{If `NULL`, no break detection is attempted. Options
+are `"breakpoints"` or `"cpt.reg"`. See `?detect_breaks` for details.}
 
-\item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
+\item{break_params}{A named list of additional arguments passed to the
+selected structural break detection function. Default `list()`.}
+
+\item{freq}{Frequency of the input time series. If NULL it will be
+auto-detected ('day', 'week', or 'month').}
 }
 \value{
-A list containing (i) `data`, the time series' data with any generated regressors
-and structural break segment variables, (ii)  `formula`, the optimal selected model formula, and
-(iii)  `break_entry`, a `data.table` describing any detected structural breaks
-or `NULL` if no breaks were found.
+A list containing (i) `data`, the time series' data with any
+generated regressors and structural break segment variables, (ii) `formula`,
+the optimal selected model formula, and (iii) `break_entry`, a `data.table`
+describing any detected structural breaks or `NULL` if no breaks were found.
 }
 \description{
 This function evaluates a set of candidate regression formulas containing
