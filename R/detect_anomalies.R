@@ -587,8 +587,8 @@ detect_anomalies_single_ts <- function(
         vapply(
           candidates,
           function(v) {
-            !is.na(ts_data[[v]][event_ind]) &&
-              ts_data[[v]][event_ind] != 0
+            onset <- which(ts_data[[v]] != 0)[1L]
+            !is.na(onset) && onset == event_ind
           },
           logical(1)
         )
