@@ -5,13 +5,19 @@
 #' a named list of time series objects. For each series,
 #' `select_best_model()` chooses a regression specification (including structural-break detection),
 #' and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
-
+#'
 #' @param data A named list of individual time series, or a keyed tsibble containing
 #' one or more trade time series.
 #' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
 #' @param date_col Name of column containing timestamps.
 #' @param model_selection_metric A function used for model selection, e.g. `AIC`
 #'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
+#' @param break_method Function used for structural break detection.
+#'   Options are `"breakpoints"` or `"cpt.reg"`. Default `"cpt.reg"`.
+#' @param break_params A named list of additional arguments passed to the selected
+#'   structural break detection function. For `"cpt.reg"`, this includes the
+#'   algorithm selection (`method = "PELT"` or `"AMOC"`) and other arguments
+#'   such as `minseglen`. Default `list()`.
 #' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance
 #' using `scale()`. Default `FALSE`.
 #' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
@@ -19,27 +25,39 @@
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
 #'
+#' @details
+#' Break method `"breakpoints"` uses the implementation in `strucchangeRcpp::breakpoints()`.
+#' Break method `"cpt.reg"` uses the implementation in `changepoint::cpt.reg()`,
+#' which supports the PELT and AMOC algorithms. PELT is used by default.
+#' Additional arguments can be supplied through `break_params`.
+#'
 #' @return A list with three elements: (i) `outliers`, a `data.table` with one row per
-#'   detected event (or one row with `anomaly_type = "None"` if nothing was found),
-#'  (ii) `list_of_ts`, a named list of `data.table`s — one
-#'   per commodity code — containing the time series with fitted regressors and
-#'   outlier effect columns appended, and (iii) the final model formula for each time series
-#'   Processing runs in parallel via
+#'   detected event (or one row with `anomaly_type = "None"` if nothing was found).
+#'   The `anomaly_type` column takes values `"Outlier"` (global Chen-Liu detection),
+#'   `"Segment_Outlier"` (local detection within a structural-break segment), or
+#'   `"Break"` (structural break).
+#'   (ii) `list_of_ts`, a named list of `data.table`s — one
+#'   per series — containing the time series with fitted regressors, outlier effect
+#'   columns, and `adjusted_y` (the TSO-adjusted series used for break detection) appended,
+#'   and (iii) the final model formula for
+#'   each time series. Processing runs in parallel via
 #'   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
 #'
 #' @export
 detect_anomalies <- function(
-  data,
-  response_col = "NET_MASS",
-  date_col = "DATE_START",
-  model_selection_metric = AIC,
-  scale_ts = FALSE,
-  verbose = FALSE,
-  tso_params = list()
+    data,
+    response_col = "NET_MASS",
+    date_col = "DATE_START",
+    model_selection_metric = AIC,
+    break_method = "cpt.reg",
+    break_params = list(),
+    scale_ts = FALSE,
+    verbose = FALSE,
+    tso_params = list()
 ) {
   if (inherits(data, "tbl_ts")) {
     key_tbl <- dplyr::group_keys(tsibble::group_by_key(data))
-
+    
     if (ncol(key_tbl) == 0) {
       series_list <- list(series = data)
       time_series_ids <- "series"
@@ -54,11 +72,11 @@ detect_anomalies <- function(
   } else {
     stop("`data` must be a tsibble or a named list of time series.")
   }
-
+  
   # time_series_ids <- names(data)
-
+  
   p <- progressr::progressor(along = time_series_ids)
-
+  
   results <- future.apply::future_mapply(
     detect_anomalies_single_ts,
     ts_data = series_list,
@@ -70,19 +88,22 @@ detect_anomalies <- function(
       model_selection_metric = model_selection_metric,
       verbose = verbose,
       tso_params = tso_params,
-      p = p
+      p = p,
+      break_method = break_method,
+      break_params = break_params
     ),
     SIMPLIFY = FALSE,
     future.globals = list(),
     future.packages = c("bulktrends")
   )
-
+  
   results <- Filter(Negate(is.null), results)
   all_outliers <- lapply(results, `[[`, "outliers")
   list_of_ts <- lapply(results, `[[`, "list_of_ts")
   names(list_of_ts) <- lapply(results, `[[`, "id")
   all_formulas <- lapply(results, `[[`, "formula")
   names(all_formulas) <- lapply(results, `[[`, "id")
+  
   return(list(
     outliers = rbindlist(all_outliers, fill = TRUE),
     list_of_ts = list_of_ts,
@@ -104,6 +125,10 @@ detect_anomalies <- function(
 #'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
 #'   Default `list()`.
 #' @param p A `progressr` progressor function.
+#' @param break_method Function used for structural break detection.
+#'   Options are `"breakpoints"` or `"cpt.reg"`.
+#' @param break_params A named list of additional arguments passed to the selected
+#'   structural break detection function. Default `list()`.
 #'
 #' @return A list containing detected outliers, the augmented time series,
 #'   the updated model formula, and the series identifier.
@@ -111,180 +136,634 @@ detect_anomalies <- function(
 #' @keywords internal
 #'
 detect_anomalies_single_ts <- function(
-  ts_data,
-  id,
-  response_col,
-  date_col,
-  scale_ts,
-  model_selection_metric,
-  verbose,
-  tso_params,
-  p
+    ts_data,
+    id,
+    response_col,
+    date_col,
+    scale_ts,
+    model_selection_metric,
+    verbose,
+    tso_params,
+    p,
+    break_method,
+    break_params = list()
 ) {
   is_tsibble_input <- inherits(ts_data, "tbl_ts")
   original_ts <- ts_data
-  if (is_tsibble_input) {
-    data <- data.table::as.data.table(ts_data)
-    data <- data[, c(date_col, response_col), with = FALSE]
-  } else {
-    data <- data.table::as.data.table(ts_data)
-    data <- data.table::as.data.table(ts_data)[,
-      c(date_col, response_col),
-      with = FALSE
-    ]
-  }
-
+  
+  # ------------------------------------------------------------
+  # 1. Prepare data — preserve all input columns
+  # ------------------------------------------------------------
+  
+  data <- data.table::as.data.table(ts_data)
   data[[date_col]] <- as.Date(data[[date_col]])
-
-  sparse_rate <- mean(data[[response_col]] == 0, na.rm = T)
-
+  
+  if (anyNA(data[[response_col]])) {
+    warning("Missing response values in series ", id, ".")
+  }
+  
+  sparse_rate <- mean(data[[response_col]] == 0, na.rm = TRUE)
+  
   if (!is.na(sparse_rate) && sparse_rate > 0.4) {
-    message(paste(
-      "Skipping time series",
+    message(
+      "Skipping time series ",
       id,
-      ":",
+      ": ",
       round(sparse_rate * 100, 2),
       "% zeros"
-    ))
+    )
     p(sprintf("Skipped %s", id))
     return(NULL)
   }
-
-  if (verbose) {
-    message(sprintf("Running selected_model for %s", id))
+  
+  tso_params <- utils::modifyList(
+    list(types = c("AO", "TC")),
+    tso_params
+  )
+  
+  if (any(tso_params$types %in% c("IO", "LS"))) {
+    stop("`tso_params$types` must not include \"IO\" or \"LS\".")
   }
-  # model selection
+  
+  tso_params <- utils::modifyList(
+    list(types = c("AO", "TC")),
+    tso_params
+  )
+  
+  # ------------------------------------------------------------
+  # 2. Select the baseline regression model
+  # ------------------------------------------------------------
+  
+  if (verbose) {
+    message("Selecting baseline model for ", id)
+  }
+  
   selected_model <- tryCatch(
     select_best_model(
       data = data,
       response_col = response_col,
       date_col = date_col,
       metric = model_selection_metric,
-      break_detection = TRUE
+      break_method = break_method,
+      break_params = break_params
     ),
     error = function(e) e
   )
-
+  
   if (inherits(selected_model, "error")) {
-    message("Skipping time series", id, ":", selected_model)
+    message(
+      "Skipping time series ",
+      id,
+      ": model selection failed: ",
+      conditionMessage(selected_model)
+    )
     p(sprintf("Skipped %s", id))
     return(NULL)
   }
-
-  if (verbose) {
-    message(sprintf("Running detect_anomaly for %s", id))
+  
+  if (is.null(selected_model$formula)) {
+    message("Skipping time series ", id, ": no valid model was selected.")
+    p(sprintf("Skipped %s", id))
+    return(NULL)
   }
-
-  # matrix of regressors
-  ts_data <- selected_model$data
-  break_entry <- selected_model$break_entry
-  xreg_all <- model.matrix(selected_model$formula, data = ts_data)
-
-  #for ~ -1 models
+  
+  baseline_formula <- selected_model$baseline_formula
+  ts_data <- data.table::copy(selected_model$data)
+  
+  # Remove provisional segments so they don't bias TSO xreg
+  if ("segments" %in% names(ts_data)) {
+    ts_data[, segments := NULL]
+  }
+  
+  # ------------------------------------------------------------
+  # 3. Global Chen-Liu outlier detection on the original response
+  # ------------------------------------------------------------
+  
+  if (verbose) {
+    message("Running global outlier detection for ", id)
+  }
+  
+  xreg_all <- stats::model.matrix(baseline_formula, data = ts_data)
   if (ncol(xreg_all) == 0) {
     xreg_all <- NULL
   }
-
-  # tso outlier detection
-  outliers <- tryCatch(
+  
+  global_outliers <- tryCatch(
     detect_outliers(
       data = ts_data,
       response_col = response_col,
       scale_ts = scale_ts,
       xreg = xreg_all,
+      return_tso = TRUE,
       tso_params = tso_params
     ),
     error = function(e) e
   )
-
-  if (inherits(outliers, "error")) {
-    message("Skipping time series", id, ":", outliers)
+  
+  if (
+    inherits(global_outliers, "error") ||
+    is.null(global_outliers) ||
+    is.null(global_outliers$tso)
+  ) {
+    message("Skipping time series ", id, ": global outlier detection failed.")
     p(sprintf("Skipped %s", id))
-    outliers <- list(data = ts_data, outliers = NULL)
+    return(NULL)
   }
-
-  if (is.null(outliers)) {
-    message(paste("Outlier detection failed:", id))
+  
+  ts_data <- global_outliers$data
+  
+  # ------------------------------------------------------------
+  # 4. Extract the anomaly-adjusted response
+  # ------------------------------------------------------------
+  
+  adjusted_response <- as.numeric(global_outliers$tso$yadj)
+  
+  if (length(adjusted_response) != nrow(ts_data)) {
+    message("Skipping time series ", id, ": adjusted response length mismatch.")
     p(sprintf("Skipped %s", id))
-    outliers <- list(data = ts_data, outliers = NULL)
+    return(NULL)
   }
-
-  ts_data <- outliers$data
-
-  # update formula
-  tso_vars <- grep("^(AO|TC|IO)", names(ts_data), value = TRUE)
-  if (length(tso_vars) > 0) {
-    updated_formula <- update(
-      selected_model$formula,
-      paste(". ~ . +", paste(tso_vars, collapse = " + "))
+  
+  if (scale_ts) {
+    original_y <- as.numeric(data[[response_col]])
+    scale_center <- mean(original_y, na.rm = TRUE)
+    scale_sd <- stats::sd(original_y, na.rm = TRUE)
+    
+    if (is.finite(scale_sd) && scale_sd > 0) {
+      adjusted_response <- adjusted_response * scale_sd + scale_center
+    } else {
+      adjusted_response <- original_y
+    }
+  }
+  
+  ts_data[, adjusted_y := adjusted_response]
+  
+  # ------------------------------------------------------------
+  # 5. Run break detection on the adjusted response
+  # ------------------------------------------------------------
+  
+  if (verbose) {
+    message("Running break detection on the adjusted response for ", id)
+  }
+  
+  ts_data_adj <- data.table::copy(ts_data)
+  ts_data_adj[, (response_col) := adjusted_response]
+  
+  break_detect_formula <- if (
+    !is.null(selected_model$break_detection_formula)
+  ) {
+    selected_model$break_detection_formula
+  } else {
+    baseline_formula
+  }
+  
+  final_breaks <- tryCatch(
+    detect_breaks(
+      data = ts_data_adj,
+      formula = break_detect_formula,
+      date_col = date_col,
+      break_method = break_method,
+      break_params = break_params
+    ),
+    error = function(e) e
+  )
+  
+  if (inherits(final_breaks, "error")) {
+    message(
+      "Break detection failed for ",
+      id,
+      ": ",
+      conditionMessage(final_breaks)
     )
-  } else {
-    updated_formula <- selected_model$formula
+    final_breaks <- NULL
   }
-
-  if (!is.null(outliers$outliers) && nrow(outliers$outliers) > 0) {
-    # store tso outliers data produced
-    new_outliers <- as.data.table(outliers$outliers)
-    new_outliers[, id := id]
-    new_outliers[, time := ts_data[[date_col]][ind]]
-    new_outliers[, anomaly_type := "Outlier"]
-
-    outliers_entry <- new_outliers
+  
+  if (is.null(final_breaks)) {
+    segments <- factor(rep(1L, nrow(ts_data)))
+    break_entry <- data.table::data.table()
   } else {
-    outliers_entry <- data.table()
+    segments <- as.factor(final_breaks$segments$segments)
+    break_entry <- data.table::copy(final_breaks$break_entry)
   }
-
-  #add breaks table
-  if (!is.null(break_entry) && nrow(break_entry) > 0) {
-    break_entry[, id := id]
-    break_entry[, anomaly_type := "Break"]
-
-    outliers_entry <- rbindlist(
-      list(outliers_entry, break_entry),
+  
+  ts_data[, segments := segments]
+  break_indices <- if (nrow(break_entry) > 0) break_entry$ind else integer(0)
+  
+  # ------------------------------------------------------------
+  # 6. Build the global anomaly-event table
+  # ------------------------------------------------------------
+  
+  if (
+    !is.null(global_outliers$outliers) &&
+    nrow(global_outliers$outliers) > 0
+  ) {
+    global_entry <- data.table::as.data.table(global_outliers$outliers)
+    global_entry[, id := id]
+    global_entry[, time := ts_data[[date_col]][ind]]
+    global_entry[, anomaly_type := "Outlier"]
+  } else {
+    global_entry <- data.table::data.table()
+  }
+  
+  # ------------------------------------------------------------
+  # 7. Segment-level outlier detection
+  # ------------------------------------------------------------
+  
+  if (verbose) {
+    message("Running segment-level outlier detection for ", id)
+  }
+  
+  segment_entries <- list()
+  segment_effect_vars <- character()
+  
+  for (seg_id in levels(ts_data$segments)) {
+    
+    seg_idx <- which(ts_data$segments == seg_id)
+    
+    if (length(seg_idx) < 8) {
+      next
+    }
+    
+    seg_data <- data.table::copy(ts_data[seg_idx])
+    seg_data[, (response_col) := ts_data[["adjusted_y"]][seg_idx]]
+    
+    # ------------------------------------------------------------
+    # Prepare data for segment-level detection
+    # Remove global AO/TC effects to avoid naming collisions
+    # ------------------------------------------------------------
+    
+    seg_detect_data <- data.table::copy(seg_data)
+    
+    global_effects <- grep(
+      "^(AO|TC)",
+      names(seg_detect_data),
+      value = TRUE
+    )
+    
+    if (length(global_effects) > 0) {
+      seg_detect_data[, (global_effects) := NULL]
+    }
+    
+    # ------------------------------------------------------------
+    # Prepare regressors
+    # ------------------------------------------------------------
+    
+    seg_xreg <- stats::model.matrix(
+      baseline_formula,
+      data = seg_detect_data
+    )
+    
+    if (ncol(seg_xreg) == 0) {
+      seg_xreg <- NULL
+    }
+    
+    # ------------------------------------------------------------
+    # Run segment-level outlier detection
+    # ------------------------------------------------------------
+    
+    seg_out <- tryCatch(
+      detect_outliers(
+        data = seg_detect_data,
+        response_col = response_col,
+        scale_ts = FALSE,
+        xreg = seg_xreg,
+        return_tso = FALSE,
+        tso_params = tso_params
+      ),
+      error = function(e) e
+    )
+    
+    if (
+      inherits(seg_out, "error") ||
+      is.null(seg_out) ||
+      is.null(seg_out$data)
+    ) {
+      next
+    }
+    
+    # ------------------------------------------------------------
+    # Retain local AO/TC effect columns in the full time series
+    # ------------------------------------------------------------
+    
+    local_effects <- grep(
+      "^(AO|TC)",
+      names(seg_out$data),
+      value = TRUE
+    )
+    
+    if (length(local_effects) > 0) {
+      
+      segment_number <- match(
+        seg_id,
+        levels(ts_data$segments)
+      )
+      
+      for (effect_name in local_effects) {
+        
+        base_effect_name <- paste0(
+          "SEG",
+          segment_number,
+          "_",
+          effect_name
+        )
+        
+        new_effect_name <- make.unique(
+          c(
+            names(ts_data),
+            segment_effect_vars,
+            base_effect_name
+          )
+        )[length(names(ts_data)) +
+            length(segment_effect_vars) + 1L]
+        
+        # Create a full-length effect vector.
+        # Values outside this segment are zero.
+        
+        effect_values <- numeric(nrow(ts_data))
+        
+        segment_effect_values <- seg_out$data[[effect_name]]
+        
+        if (length(segment_effect_values) != length(seg_idx)) {
+          next
+        }
+        
+        effect_values[seg_idx] <- segment_effect_values
+        
+        ts_data[, (new_effect_name) := effect_values]
+        
+        segment_effect_vars <- c(
+          segment_effect_vars,
+          new_effect_name
+        )
+      }
+    }
+    
+    # ------------------------------------------------------------
+    # Retain the local outlier event summary separately
+    # ------------------------------------------------------------
+    
+    if (
+      !is.null(seg_out$outliers) &&
+      nrow(seg_out$outliers) > 0
+    ) {
+      
+      entry <- data.table::as.data.table(
+        seg_out$outliers
+      )
+      
+      entry[, ind := seg_idx[ind]]
+      entry[, id := id]
+      entry[, time := ts_data[[date_col]][ind]]
+      entry[, anomaly_type := "Segment_Outlier"]
+      entry[, segment := seg_id]
+      
+      segment_entries[[length(segment_entries) + 1L]] <- entry
+    }
+  }
+  
+  segment_entry <- if (length(segment_entries) > 0) {
+    data.table::rbindlist(
+      segment_entries,
       fill = TRUE
     )
-
-    setorder(outliers_entry, time)
   } else {
-    break_entry <- data.table()
+    data.table::data.table()
   }
-
-  # no break no outlier option
+  
+  # ------------------------------------------------------------
+  # 8. Proximity filter — suppress events and effects within ±5
+  #    observations of a structural break
+  # ------------------------------------------------------------
+  
+  prox_filter <- function(dt, bi) {
+    if (nrow(dt) == 0 || length(bi) == 0) {
+      return(dt)
+    }
+    
+    dt[sapply(ind, function(i) !any(abs(i - bi) <= 5))]
+  }
+  
+  # Identify events that will be suppressed
+  suppressed_global <- if (
+    nrow(global_entry) > 0 && length(break_indices) > 0
+  ) {
+    global_entry[
+      sapply(ind, function(i) any(abs(i - break_indices) <= 5))
+    ]
+  } else {
+    data.table::data.table()
+  }
+  
+  suppressed_segment <- if (
+    nrow(segment_entry) > 0 && length(break_indices) > 0
+  ) {
+    segment_entry[
+      sapply(ind, function(i) any(abs(i - break_indices) <= 5))
+    ]
+  } else {
+    data.table::data.table()
+  }
+  
+  # ------------------------------------------------------------
+  # Identify global effect columns associated with suppressed events
+  # ------------------------------------------------------------
+  
+  global_effects_to_remove <- character()
+  
+  if (nrow(suppressed_global) > 0) {
+    
+    for (i in seq_len(nrow(suppressed_global))) {
+      
+      event_type <- suppressed_global$type[i]
+      event_ind  <- suppressed_global$ind[i]
+      
+      candidates <- grep(
+        paste0("^", event_type, "\\d+$"),
+        names(ts_data),
+        value = TRUE
+      )
+      
+      candidates <- candidates[
+        vapply(
+          candidates,
+          function(v) {
+            onset <- which(ts_data[[v]] != 0)[1L]
+            !is.na(onset) && onset == event_ind
+          },
+          logical(1)
+        )
+      ]
+      
+      global_effects_to_remove <- c(
+        global_effects_to_remove,
+        candidates
+      )
+    }
+  }
+  
+  # ------------------------------------------------------------
+  # Identify segment-specific effect columns associated with
+  # suppressed segment events
+  # ------------------------------------------------------------
+  
+  segment_effects_to_remove <- character()
+  
+  if (nrow(suppressed_segment) > 0) {
+    
+    for (i in seq_len(nrow(suppressed_segment))) {
+      
+      event_type <- suppressed_segment$type[i]
+      event_ind  <- suppressed_segment$ind[i]
+      event_seg  <- suppressed_segment$segment[i]
+      
+      segment_number <- match(
+        event_seg,
+        levels(ts_data$segments)
+      )
+      
+      candidates <- grep(
+        paste0("^SEG", segment_number, "_", event_type, "\\d+$"),
+        segment_effect_vars,
+        value = TRUE
+      )
+      
+      candidates <- candidates[
+        vapply(
+          candidates,
+          function(v) {
+            !is.na(ts_data[[v]][event_ind]) &&
+              ts_data[[v]][event_ind] != 0
+          },
+          logical(1)
+        )
+      ]
+      
+      segment_effects_to_remove <- c(
+        segment_effects_to_remove,
+        candidates
+      )
+    }
+  }
+  
+  # ------------------------------------------------------------
+  # Remove the suppressed effects from the augmented time series
+  # ------------------------------------------------------------
+  
+  effects_to_remove <- unique(
+    c(global_effects_to_remove, segment_effects_to_remove)
+  )
+  
+  if (length(effects_to_remove) > 0) {
+    
+    ts_data[, (effects_to_remove) := NULL]
+    
+    segment_effect_vars <- setdiff(
+      segment_effect_vars,
+      segment_effects_to_remove
+    )
+  }
+  
+  # ------------------------------------------------------------
+  # Filter suppressed events from the event tables
+  # ------------------------------------------------------------
+  
+  global_entry <- prox_filter(
+    global_entry,
+    break_indices
+  )
+  
+  segment_entry <- prox_filter(
+    segment_entry,
+    break_indices
+  )
+  
+  # ------------------------------------------------------------
+  # 9. Add structural-break events and combine
+  # ------------------------------------------------------------
+  
+  if (nrow(break_entry) > 0) {
+    break_entry[, id := id]
+    break_entry[, anomaly_type := "Break"]
+  }
+  
+  outliers_entry <- data.table::rbindlist(
+    list(global_entry, segment_entry, break_entry),
+    fill = TRUE
+  )
+  
+  if (nrow(outliers_entry) > 0 && "time" %in% names(outliers_entry)) {
+    data.table::setorder(outliers_entry, time)
+  }
+  
   if (nrow(outliers_entry) == 0) {
-    outliers_entry <- data.table(
+    outliers_entry <- data.table::data.table(
       id = id,
       anomaly_type = "None"
     )
   }
-
-  # back to tsibble if tsibble
+  
+  # ------------------------------------------------------------
+  # 10. Update the final formula to include detected outlier effects
+  # ------------------------------------------------------------
+  
+  # Global outlier effects
+  tso_vars <- grep(
+    "^(AO|TC)",
+    names(ts_data),
+    value = TRUE
+  )
+  
+  # Start with the break-adjusted specification when breaks exist.
+  final_formula <- if (!is.null(final_breaks)) {
+    stats::update(break_detect_formula, . ~ . * segments)
+  } else {
+    baseline_formula
+  }
+  
+  # Add global AO/TC effects and retained segment-specific effects.
+  all_effect_vars <- unique(
+    c(tso_vars, segment_effect_vars)
+  )
+  
+  if (length(all_effect_vars) > 0) {
+    final_formula <- stats::update(
+      final_formula,
+      paste(
+        ". ~ . +",
+        paste(all_effect_vars, collapse = " + ")
+      )
+    )
+  }
+  
+  # ------------------------------------------------------------
+  # 11. Restore original tsibble structure when applicable
+  # ------------------------------------------------------------
+  
   if (is_tsibble_input) {
-    ts_data <- data.table::as.data.table(outliers$data)
     if (inherits(original_ts[[date_col]], "yearmonth")) {
       ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
     } else {
       ts_data[[date_col]] <- as.Date(ts_data[[date_col]])
     }
-    #ts_data[[date_col]] <- tsibble::yearmonth(ts_data[[date_col]])
+    
     covariate_names <- setdiff(names(ts_data), names(original_ts))
-    covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
+    
     if (length(covariate_names) > 0) {
       covariates <- ts_data[, c(date_col, covariate_names), with = FALSE]
       all_ts <- dplyr::left_join(original_ts, covariates, by = date_col)
-
-      # function to return `all_ts` with attributes as tsibble format
     } else {
       all_ts <- original_ts
     }
   } else {
     all_ts <- ts_data
   }
-
+  
   p(sprintf("Completed time series %s", id))
+  
   return(list(
     outliers = outliers_entry,
     list_of_ts = all_ts,
-    formula = updated_formula,
+    formula = final_formula,
     id = id
   ))
 }

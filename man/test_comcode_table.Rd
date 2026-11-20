@@ -11,7 +11,7 @@ An object of class \code{data.frame} with 104 rows and 10 columns.
 \url{https://www.uktradeinfo.com/}
 }
 \usage{
-test_comcode_table
+data(test_comcode_table)
 }
 \description{
 Sample of rows from the Commodity Code look-up table returned by

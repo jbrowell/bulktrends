@@ -31,11 +31,19 @@ e.g. `list(cval = 5, types = c("AO", "TC", "IO"))`. Default `list()`.}
 }
 \value{
 A list with elements (i) `data`, the original time series dataset with outlier covariates
-columns appended when detected, and (ii) `outliers`, the outlier summary table returned by `tso()`.
-If `return_tso = TRUE`, a third element `tso` is also included. Returns
-  `NULL` if `tso()` errors.
+columns appended when detected, (ii) `outliers`, the outlier summary table returned by `tso()`,
+and (iii) `model_used`, identifying the successful ARIMA fitting strategy.
+If `return_tso = TRUE`, an additional element `tso` is included.
+Returns `NULL` if all attempts to fit `tso()` fail.
 }
 \description{
 This function detects temporary outliers in a given time series
 using `tsoutliers::tso()`.
+}
+\details{
+If `tso()` fails with the default ARIMA model selection, it is retried with
+an ARIMA(0,0,0) model that keeps `xreg`. If that also fails, it is retried
+with ARIMA(0,0,0) and no regressors, i.e. a constant mean. That last model
+ignores trend, seasonality and level shifts, so it may detect fewer outliers.
+A message is printed each time a fallback is used.
 }
