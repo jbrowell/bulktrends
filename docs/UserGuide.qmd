@@ -170,6 +170,7 @@ comcode_description("16041428", Commodity)
 
 
 ```{r}
+data("comcode_groups")
 head(imports[COMCODE %in% comcode_groups$animal_SPS])
 ```
 
