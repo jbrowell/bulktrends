@@ -1,7 +1,7 @@
 test_that("segment outlier effects are mapped to the full series and formula", {
   dates <- as.Date("2020-01-01") + 0:39
   input <- data.table::data.table(
-    date = dates, y = rep(10, 40), segment_1_AO1 = rep(42, 40)
+    date = dates, y = rep(10, 40), SEG1_AO1 = rep(42, 40)
   )
 
   testthat::local_mocked_bindings(
@@ -27,9 +27,12 @@ test_that("segment outlier effects are mapped to the full series and formula", {
         effects <- data.table::data.table(
           AO1 = as.numeric(seq_len(20) == 2),
           TC1 = ifelse(seq_len(20) >= 3, 0.7^(seq_len(20) - 3), 0),
-          AO2 = as.numeric(seq_len(20) == 18)
+          AO2 = as.numeric(seq_len(20) == 18),
+          TC2 = ifelse(seq_len(20) >= 18, 0.7^(seq_len(20) - 18), 0)
         )
-        events <- data.frame(type = c("AO", "TC", "AO"), ind = c(2, 3, 18))
+        events <- data.frame(
+          type = c("AO", "TC", "AO", "TC"), ind = c(2, 3, 18, 18)
+        )
       } else {
         effects <- data.table::data.table(
           AO1 = as.numeric(seq_len(20) == 9),
@@ -53,10 +56,10 @@ test_that("segment outlier effects are mapped to the full series and formula", {
   expect_equal(local_events$time, dates[c(2, 3, 29)])
   expect_equal(local_events$segment, c("1", "1", "2"))
 
-  effects <- setdiff(all.vars(result$formula), c("y", "AO1"))
+  effects <- setdiff(all.vars(result$formula), c("y", "AO1", "segments"))
   expect_length(effects, 3)
   expect_true(all(effects %in% names(result$list_of_ts)))
-  expect_equal(result$list_of_ts[["segment_1_AO1"]], rep(42, 40))
+  expect_equal(result$list_of_ts[["SEG1_AO1"]], rep(42, 40))
   expect_equal(result$list_of_ts[[effects[1]]], c(as.numeric(1:20 == 2), rep(0, 20)))
   expect_equal(
     result$list_of_ts[[effects[2]]],
