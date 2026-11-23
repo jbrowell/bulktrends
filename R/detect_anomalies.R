@@ -435,7 +435,6 @@ detect_anomalies_single_ts <- function(
     ) {
       next
     }
-
     # ------------------------------------------------------------
     # Retain local AO/TC effect columns in the full time series
     # ------------------------------------------------------------
@@ -462,14 +461,13 @@ detect_anomalies_single_ts <- function(
           effect_name
         )
 
-        new_effect_name <- make.unique(
+        new_effect_name <- utils::tail(make.unique(
           c(
             names(ts_data),
-            segment_effect_vars,
+            names(original_ts),
             base_effect_name
           )
-        )[length(names(ts_data)) +
-            length(segment_effect_vars) + 1L]
+        ), 1L)
 
         # Create a full-length effect vector.
         # Values outside this segment are zero.
@@ -617,7 +615,7 @@ detect_anomalies_single_ts <- function(
       )
 
       candidates <- grep(
-        paste0("^SEG", segment_number, "_", event_type, "\\d+$"),
+        paste0("^SEG", segment_number, "_", event_type, "[0-9]+(\\.[0-9]+)?$"),
         segment_effect_vars,
         value = TRUE
       )
@@ -626,8 +624,8 @@ detect_anomalies_single_ts <- function(
         vapply(
           candidates,
           function(v) {
-            !is.na(ts_data[[v]][event_ind]) &&
-              ts_data[[v]][event_ind] != 0
+            onset <- which(ts_data[[v]] != 0)[1L]
+            !is.na(onset) && onset == event_ind
           },
           logical(1)
         )
@@ -700,7 +698,6 @@ detect_anomalies_single_ts <- function(
   # ------------------------------------------------------------
   # 10. Update the final formula to include detected outlier effects
   # ------------------------------------------------------------
-
   # Global outlier effects
   tso_vars <- grep(
     "^(AO|TC)",
