@@ -31,3 +31,16 @@ make_keyed_tsibble <- function() {
   d[, DATE_START := tsibble::yearmonth(DATE_START)]
   tsibble::as_tsibble(d, key = "COMCODE", index = "DATE_START")
 }
+
+# Tsibble with `agg_vec` keys, as produced by uktrade_tsibble():
+# two child series plus their aggregate
+make_aggregated_tsibble <- function() {
+  a <- make_monthly_ts(spike_at = 30, seed = 1)
+  a[, COMCODE := "0101000000"]
+  b <- make_monthly_ts(shift_at = 40, seed = 2)
+  b[, COMCODE := "0201000000"]
+  d <- rbind(a, b)
+  d[, DATE_START := tsibble::yearmonth(DATE_START)]
+  ts <- tsibble::as_tsibble(d, key = "COMCODE", index = "DATE_START")
+  fabletools::aggregate_key(ts, COMCODE, NET_MASS = sum(NET_MASS))
+}

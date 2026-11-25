@@ -152,10 +152,46 @@ detect_anomalies_single_ts <- function(
   original_ts <- ts_data
 
   # ------------------------------------------------------------
-  # 1. Prepare data — preserve all input columns
+  # 1. Prepare data — preserve input columns that data.table can
+  #    safely subset and bind
   # ------------------------------------------------------------
 
   data <- data.table::as.data.table(ts_data)
+
+  # Columns that are not plain atomic vectors (e.g. the `agg_vec` keys
+  # created by fabletools::aggregate_key(), or list columns) are stored as
+  # lists, which data.table row-subsetting and cbind() mishandle. Set them
+  # aside here and restore them in step 11.
+  set_aside_cols <- names(data)[
+    !vapply(data, is.atomic, logical(1))
+  ]
+
+  bad_cols <- intersect(set_aside_cols, c(date_col, response_col))
+  if (length(bad_cols) > 0) {
+    stop(
+      "Column(s) ",
+      paste0("`", bad_cols, "`", collapse = ", "),
+      " in series ",
+      id,
+      " must be atomic vectors (e.g. numeric or Date)."
+    )
+  }
+
+  # Key columns are constant within a series and are restored from
+  # `original_ts`, so they are not needed in the working data either
+  if (is_tsibble_input) {
+    set_aside_cols <- union(set_aside_cols, tsibble::key_vars(original_ts))
+  }
+
+  set_aside <- lapply(
+    stats::setNames(set_aside_cols, set_aside_cols),
+    function(v) data[[v]]
+  )
+
+  if (length(set_aside_cols) > 0) {
+    data[, (set_aside_cols) := NULL]
+  }
+
   data[[date_col]] <- as.Date(data[[date_col]])
 
   if (anyNA(data[[response_col]])) {
@@ -244,13 +280,16 @@ detect_anomalies_single_ts <- function(
   }
 
   global_outliers <- tryCatch(
-    detect_outliers(
-      data = ts_data,
-      response_col = response_col,
-      scale_ts = scale_ts,
-      xreg = xreg_all,
-      return_tso = TRUE,
-      tso_params = tso_params
+    .handle_zeroed_residuals(
+      detect_outliers(
+        data = ts_data,
+        response_col = response_col,
+        scale_ts = scale_ts,
+        xreg = xreg_all,
+        return_tso = TRUE,
+        tso_params = tso_params
+      ),
+      id = id
     ),
     error = function(e) e
   )
@@ -260,7 +299,19 @@ detect_anomalies_single_ts <- function(
       is.null(global_outliers) ||
       is.null(global_outliers$tso)
   ) {
-    message("Skipping time series ", id, ": global outlier detection failed.")
+    reason <- if (inherits(global_outliers, "error")) {
+      conditionMessage(global_outliers)
+    } else if (is.null(global_outliers)) {
+      "all tso() fitting attempts failed"
+    } else {
+      "no tso() result was returned"
+    }
+    message(
+      "Skipping time series ",
+      id,
+      ": global outlier detection failed: ",
+      reason
+    )
     p(sprintf("Skipped %s", id))
     return(NULL)
   }
@@ -415,14 +466,19 @@ detect_anomalies_single_ts <- function(
     # Run segment-level outlier detection
     # ------------------------------------------------------------
 
+    # Zeroed start-up residuals are not reported for segments: events
+    # near a break are removed by the proximity filter in step 8 anyway
     seg_out <- tryCatch(
-      detect_outliers(
-        data = seg_detect_data,
-        response_col = response_col,
-        scale_ts = FALSE,
-        xreg = seg_xreg,
-        return_tso = FALSE,
-        tso_params = tso_params
+      .handle_zeroed_residuals(
+        detect_outliers(
+          data = seg_detect_data,
+          response_col = response_col,
+          scale_ts = FALSE,
+          xreg = seg_xreg,
+          return_tso = FALSE,
+          tso_params = tso_params
+        ),
+        id = NULL
       ),
       error = function(e) e
     )
@@ -732,10 +788,9 @@ detect_anomalies_single_ts <- function(
       ts_data[[date_col]] <- as.Date(ts_data[[date_col]])
     }
 
-    join_cols <- unique(c(
-      tsibble::key_vars(original_ts),
-      tsibble::index_var(original_ts)
-    ))
+    # A single series has one row per index value, so the index alone
+    # identifies rows. Key columns stay as they are in `original_ts`.
+    join_cols <- tsibble::index_var(original_ts)
     covariate_names <- setdiff(names(ts_data), join_cols)
 
     if (length(covariate_names) > 0) {
@@ -758,6 +813,17 @@ detect_anomalies_single_ts <- function(
     }
   } else {
     all_ts <- ts_data
+
+    # Restore set-aside columns by position: rows are never reordered
+    for (v in names(set_aside)) {
+      all_ts[[v]] <- set_aside[[v]]
+    }
+    if (length(set_aside) > 0) {
+      data.table::setcolorder(
+        all_ts,
+        intersect(names(original_ts), names(all_ts))
+      )
+    }
   }
 
   p(sprintf("Completed time series %s", id))
@@ -768,4 +834,45 @@ detect_anomalies_single_ts <- function(
     formula = final_formula,
     id = id
   ))
+}
+
+#' Handle tsoutliers' warning about zeroed start-up residuals
+#'
+#' `tsoutliers::tso()` warns "the first n residuals were set to zero" when
+#' residuals at the start of the ARIMA fit are extreme. Those observations
+#' then cannot be flagged as outliers. The warning does not name the series,
+#' so it is replaced here by a single message that does. With `id = NULL`
+#' the warning is silenced. Other warnings are passed through unchanged.
+#'
+#' @param expr Expression that calls `detect_outliers()`.
+#' @param id Series identifier used in the message, or `NULL` to silence.
+#'
+#' @return The value of `expr`.
+#'
+#' @noRd
+.handle_zeroed_residuals <- function(expr, id = NULL) {
+  zeroed <- NULL
+
+  result <- withCallingHandlers(
+    expr,
+    warning = function(w) {
+      msg <- conditionMessage(w)
+      if (grepl("residuals were set to zero", msg, fixed = TRUE)) {
+        zeroed <<- msg
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+
+  if (!is.null(id) && !is.null(zeroed)) {
+    message(
+      "Series ",
+      id,
+      ": ",
+      zeroed,
+      "; outliers at the start of the series cannot be detected."
+    )
+  }
+
+  result
 }

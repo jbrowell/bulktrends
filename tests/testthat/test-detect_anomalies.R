@@ -304,3 +304,148 @@ for (bm in c("breakpoints", "cpt.reg")) {
     }
   )
 }
+
+# Non-atomic columns ---------------------------------------------------------
+
+for (bm in c("breakpoints", "cpt.reg")) {
+  test_that(
+    paste0("detect_anomalies handles aggregate_key() tsibbles (", bm, ")"),
+    {
+      ts <- make_aggregated_tsibble()
+      expect_s3_class(ts$COMCODE, "agg_vec")
+
+      messages <- character()
+      res <- withCallingHandlers(
+        suppressWarnings(detect_anomalies(ts, break_method = bm)),
+        message = function(m) {
+          messages <<- c(messages, conditionMessage(m))
+          invokeRestart("muffleMessage")
+        }
+      )
+
+      expect_false(any(grepl("Skipping", messages)))
+      expect_length(res$list_of_ts, 3)
+      expect_setequal(
+        names(res$list_of_ts),
+        c("<aggregated>", "0101000000", "0201000000")
+      )
+
+      out <- res$list_of_ts[["0101000000"]]
+      expect_s3_class(out, "tbl_ts")
+      expect_s3_class(out$COMCODE, "agg_vec")
+      expect_identical(tsibble::key_vars(out), "COMCODE")
+      expect_s3_class(out$DATE_START, "yearmonth")
+      expect_equal(nrow(out), 72)
+      expect_true(all(c("linear_trend", "segments") %in% names(out)))
+    }
+  )
+}
+
+test_that("detect_anomalies_single_ts keeps list columns for list input", {
+  d <- make_monthly_ts(spike_at = 30)
+  d[, meta := as.list(seq_len(.N))]
+
+  res <- suppressWarnings(detect_anomalies_single_ts(
+    ts_data = d,
+    id = "s1",
+    response_col = "NET_MASS",
+    date_col = "DATE_START",
+    scale_ts = FALSE,
+    model_selection_metric = AIC,
+    verbose = FALSE,
+    tso_params = list(),
+    p = function(...) NULL,
+    break_method = "cpt.reg"
+  ))
+
+  expect_true("meta" %in% names(res$list_of_ts))
+  expect_equal(res$list_of_ts$meta, d$meta)
+  expect_equal(names(res$list_of_ts)[1:3], c("DATE_START", "NET_MASS", "meta"))
+})
+
+test_that("detect_anomalies_single_ts rejects a non-atomic response", {
+  d <- make_monthly_ts()
+  d[, NET_MASS := as.list(NET_MASS)]
+  expect_error(
+    detect_anomalies_single_ts(
+      ts_data = d,
+      id = "s1",
+      response_col = "NET_MASS",
+      date_col = "DATE_START",
+      scale_ts = FALSE,
+      model_selection_metric = AIC,
+      verbose = FALSE,
+      tso_params = list(),
+      p = function(...) NULL,
+      break_method = "cpt.reg"
+    ),
+    "must be atomic vectors"
+  )
+})
+
+# Zeroed start-up residuals --------------------------------------------------
+
+test_that(".handle_zeroed_residuals replaces the warning with a message", {
+  zeroed_warning <- function() {
+    warning("the first 2 residuals were set to zero")
+    warning("the first 2 residuals were set to zero")
+    "value"
+  }
+
+  messages <- character()
+  expect_no_warning(
+    res <- withCallingHandlers(
+      .handle_zeroed_residuals(zeroed_warning(), id = "s1"),
+      message = function(m) {
+        messages <<- c(messages, conditionMessage(m))
+        invokeRestart("muffleMessage")
+      }
+    )
+  )
+  expect_equal(res, "value")
+  expect_length(messages, 1)
+  expect_match(messages, "Series s1: the first 2 residuals were set to zero")
+})
+
+test_that(".handle_zeroed_residuals is silent when id is NULL", {
+  expect_silent(
+    .handle_zeroed_residuals(
+      {
+        warning("the first 2 residuals were set to zero")
+        1
+      },
+      id = NULL
+    )
+  )
+})
+
+test_that(".handle_zeroed_residuals passes other warnings through", {
+  expect_warning(
+    .handle_zeroed_residuals(
+      {
+        warning("something else")
+        1
+      },
+      id = "s1"
+    ),
+    "something else"
+  )
+})
+
+test_that("detect_anomalies reports zeroed residuals with the series id", {
+  d <- make_monthly_ts(seed = 1)
+  d[1, NET_MASS := NET_MASS + 60]
+
+  warnings <- character()
+  expect_message(
+    withCallingHandlers(
+      detect_anomalies(list(s1 = d), break_method = "cpt.reg"),
+      warning = function(w) {
+        warnings <<- c(warnings, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    ),
+    "Series s1: the first 2 residuals were set to zero"
+  )
+  expect_false(any(grepl("residuals were set to zero", warnings)))
+})
