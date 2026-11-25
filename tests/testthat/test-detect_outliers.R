@@ -62,14 +62,15 @@ test_that("detect_outliers supports scaling", {
 
 test_that("detect_outliers returns NULL when tso fails", {
   d <- make_monthly_ts()
-  expect_message(
+  # Each failed fitting attempt gives a message; capture them all
+  messages <- testthat::capture_messages(
     res <- detect_outliers(
       d,
       "NET_MASS",
       tso_params = list(y = stats::as.ts(rep(NA_real_, nrow(d))))
-    ),
-    "Outlier detection failed"
+    )
   )
+  expect_true(any(grepl("^Outlier detection failed: ", messages)))
   expect_null(res)
 })
 

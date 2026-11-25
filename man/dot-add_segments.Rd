@@ -13,9 +13,9 @@
 The segmented formula.
 }
 \description{
-Interacts every term in `formula` with the `segments` factor so that each
+Interacts every term in \code{formula} with the \code{segments} factor so that each
 segment has its own coefficients. For an intercept-only formula
-(`y ~ 1`), `update(f, . ~ . * segments)` simplifies back to `y ~ 1`, so
-`y ~ segments` (one mean per segment) is returned instead.
+(\code{y ~ 1}), \code{update(f, . ~ . * segments)} simplifies back to \code{y ~ 1}, so
+\code{y ~ segments} (one mean per segment) is returned instead.
 }
 \keyword{internal}

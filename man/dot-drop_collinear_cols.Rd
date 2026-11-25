@@ -10,7 +10,7 @@
 \item{x}{A numeric matrix.}
 }
 \value{
-`x` restricted to linearly independent columns.
+\code{x} restricted to linearly independent columns.
 }
 \description{
 Keeps a full-rank subset of columns using a QR decomposition. Earlier

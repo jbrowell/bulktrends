@@ -1,27 +1,46 @@
 #' Detect structural breaks in a time series
 #'
-#' This function identifies structural breaks in a time series using either
-#' the breakpoints (Bai-Perron) or a changepoint regression (PELT or AMOC) method.
+#' Identifies structural breaks in the regression relationship given by
+#' `formula`, using either the Bai-Perron method or changepoint regression
+#' (PELT or AMOC).
 #'
-#' @param data A `data.frame` containing the dependent variable and dates.
-#' @param formula A formula specifying the regression model for break detection.
-#' @param break_method Function used for structural break detection.
-#' Options are `"breakpoints"` or `"cpt.reg"`.
+#' @param data A data frame or `data.table` containing the response, the
+#'   regressors used in `formula`, and the date column.
+#' @param formula A formula specifying the regression model whose
+#'   coefficients may change at a break, e.g. `NET_MASS ~ 1` for changes in
+#'   mean, or `NET_MASS ~ linear_trend` for changes in level and trend.
+#' @param break_method Name of the break detection method, either
+#'   `"breakpoints"` or `"cpt.reg"`. Required.
 #' @param break_params A named list of additional arguments passed to the
-#' selected break detection function. For `cpt.reg`, this can include
-#' `method` (e.g. `"PELT"` or `"AMOC"`) and `minseglen`.
-#' @param date_col Name of column containing timestamps. Default `"DATE_START"`.
+#'   selected break detection function. For `"cpt.reg"`, this can include
+#'   `method` (`"PELT"` or `"AMOC"`) and `minseglen`. Default `list()`.
+#' @param date_col Name of the column containing timestamps. Default
+#'   `"DATE_START"`.
 #'
-#' @return A list containing (i) `break_entry`, a `data.table` with identified
-#' breakpoints and their respective indices and timing, and (ii) `segments`,
-#' a `data.table` containing a factor identifying the segment to which each
-#' observation belongs.
-#' Returns `NULL` if no breaks are detected.
+#' @return `NULL` if no breaks are detected; otherwise a list with elements:
+#'
+#' * `break_entry`: a `data.table` with one row per break and columns `type`
+#'   (always `"SB"`), `ind` and `time`. Following the convention of
+#'   [strucchangeRcpp::breakpoints()] and [changepoint::cpt.reg()], `ind` and
+#'   `time` give the last observation of the segment before the break.
+#' * `segments`: a `data.table` with a single factor column, `segments`,
+#'   giving the segment of each observation. The levels are `"segment1"`,
+#'   `"segment2"`, ... for `"breakpoints"` and `"1"`, `"2"`, ... for
+#'   `"cpt.reg"`.
 #'
 #' @details
-#' Method `"breakpoints"` uses `strucchangeRcpp::breakpoints()`.
-#' Method `"cpt.reg"` uses `changepoint::cpt.reg()`, allowing the user to
-#' select PELT or AMOC through `break_params`.
+#' A formula with no terms at all (e.g. `y ~ -1`) has no coefficients that
+#' could change, so `NULL` is returned.
+#'
+#' Method `"breakpoints"` uses [strucchangeRcpp::breakpoints()] with
+#' `breaks = "BIC"` and `het.err = FALSE`.
+#'
+#' Method `"cpt.reg"` uses [changepoint::cpt.reg()], with PELT by default.
+#' It always fits a mean term: constant and collinear regressors are removed
+#' and a single intercept is included, even if `formula` excludes one. The
+#' default `minseglen` is `max(15, 3 * k)`, where `k` is the number of
+#' regressors other than the intercept. A break at the last observation is
+#' ignored.
 #'
 #' @export
 detect_breaks <- function(

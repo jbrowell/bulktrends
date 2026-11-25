@@ -9,13 +9,13 @@ check_bulk_coverage(dest_dir, delete = FALSE)
 \arguments{
 \item{dest_dir}{Path to the directory containing downloaded ZIP files.}
 
-\item{delete}{Logical. If `TRUE`, redundant monthly files are deleted and
-the archive files are retained. Defaults to `FALSE` (report only).}
+\item{delete}{Logical. If \code{TRUE}, redundant monthly files are deleted and
+the archive files are retained. Defaults to \code{FALSE} (report only).}
 }
 \value{
 Invisibly returns a data frame with columns \code{monthly_file} and
-  \code{archive_file} identifying each duplicate pair. Returns an empty
-  data frame if no duplicates are found.
+\code{archive_file} identifying each duplicate pair. Returns an empty
+data frame if no duplicates are found.
 }
 \description{
 Scans a directory of downloaded UK Trade Info bulk data ZIP files and
@@ -24,12 +24,12 @@ broader archive file (annual or semi-annual). Optionally deletes the
 redundant monthly files.
 }
 \details{
-A monthly file (e.g. `BDSImp2602.zip`) is considered redundant when an
+A monthly file (e.g. \code{BDSImp2602.zip}) is considered redundant when an
 archive file present in the same directory is found to contain the same
 month's data. Coverage is determined by inspecting the filenames inside each
-ZIP, so partially-built archives (e.g. a `jan-jun` file that currently only
+ZIP, so partially-built archives (e.g. a \code{jan-jun} file that currently only
 contains January and February) are handled correctly.
 }
 \seealso{
-[download_uktradeinfo_bulk()]
+\code{\link[=download_uktradeinfo_bulk]{download_uktradeinfo_bulk()}}
 }

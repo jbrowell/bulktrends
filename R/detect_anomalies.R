@@ -1,47 +1,93 @@
 #' Large-scale anomaly detection
 #'
-#' This function detects anomalies across multiple time series. Accepts either a keyed
-#' [tsibble::tsibble()] (where each key combination is treated as a separate series) or
-#' a named list of time series objects. For each series,
-#' `select_best_model()` chooses a regression specification (including structural-break detection),
-#' and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
+#' Detects outliers and structural breaks across many time series. Accepts
+#' either a keyed [tsibble::tsibble()], where each key combination is treated
+#' as a separate series, or a named list of time series. Each series is
+#' processed by the steps described in Details.
 #'
-#' @param data A named list of individual time series, or a keyed tsibble containing
-#' one or more trade time series.
-#' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
-#' @param date_col Name of column containing timestamps.
-#' @param model_selection_metric A function used for model selection, e.g. `AIC`
-#'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
-#' @param break_method Function used for structural break detection.
-#'   Options are `"breakpoints"` or `"cpt.reg"`. Default `"cpt.reg"`.
-#' @param break_params A named list of additional arguments passed to the selected
-#'   structural break detection function. For `"cpt.reg"`, this includes the
-#'   algorithm selection (`method = "PELT"` or `"AMOC"`) and other arguments
-#'   such as `minseglen`. Default `list()`.
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance
-#' using `scale()`. Default `FALSE`.
-#' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
-#' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
-#'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
-#'   Default `list()`.
+#' @param data A named list of time series (each a `data.table`, data frame or
+#'   tsibble), or a keyed tsibble containing one or more series. For a tsibble,
+#'   each series is named by pasting its key values together with `"|"`, e.g.
+#'   `"01|Animal|0102"`. Tsibbles created with [fabletools::aggregate_key()],
+#'   such as those returned by [uktrade_tsibble()], are supported.
+#' @param response_col Name of the column to be analysed, e.g. `"NET_MASS"`,
+#'   `"STAT_VALUE"` or `"volume"`.
+#' @param date_col Name of the column containing timestamps. It must be
+#'   convertible with [as.Date()], e.g. `Date` or `tsibble::yearmonth`.
+#' @param model_selection_metric A function used for model selection, e.g.
+#'   [AIC] or [BIC]. Passed to [select_best_model()]. Default `AIC`.
+#' @param break_method Name of the structural break detection method, either
+#'   `"breakpoints"` or `"cpt.reg"`. See [detect_breaks()]. Default `"cpt.reg"`.
+#' @param break_params A named list of additional arguments passed to the
+#'   selected break detection function. For `"cpt.reg"`, this can include
+#'   `method` (`"PELT"` or `"AMOC"`) and `minseglen`. Default `list()`.
+#' @param scale_ts If `TRUE`, the series is scaled to zero mean and unit
+#'   variance with [scale()] before global outlier detection. Only that step is
+#'   affected: `adjusted_y` is converted back to the original units, and
+#'   segment-level detection always uses the original units. Default `FALSE`.
+#' @param verbose If `TRUE`, a progress message is displayed for each step,
+#'   along with a message giving the reason for each skipped series. Default
+#'   `FALSE`.
+#' @param tso_params A named list of additional arguments passed to
+#'   [tsoutliers::tso()], e.g. `list(cval = 4, maxit.iloop = 20)`. `types` may
+#'   only include `"AO"` and `"TC"`; `"IO"` and `"LS"` give an error. Unless
+#'   overridden, `types = c("AO", "TC")` and `cval = 5` are used, which differ
+#'   from the `tso()` defaults. Default `list()`.
 #'
 #' @details
-#' Break method `"breakpoints"` uses the implementation in `strucchangeRcpp::breakpoints()`.
-#' Break method `"cpt.reg"` uses the implementation in `changepoint::cpt.reg()`,
-#' which supports the PELT and AMOC algorithms. PELT is used by default.
-#' Additional arguments can be supplied through `break_params`.
+#' Each series is processed as follows:
 #'
-#' @return A list with three elements: (i) `outliers`, a `data.table` with one row per
-#'   detected event (or one row with `anomaly_type = "None"` if nothing was found).
-#'   The `anomaly_type` column takes values `"Outlier"` (global Chen-Liu detection),
-#'   `"Segment_Outlier"` (local detection within a structural-break segment), or
-#'   `"Break"` (structural break).
-#'   (ii) `list_of_ts`, a named list of `data.table`s — one
-#'   per series — containing the time series with fitted regressors, outlier effect
-#'   columns, and `adjusted_y` (the TSO-adjusted series used for break detection) appended,
-#'   and (iii) the final model formula for
-#'   each time series. Processing runs in parallel via
-#'   [future.apply::future_mapply()]; use [future::plan()] to configure workers.
+#' 1. **Baseline model.** [select_best_model()] chooses a regression model
+#'    for trend and seasonality, and the regressors used to detect breaks.
+#' 2. **Global outlier detection.** [detect_outliers()] runs
+#'    [tsoutliers::tso()] on the whole series, with the baseline regressors as
+#'    `xreg`. Events found are reported with `anomaly_type = "Outlier"`.
+#' 3. **Break detection.** [detect_breaks()] runs on the outlier-adjusted
+#'    series (`adjusted_y`), so that outliers are not mistaken for breaks.
+#'    Breaks found are reported with `anomaly_type = "Break"`.
+#' 4. **Segment-level outlier detection.** Outlier detection is repeated
+#'    within each segment between breaks. Events found are reported with
+#'    `anomaly_type = "Segment_Outlier"`.
+#' 5. **Proximity filter.** Outlier events within 5 observations of a break,
+#'    and their effect columns, are removed, since they are usually part of
+#'    the break.
+#' 6. **Final formula.** The baseline formula, interacted with `segments` when
+#'    breaks were found, plus the remaining outlier effect columns.
+#'
+#' Break method `"breakpoints"` uses [strucchangeRcpp::breakpoints()], and
+#' `"cpt.reg"` uses [changepoint::cpt.reg()], which supports the PELT
+#' (default) and AMOC algorithms.
+#'
+#' A series is left out of the results when more than 40% of its values are
+#' zero, when model selection fails, or when global outlier detection fails.
+#' With `verbose = TRUE`, a message gives the reason. Whatever the value of
+#' `verbose`, a warning is given for a series with missing response values,
+#' and a message names any series where `tso()` set the first few residuals
+#' to zero, because outliers at the start of that series cannot be detected.
+#'
+#' Series are processed in parallel via [future.apply::future_mapply()]; use
+#' [future::plan()] to configure workers, and [progressr::with_progress()] to
+#' display a progress bar.
+#'
+#' @return A list with three elements:
+#'
+#' * `outliers`: a `data.table` with one row per detected event, or one row
+#'   with `anomaly_type = "None"` for a series where nothing was found.
+#'   Columns are `id` (series name), `type` (`"AO"`, `"TC"`, or `"SB"` for a
+#'   structural break), `ind` (row position in the series), `time`, `coefhat`
+#'   and `tstat` (the estimated effect of an outlier and its t-statistic),
+#'   `anomaly_type` (`"Outlier"`, `"Segment_Outlier"`, `"Break"` or `"None"`)
+#'   and `segment` (for segment-level outliers). For a break, `ind` and `time`
+#'   follow the usual convention of giving the last observation of the
+#'   segment before the break.
+#' * `list_of_ts`: a named list with one element per series that was not
+#'   skipped: a tsibble for tsibble input, otherwise a `data.table`. Each
+#'   contains the original columns plus the generated date features (see
+#'   [add_date_features()]), global outlier effect columns (`AO1`, `TC1`,
+#'   ...), segment-level effect columns (`SEG<k>_AO1`, ...), `adjusted_y` (the
+#'   outlier-adjusted series used for break detection) and `segments` (a
+#'   factor giving the segment of each observation).
+#' * `formulas`: a named list with the final model formula for each series.
 #'
 #' @export
 detect_anomalies <- function(
@@ -113,25 +159,32 @@ detect_anomalies <- function(
 
 #' Detect anomalies in a single time series
 #'
-#' @param ts_data A single time series as a tsibble, data.table, or data frame.
-#' @param id Identifier for the time series.
-#' @param response_col Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.
-#' @param date_col Name of column containing timestamps.
-#' @param model_selection_metric A function used for model selection, e.g. `AIC`
-#'   or `BIC`. Passed to `select_best_model()`. Default `AIC`.
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
-#' @param verbose If `TRUE`, progress messages are displayed. Default `FALSE`.
-#' @param tso_params A named list of additional arguments passed to [tsoutliers::tso()], e.g.
-#'   `list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
-#'   Default `list()`.
-#' @param p A `progressr` progressor function.
-#' @param break_method Function used for structural break detection.
-#'   Options are `"breakpoints"` or `"cpt.reg"`.
-#' @param break_params A named list of additional arguments passed to the selected
-#'   structural break detection function. Default `list()`.
+#' Runs the steps of [detect_anomalies()] for one series.
 #'
-#' @return A list containing detected outliers, the augmented time series,
-#'   the updated model formula, and the series identifier.
+#' @param ts_data A single time series as a tsibble, `data.table` or data
+#'   frame. Columns that are not atomic vectors, such as the keys created by
+#'   [fabletools::aggregate_key()], are set aside during processing and
+#'   restored in the result.
+#' @param id Identifier for the time series, used in messages and in the `id`
+#'   column of the result.
+#' @param response_col Name of the column to be analysed, e.g. `"NET_MASS"`.
+#' @param date_col Name of the column containing timestamps.
+#' @param scale_ts If `TRUE`, the series is scaled before global outlier
+#'   detection. See [detect_anomalies()].
+#' @param model_selection_metric A function used for model selection, e.g.
+#'   [AIC] or [BIC]. Passed to [select_best_model()].
+#' @param verbose If `TRUE`, progress messages and skip messages are
+#'   displayed.
+#' @param tso_params A named list of additional arguments passed to
+#'   [tsoutliers::tso()]. See [detect_anomalies()].
+#' @param p A `progressr` progressor function.
+#' @param break_method Name of the structural break detection method, either
+#'   `"breakpoints"` or `"cpt.reg"`. Required.
+#' @param break_params A named list of additional arguments passed to the
+#'   selected break detection function. Default `list()`.
+#'
+#' @return A list with elements `outliers`, `list_of_ts`, `formula` and `id`,
+#'   as described in [detect_anomalies()], or `NULL` if the series is skipped.
 #'
 #' @keywords internal
 #'
@@ -198,18 +251,20 @@ detect_anomalies_single_ts <- function(
     warning("Missing response values in series ", id, ".")
   }
 
+  # Record a skipped series: report why (only when verbose), update the
+  # progress bar, and return NULL so the series is left out of the results
+  skip_series <- function(...) {
+    if (verbose) {
+      message("Skipping time series ", id, ": ", ...)
+    }
+    p(sprintf("Skipped %s", id))
+    NULL
+  }
+
   sparse_rate <- mean(data[[response_col]] == 0, na.rm = TRUE)
 
   if (!is.na(sparse_rate) && sparse_rate > 0.4) {
-    message(
-      "Skipping time series ",
-      id,
-      ": ",
-      round(sparse_rate * 100, 2),
-      "% zeros"
-    )
-    p(sprintf("Skipped %s", id))
-    return(NULL)
+    return(skip_series(round(sparse_rate * 100, 2), "% zeros"))
   }
 
   if (any(tso_params$types %in% c("IO", "LS"))) {
@@ -242,20 +297,14 @@ detect_anomalies_single_ts <- function(
   )
 
   if (inherits(selected_model, "error")) {
-    message(
-      "Skipping time series ",
-      id,
-      ": model selection failed: ",
+    return(skip_series(
+      "model selection failed: ",
       conditionMessage(selected_model)
-    )
-    p(sprintf("Skipped %s", id))
-    return(NULL)
+    ))
   }
 
   if (is.null(selected_model$formula)) {
-    message("Skipping time series ", id, ": no valid model was selected.")
-    p(sprintf("Skipped %s", id))
-    return(NULL)
+    return(skip_series("no valid model was selected."))
   }
 
   baseline_formula <- selected_model$baseline_formula
@@ -306,14 +355,7 @@ detect_anomalies_single_ts <- function(
     } else {
       "no tso() result was returned"
     }
-    message(
-      "Skipping time series ",
-      id,
-      ": global outlier detection failed: ",
-      reason
-    )
-    p(sprintf("Skipped %s", id))
-    return(NULL)
+    return(skip_series("global outlier detection failed: ", reason))
   }
 
   ts_data <- global_outliers$data
@@ -325,9 +367,7 @@ detect_anomalies_single_ts <- function(
   adjusted_response <- as.numeric(global_outliers$tso$yadj)
 
   if (length(adjusted_response) != nrow(ts_data)) {
-    message("Skipping time series ", id, ": adjusted response length mismatch.")
-    p(sprintf("Skipped %s", id))
-    return(NULL)
+    return(skip_series("adjusted response length mismatch."))
   }
 
   if (scale_ts) {

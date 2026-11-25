@@ -16,17 +16,17 @@ extract_ts(
 )
 }
 \arguments{
-\item{data}{A `data.table` containing trade data. Must include columns
-`COMCODE` and specified `quantity`.}
+\item{data}{A \code{data.table} containing trade data. Must include columns
+\code{COMCODE} and specified \code{quantity}.}
 
 \item{code}{Any single or groups of HS2/HS4/HS6/CN8 code.}
 
 \item{date_col}{Name of column containing timestamps.}
 
 \item{response_col}{Quantity to be extracted and aggregated as time series, e.g.
-`NET_MASS` or `STAT_VALUE` or `volume`. NA are omitted when summing values.
-`volume` is a special response returning the corresponding number of rows; any
-column called volume is ignored with a `warning`.}
+\code{NET_MASS} or \code{STAT_VALUE} or \code{volume}. NA are omitted when summing values.
+\code{volume} is a special response returning the corresponding number of rows; any
+column called volume is ignored with a \code{warning}.}
 
 \item{fill_missing}{This function returns a continuous time series. Values
 for missing dates are filled with this value.}
@@ -34,16 +34,16 @@ for missing dates are filled with this value.}
 \item{freq}{Frequency of time series data. See details.}
 
 \item{group_by}{Optional vector of column names used to create
-separate time series. For example, use `"PORT_CODE"` to return one series
-per port, or `c("PORT_CODE", "COO_ALPHA")` for one series per port-country of origin
-combination. Default set to `NULL`, which returns time series for the selected
+separate time series. For example, use \code{"PORT_CODE"} to return one series
+per port, or \code{c("PORT_CODE", "COO_ALPHA")} for one series per port-country of origin
+combination. Default set to \code{NULL}, which returns time series for the selected
 commodity code.}
 
-\item{return_list}{If `TRUE`, returns a list of completed time
-series per code and group. If `FALSE`, returns one combined `data.table`.}
+\item{return_list}{If \code{TRUE}, returns a list of completed time
+series per code and group. If \code{FALSE}, returns one combined \code{data.table}.}
 }
 \value{
-A `data.table` with date and quantity columns.
+A \code{data.table} with date and quantity columns.
 }
 \description{
 This function extracts the sum of a given quantity from import_data for
@@ -53,7 +53,7 @@ any level of hierarchy (HS2, HS4, HS6 and CN8) found in the dataset.
 Daily or monthly data is expected and detected automatically. Missing
 values are filled.
 
-By default, `freq=NULL` and will be detected automatically. However, this may
-fail for sparse data, in which case `freq` should be set manually. Options are
+By default, \code{freq=NULL} and will be detected automatically. However, this may
+fail for sparse data, in which case \code{freq} should be set manually. Options are
 "day", "week", or "month".
 }

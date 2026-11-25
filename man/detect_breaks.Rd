@@ -13,32 +13,52 @@ detect_breaks(
 )
 }
 \arguments{
-\item{data}{A `data.frame` containing the dependent variable and dates.}
+\item{data}{A data frame or \code{data.table} containing the response, the
+regressors used in \code{formula}, and the date column.}
 
-\item{formula}{A formula specifying the regression model for break detection.}
+\item{formula}{A formula specifying the regression model whose
+coefficients may change at a break, e.g. \code{NET_MASS ~ 1} for changes in
+mean, or \code{NET_MASS ~ linear_trend} for changes in level and trend.}
 
-\item{break_method}{Function used for structural break detection.
-Options are `"breakpoints"` or `"cpt.reg"`.}
+\item{break_method}{Name of the break detection method, either
+\code{"breakpoints"} or \code{"cpt.reg"}. Required.}
 
 \item{break_params}{A named list of additional arguments passed to the
-selected break detection function. For `cpt.reg`, this can include
-`method` (e.g. `"PELT"` or `"AMOC"`) and `minseglen`.}
+selected break detection function. For \code{"cpt.reg"}, this can include
+\code{method} (\code{"PELT"} or \code{"AMOC"}) and \code{minseglen}. Default \code{list()}.}
 
-\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
+\item{date_col}{Name of the column containing timestamps. Default
+\code{"DATE_START"}.}
 }
 \value{
-A list containing (i) `break_entry`, a `data.table` with identified
-breakpoints and their respective indices and timing, and (ii) `segments`,
-a `data.table` containing a factor identifying the segment to which each
-observation belongs.
-Returns `NULL` if no breaks are detected.
+\code{NULL} if no breaks are detected; otherwise a list with elements:
+\itemize{
+\item \code{break_entry}: a \code{data.table} with one row per break and columns \code{type}
+(always \code{"SB"}), \code{ind} and \code{time}. Following the convention of
+\code{\link[strucchangeRcpp:breakpoints]{strucchangeRcpp::breakpoints()}} and \code{\link[changepoint:cpt.reg]{changepoint::cpt.reg()}}, \code{ind} and
+\code{time} give the last observation of the segment before the break.
+\item \code{segments}: a \code{data.table} with a single factor column, \code{segments},
+giving the segment of each observation. The levels are \code{"segment1"},
+\code{"segment2"}, ... for \code{"breakpoints"} and \code{"1"}, \code{"2"}, ... for
+\code{"cpt.reg"}.
+}
 }
 \description{
-This function identifies structural breaks in a time series using either
-the breakpoints (Bai-Perron) or a changepoint regression (PELT or AMOC) method.
+Identifies structural breaks in the regression relationship given by
+\code{formula}, using either the Bai-Perron method or changepoint regression
+(PELT or AMOC).
 }
 \details{
-Method `"breakpoints"` uses `strucchangeRcpp::breakpoints()`.
-Method `"cpt.reg"` uses `changepoint::cpt.reg()`, allowing the user to
-select PELT or AMOC through `break_params`.
+A formula with no terms at all (e.g. \code{y ~ -1}) has no coefficients that
+could change, so \code{NULL} is returned.
+
+Method \code{"breakpoints"} uses \code{\link[strucchangeRcpp:breakpoints]{strucchangeRcpp::breakpoints()}} with
+\code{breaks = "BIC"} and \code{het.err = FALSE}.
+
+Method \code{"cpt.reg"} uses \code{\link[changepoint:cpt.reg]{changepoint::cpt.reg()}}, with PELT by default.
+It always fits a mean term: constant and collinear regressors are removed
+and a single intercept is included, even if \code{formula} excludes one. The
+default \code{minseglen} is \code{max(15, 3 * k)}, where \code{k} is the number of
+regressors other than the intercept. A break at the last observation is
+ignored.
 }

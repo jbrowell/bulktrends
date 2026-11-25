@@ -163,12 +163,33 @@ test_that("detect_anomalies skips sparse series", {
   sparse[1:40, NET_MASS := 0]
   input <- list(dense = make_monthly_ts(), sparse = sparse)
 
-  expect_message(
-    res <- suppressWarnings(detect_anomalies(input, break_method = "cpt.reg")),
-    "Skipping time series sparse"
+  # verbose = TRUE is needed for the skip message; capture_messages() also
+  # absorbs the progress messages it produces
+  messages <- testthat::capture_messages(
+    res <- suppressWarnings(
+      detect_anomalies(input, break_method = "cpt.reg", verbose = TRUE)
+    )
   )
+  expect_true(any(grepl("Skipping time series sparse", messages)))
   expect_named(res$list_of_ts, "dense")
   expect_false("sparse" %in% res$outliers$id)
+})
+
+test_that("detect_anomalies only reports skipped series when verbose", {
+  sparse <- make_monthly_ts()
+  sparse[1:40, NET_MASS := 0]
+  input <- list(dense = make_monthly_ts(), sparse = sparse)
+
+  messages <- character()
+  res <- withCallingHandlers(
+    suppressWarnings(detect_anomalies(input, break_method = "cpt.reg")),
+    message = function(m) {
+      messages <<- c(messages, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  expect_false(any(grepl("Skipping", messages)))
+  expect_named(res$list_of_ts, "dense")
 })
 
 test_that("detect_anomalies respects custom column names", {
@@ -227,26 +248,29 @@ test_that("detect_anomalies_single_ts returns expected elements", {
 test_that("detect_anomalies_single_ts returns NULL for sparse series", {
   d <- make_monthly_ts()
   d[1:50, NET_MASS := 0]
-  expect_message(
-    res <- detect_anomalies_single_ts(
+  run <- function(verbose) {
+    detect_anomalies_single_ts(
       ts_data = d,
       id = "sparse",
       response_col = "NET_MASS",
       date_col = "DATE_START",
       scale_ts = FALSE,
       model_selection_metric = AIC,
-      verbose = FALSE,
+      verbose = verbose,
       tso_params = list(),
       p = function(...) NULL,
       break_method = "cpt.reg"
-    ),
-    "zeros"
-  )
+    )
+  }
+
+  expect_message(res <- run(verbose = TRUE), "Skipping time series sparse")
+  expect_null(res)
+  expect_silent(res <- run(verbose = FALSE))
   expect_null(res)
 })
 
 test_that("detect_anomalies_single_ts emits messages when verbose", {
-  expect_message(
+  messages <- testthat::capture_messages(
     suppressWarnings(detect_anomalies_single_ts(
       ts_data = make_monthly_ts(),
       id = "s1",
@@ -258,9 +282,9 @@ test_that("detect_anomalies_single_ts emits messages when verbose", {
       tso_params = list(),
       p = function(...) NULL,
       break_method = "cpt.reg"
-    )),
-    "Selecting baseline model for s1"
+    ))
   )
+  expect_true(any(grepl("Selecting baseline model for s1", messages)))
 })
 
 # Intercept-only models ------------------------------------------------------
@@ -316,7 +340,9 @@ for (bm in c("breakpoints", "cpt.reg")) {
 
       messages <- character()
       res <- withCallingHandlers(
-        suppressWarnings(detect_anomalies(ts, break_method = bm)),
+        suppressWarnings(
+          detect_anomalies(ts, break_method = bm, verbose = TRUE)
+        ),
         message = function(m) {
           messages <<- c(messages, conditionMessage(m))
           invokeRestart("muffleMessage")

@@ -7,22 +7,22 @@
 get_uk_bank_holidays()
 }
 \value{
-A `data.table` with columns `date`, `title`, `notes`, and `division`.
-  Rows are ordered by `division` then `date`.
+A \code{data.table} with columns \code{date}, \code{title}, \code{notes}, and \code{division}.
+Rows are ordered by \code{division} then \code{date}.
 }
 \description{
 Fetches the latest UK bank holidays from the official gov.uk API
 (\url{https://www.gov.uk/bank-holidays.json}) and returns them as a
-`data.table` in the same format as the bundled [uk_bank_holidays] dataset.
+\code{data.table} in the same format as the bundled \link{uk_bank_holidays} dataset.
 }
 \details{
 The function requires an internet connection.  If the request fails (e.g.
 when offline), an informative error is raised and you can fall back to the
-bundled [uk_bank_holidays] dataset instead.
+bundled \link{uk_bank_holidays} dataset instead.
 
-The returned data can be passed to [add_date_features()] via its `holidays`
+The returned data can be passed to \code{\link[=add_date_features]{add_date_features()}} via its \code{holidays}
 argument, or used to refresh the package dataset with
-`usethis::use_data(get_uk_bank_holidays(), overwrite = TRUE)`.
+\code{usethis::use_data(get_uk_bank_holidays(), overwrite = TRUE)}.
 }
 \examples{
 \dontrun{

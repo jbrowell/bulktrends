@@ -1,10 +1,17 @@
 #' Detect date frequency
 #'
-#' This function detects the frequency of a time series.
+#' Detects the frequency of a time series from the gaps between its dates.
 #'
-#' @param dates A vector of dates
+#' @param dates A vector of dates, or values that can be converted with
+#'   [as.Date()] (e.g. `"2024-01-31"`). Duplicates and order do not matter.
 #'
-#' @return A character string indicating the detected date frequency: "day", "week", or "month".
+#' @return A character string: `"day"`, `"week"` or `"month"`.
+#'
+#' @details
+#' The frequency is based on the median gap between consecutive unique dates:
+#' 3 days or less gives `"day"`, exactly 7 days gives `"week"`, and 28 to 31
+#' days gives `"month"`. Any other gap gives an error, as do fewer than 2
+#' unique dates.
 #'
 #' @export
 detect_date_frequency <- function(dates) {
@@ -195,23 +202,31 @@ extract_ts <- function(
 
 #' Add date features
 #'
-#' A function that identifies the features (bank holidays) of dates provided, and
-#' creates the `linear_trend` covariate based on the date stamp.
+#' Adds trend, seasonal and calendar covariates to a time series, including
+#' UK bank holidays for daily data.
 #'
-#' @param data A `data.table` containing trade data.
-#' @param date_col Name of column containing timestamps.
+#' @param data A data frame or `data.table` containing trade data.
+#' @param date_col Name of the column containing timestamps. It must be of
+#'   class `Date`.
 #' @param division UK division for bank holiday lookup. One of
-#'   `"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.
-#' @param holidays A `data.frame` or `data.table` of bank holidays with at least
-#'   `date` and `title` columns, as returned by [get_uk_bank_holidays()].
-#'   Defaults to the bundled [uk_bank_holidays] dataset.
-#' @param freq Frequency of the input time series. If `NULL` it will be
-#'   auto-detected (`'day'`, `'week'`, or `'month'`).
+#'   `"england-and-wales"` (default), `"scotland"` or `"northern-ireland"`.
+#'   Only used for daily data.
+#' @param holidays A data frame or `data.table` of bank holidays with at least
+#'   `date`, `title` and `division` columns, as returned by
+#'   [get_uk_bank_holidays()]. If `NULL` (the default), the bundled
+#'   [uk_bank_holidays] dataset is used. Only used for daily data.
+#' @param freq Frequency of the series: `"day"`, `"week"` or `"month"`. If
+#'   `NULL` (the default), it is detected with [detect_date_frequency()].
 #'
-#' @return A `data.table` with the original data and additional calendar features, including
-#' `linear_trend`, day of week, day of year, `annual_sin`, `annual_cos`, `holiday`
-#' (holiday title or `NA`), and `is_holiday` (`logical`). Any existing columns
-#' with these names are overwritten.
+#' @return A `data.table` with the original data plus these columns:
+#'
+#' * For all frequencies: `linear_trend`, `day_of_year`, `annual_sin` and
+#'   `annual_cos` (`sin` and `cos` of `2 * pi * day_of_year / 365`).
+#' * For daily data only: `day_of_week` (from [weekdays()], so the day names
+#'   depend on the locale), `holiday` (the holiday title, or `NA`) and
+#'   `is_holiday` (`logical`).
+#'
+#' Any existing columns with these names are overwritten.
 #'
 #' @details
 #' `linear_trend` is the decimal year of each date minus 2000, as given by
@@ -226,6 +241,10 @@ extract_ts <- function(
 #'
 #' To use the latest published data call [get_uk_bank_holidays()] and pass the
 #' result via the `holidays` argument.
+#'
+#' A warning is given if `division` or `holidays` is supplied for non-daily
+#' data, where they are ignored, and if any dates fall outside the period
+#' covered by the holidays data, where `holiday` is then `NA`.
 #'
 #' @export
 add_date_features <- function(

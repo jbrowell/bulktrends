@@ -9,7 +9,7 @@ comcode_description(code, lookup_table)
 \arguments{
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
-\item{lookup_table}{A `data.table` containing details of each code level.}
+\item{lookup_table}{A \code{data.table} containing details of each code level.}
 }
 \value{
 A display of the hierarchical information of code.

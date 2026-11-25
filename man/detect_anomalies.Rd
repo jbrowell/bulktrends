@@ -17,56 +17,104 @@ detect_anomalies(
 )
 }
 \arguments{
-\item{data}{A named list of individual time series, or a keyed tsibble containing
-one or more trade time series.}
+\item{data}{A named list of time series (each a \code{data.table}, data frame or
+tsibble), or a keyed tsibble containing one or more series. For a tsibble,
+each series is named by pasting its key values together with \code{"|"}, e.g.
+\code{"01|Animal|0102"}. Tsibbles created with \code{\link[fabletools:aggregate_key]{fabletools::aggregate_key()}},
+such as those returned by \code{\link[=uktrade_tsibble]{uktrade_tsibble()}}, are supported.}
 
-\item{response_col}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
+\item{response_col}{Name of the column to be analysed, e.g. \code{"NET_MASS"},
+\code{"STAT_VALUE"} or \code{"volume"}.}
 
-\item{date_col}{Name of column containing timestamps.}
+\item{date_col}{Name of the column containing timestamps. It must be
+convertible with \code{\link[=as.Date]{as.Date()}}, e.g. \code{Date} or \code{tsibble::yearmonth}.}
 
-\item{model_selection_metric}{A function used for model selection, e.g. `AIC`
-or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
+\item{model_selection_metric}{A function used for model selection, e.g.
+\link{AIC} or \link{BIC}. Passed to \code{\link[=select_best_model]{select_best_model()}}. Default \code{AIC}.}
 
-\item{break_method}{Function used for structural break detection.
-Options are `"breakpoints"` or `"cpt.reg"`. Default `"cpt.reg"`.}
+\item{break_method}{Name of the structural break detection method, either
+\code{"breakpoints"} or \code{"cpt.reg"}. See \code{\link[=detect_breaks]{detect_breaks()}}. Default \code{"cpt.reg"}.}
 
-\item{break_params}{A named list of additional arguments passed to the selected
-structural break detection function. For `"cpt.reg"`, this includes the
-algorithm selection (`method = "PELT"` or `"AMOC"`) and other arguments
-such as `minseglen`. Default `list()`.}
+\item{break_params}{A named list of additional arguments passed to the
+selected break detection function. For \code{"cpt.reg"}, this can include
+\code{method} (\code{"PELT"} or \code{"AMOC"}) and \code{minseglen}. Default \code{list()}.}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance
-using `scale()`. Default `FALSE`.}
+\item{scale_ts}{If \code{TRUE}, the series is scaled to zero mean and unit
+variance with \code{\link[=scale]{scale()}} before global outlier detection. Only that step is
+affected: \code{adjusted_y} is converted back to the original units, and
+segment-level detection always uses the original units. Default \code{FALSE}.}
 
-\item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
+\item{verbose}{If \code{TRUE}, a progress message is displayed for each step,
+along with a message giving the reason for each skipped series. Default
+\code{FALSE}.}
 
-\item{tso_params}{A named list of additional arguments passed to [tsoutliers::tso()], e.g.
-`list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
-Default `list()`.}
+\item{tso_params}{A named list of additional arguments passed to
+\code{\link[tsoutliers:tso]{tsoutliers::tso()}}, e.g. \code{list(cval = 4, maxit.iloop = 20)}. \code{types} may
+only include \code{"AO"} and \code{"TC"}; \code{"IO"} and \code{"LS"} give an error. Unless
+overridden, \code{types = c("AO", "TC")} and \code{cval = 5} are used, which differ
+from the \code{tso()} defaults. Default \code{list()}.}
 }
 \value{
-A list with three elements: (i) `outliers`, a `data.table` with one row per
-  detected event (or one row with `anomaly_type = "None"` if nothing was found).
-  The `anomaly_type` column takes values `"Outlier"` (global Chen-Liu detection),
-  `"Segment_Outlier"` (local detection within a structural-break segment), or
-  `"Break"` (structural break).
-  (ii) `list_of_ts`, a named list of `data.table`s — one
-  per series — containing the time series with fitted regressors, outlier effect
-  columns, and `adjusted_y` (the TSO-adjusted series used for break detection) appended,
-  and (iii) the final model formula for
-  each time series. Processing runs in parallel via
-  [future.apply::future_mapply()]; use [future::plan()] to configure workers.
+A list with three elements:
+\itemize{
+\item \code{outliers}: a \code{data.table} with one row per detected event, or one row
+with \code{anomaly_type = "None"} for a series where nothing was found.
+Columns are \code{id} (series name), \code{type} (\code{"AO"}, \code{"TC"}, or \code{"SB"} for a
+structural break), \code{ind} (row position in the series), \code{time}, \code{coefhat}
+and \code{tstat} (the estimated effect of an outlier and its t-statistic),
+\code{anomaly_type} (\code{"Outlier"}, \code{"Segment_Outlier"}, \code{"Break"} or \code{"None"})
+and \code{segment} (for segment-level outliers). For a break, \code{ind} and \code{time}
+follow the usual convention of giving the last observation of the
+segment before the break.
+\item \code{list_of_ts}: a named list with one element per series that was not
+skipped: a tsibble for tsibble input, otherwise a \code{data.table}. Each
+contains the original columns plus the generated date features (see
+\code{\link[=add_date_features]{add_date_features()}}), global outlier effect columns (\code{AO1}, \code{TC1},
+...), segment-level effect columns (\verb{SEG<k>_AO1}, ...), \code{adjusted_y} (the
+outlier-adjusted series used for break detection) and \code{segments} (a
+factor giving the segment of each observation).
+\item \code{formulas}: a named list with the final model formula for each series.
+}
 }
 \description{
-This function detects anomalies across multiple time series. Accepts either a keyed
-[tsibble::tsibble()] (where each key combination is treated as a separate series) or
-a named list of time series objects. For each series,
-`select_best_model()` chooses a regression specification (including structural-break detection),
-and `detect_outliers()` identifies point outliers via `tsoutliers::tso()`.
+Detects outliers and structural breaks across many time series. Accepts
+either a keyed \code{\link[tsibble:tsibble]{tsibble::tsibble()}}, where each key combination is treated
+as a separate series, or a named list of time series. Each series is
+processed by the steps described in Details.
 }
 \details{
-Break method `"breakpoints"` uses the implementation in `strucchangeRcpp::breakpoints()`.
-Break method `"cpt.reg"` uses the implementation in `changepoint::cpt.reg()`,
-which supports the PELT and AMOC algorithms. PELT is used by default.
-Additional arguments can be supplied through `break_params`.
+Each series is processed as follows:
+\enumerate{
+\item \strong{Baseline model.} \code{\link[=select_best_model]{select_best_model()}} chooses a regression model
+for trend and seasonality, and the regressors used to detect breaks.
+\item \strong{Global outlier detection.} \code{\link[=detect_outliers]{detect_outliers()}} runs
+\code{\link[tsoutliers:tso]{tsoutliers::tso()}} on the whole series, with the baseline regressors as
+\code{xreg}. Events found are reported with \code{anomaly_type = "Outlier"}.
+\item \strong{Break detection.} \code{\link[=detect_breaks]{detect_breaks()}} runs on the outlier-adjusted
+series (\code{adjusted_y}), so that outliers are not mistaken for breaks.
+Breaks found are reported with \code{anomaly_type = "Break"}.
+\item \strong{Segment-level outlier detection.} Outlier detection is repeated
+within each segment between breaks. Events found are reported with
+\code{anomaly_type = "Segment_Outlier"}.
+\item \strong{Proximity filter.} Outlier events within 5 observations of a break,
+and their effect columns, are removed, since they are usually part of
+the break.
+\item \strong{Final formula.} The baseline formula, interacted with \code{segments} when
+breaks were found, plus the remaining outlier effect columns.
+}
+
+Break method \code{"breakpoints"} uses \code{\link[strucchangeRcpp:breakpoints]{strucchangeRcpp::breakpoints()}}, and
+\code{"cpt.reg"} uses \code{\link[changepoint:cpt.reg]{changepoint::cpt.reg()}}, which supports the PELT
+(default) and AMOC algorithms.
+
+A series is left out of the results when more than 40\% of its values are
+zero, when model selection fails, or when global outlier detection fails.
+With \code{verbose = TRUE}, a message gives the reason. Whatever the value of
+\code{verbose}, a warning is given for a series with missing response values,
+and a message names any series where \code{tso()} set the first few residuals
+to zero, because outliers at the start of that series cannot be detected.
+
+Series are processed in parallel via \code{\link[future.apply:future_mapply]{future.apply::future_mapply()}}; use
+\code{\link[future:plan]{future::plan()}} to configure workers, and \code{\link[progressr:with_progress]{progressr::with_progress()}} to
+display a progress bar.
 }

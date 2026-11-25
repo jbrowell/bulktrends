@@ -16,19 +16,19 @@ download_uktradeinfo_bulk(
 \item{dest_dir}{Path to an existing directory where files will be saved.}
 
 \item{type}{Character vector of data types to download. One or more of
-`"imports"`, `"exports"`, `"control"`, `"importer_details"`,
-`"exporter_details"`, `"preference"`. Defaults to `"imports"`.}
+\code{"imports"}, \code{"exports"}, \code{"control"}, \code{"importer_details"},
+\code{"exporter_details"}, \code{"preference"}. Defaults to \code{"imports"}.}
 
-\item{from_date}{Optional lower bound on the file month. A `Date` object or
-a character string in `"YYYY-MM"` format. `NULL` (default) means no lower
+\item{from_date}{Optional lower bound on the file month. A \code{Date} object or
+a character string in \code{"YYYY-MM"} format. \code{NULL} (default) means no lower
 bound.}
 
-\item{to_date}{Optional upper bound on the file month. A `Date` object or a
-character string in `"YYYY-MM"` format. `NULL` (default) means no upper
+\item{to_date}{Optional upper bound on the file month. A \code{Date} object or a
+character string in \code{"YYYY-MM"} format. \code{NULL} (default) means no upper
 bound.}
 
-\item{overwrite}{Logical. If `FALSE` (default), files already present in
-`dest_dir` are skipped.}
+\item{overwrite}{Logical. If \code{FALSE} (default), files already present in
+\code{dest_dir} are skipped.}
 }
 \value{
 Invisibly returns a character vector of paths to downloaded files.
@@ -40,35 +40,35 @@ downloads matching ZIP files to a local directory.
 \details{
 ZIP files are collected from two pages:
 \itemize{
-  \item \url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/}
-        — carries the most recent files before they appear in the archive.
-  \item \url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/}
-        — historical archive.
+\item \url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/}
+— carries the most recent files before they appear in the archive.
+\item \url{https://www.uktradeinfo.com/trade-data/latest-bulk-data-sets/bulk-data-sets-archive/}
+— historical archive.
 }
 Duplicate links across the two pages are removed before downloading.
 
 File name patterns used to identify data types:
 \itemize{
-  \item `"imports"` — monthly import archives (`BDSImpYYMM`)
-  \item `"exports"` — monthly export archives (`BDSExpYYMM`)
-  \item `"control"` — commodity code and unit reference files (`SMKA12`)
-  \item `"importer_details"` — UK/GB importer name and address files (`BDSImpDet`)
-  \item `"exporter_details"` — UK/GB exporter name and address files (`BDSExpDet`)
-  \item `"preference"` — import data by trade preference/regime (`BDSPref`)
+\item \code{"imports"} — monthly import archives (\code{BDSImpYYMM})
+\item \code{"exports"} — monthly export archives (\code{BDSExpYYMM})
+\item \code{"control"} — commodity code and unit reference files (\code{SMKA12})
+\item \code{"importer_details"} — UK/GB importer name and address files (\code{BDSImpDet})
+\item \code{"exporter_details"} — UK/GB exporter name and address files (\code{BDSExpDet})
+\item \code{"preference"} — import data by trade preference/regime (\code{BDSPref})
 }
 
 Date filtering uses the YYMM suffix embedded in HMRC filenames
-(e.g. `BDSImp2401.zip` → January 2024). Files whose dates cannot be parsed
+(e.g. \code{BDSImp2401.zip} → January 2024). Files whose dates cannot be parsed
 from the filename are always kept.
 
-**Incomplete semi-annual files.** The most recent 6-month file (e.g.
-`BDSImp_jan-jun26.zip`) is published progressively and may not yet contain
+\strong{Incomplete semi-annual files.} The most recent 6-month file (e.g.
+\code{BDSImp_jan-jun26.zip}) is published progressively and may not yet contain
 all 6 months of data. When a semi-annual file is already present in
-`dest_dir`, the function counts the files inside the ZIP and re-downloads it
-if fewer than six are found. This applies even when `overwrite = FALSE`.
+\code{dest_dir}, the function counts the files inside the ZIP and re-downloads it
+if fewer than six are found. This applies even when \code{overwrite = FALSE}.
 
 Requires the \pkg{rvest} package. Install it with
-`install.packages("rvest")` if needed.
+\code{install.packages("rvest")} if needed.
 }
 \examples{
 \dontrun{

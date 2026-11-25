@@ -10,7 +10,7 @@
 \item{x}{A numeric matrix.}
 }
 \value{
-`x` without its constant columns.
+\code{x} without its constant columns.
 }
 \description{
 Drops every column whose values are all identical (including all-zero

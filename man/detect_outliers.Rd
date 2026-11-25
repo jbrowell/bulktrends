@@ -14,37 +14,52 @@ detect_outliers(
 )
 }
 \arguments{
-\item{data}{A `data.frame` containing the dependent variable and dates.}
+\item{data}{A data frame or \code{data.table} containing the response column,
+with rows in time order.}
 
 \item{response_col}{Name of the column containing the time series values,
-e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.}
+e.g. \code{"NET_MASS"}, \code{"STAT_VALUE"} or \code{"volume"}.}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+\item{scale_ts}{If \code{TRUE}, the series is scaled to zero mean and unit
+variance with \code{\link[=scale]{scale()}} before detection. The effect columns and the
+\code{coefhat} values are then in scaled units. Default \code{FALSE}.}
 
-\item{xreg}{matrix of external regressors passed to `tso()`. Constant
-columns (such as an intercept) and linearly dependent columns are removed
-first, because `tso()` estimates its own mean. Default `NULL`.}
+\item{xreg}{A matrix of external regressors passed to \code{tso()}, with one row
+per row of \code{data}. Constant columns (such as an intercept) and linearly
+dependent columns are removed first, because \code{tso()} estimates its own
+mean. Default \code{NULL}.}
 
-\item{return_tso}{If `TRUE`, the full `tso()` output is included in the
-returned list as element `tso`. Default `FALSE`.}
+\item{return_tso}{If \code{TRUE}, the full \code{tso()} output is included in the
+returned list as element \code{tso}. Default \code{FALSE}.}
 
-\item{tso_params}{A named list of additional arguments passed directly to `tsoutliers::tso()`,
-e.g. `list(cval = 5, types = c("AO", "TC", "IO"))`. Default `list()`.}
+\item{tso_params}{A named list of additional arguments passed to
+\code{tsoutliers::tso()}, e.g. \code{list(cval = 4, maxit.iloop = 20)}. Unless
+overridden, \code{types = c("AO", "TC")} and \code{cval = 5} are used, which differ
+from the \code{tso()} defaults. Other types, such as \code{"IO"}, can be requested
+and appear in \code{outliers}, but only AO and TC effect columns are added to
+\code{data}. Default \code{list()}.}
 }
 \value{
-A list with elements (i) `data`, the original time series dataset with outlier covariates
-columns appended when detected, (ii) `outliers`, the outlier summary table returned by `tso()`,
-and (iii) `model_used`, identifying the successful ARIMA fitting strategy.
-If `return_tso = TRUE`, an additional element `tso` is included.
-Returns `NULL` if all attempts to fit `tso()` fail.
+\code{NULL} if every attempt to fit \code{tso()} fails; otherwise a list with
+elements:
+\itemize{
+\item \code{data}: \code{data} as a \code{data.table}, with one effect column per detected AO
+or TC outlier appended, numbered in order of detection (\code{AO1}, \code{AO2},
+\code{TC1}, ...).
+\item \code{outliers}: the outlier table returned by \code{tso()}, with columns \code{type},
+\code{ind} (row position), \code{time}, \code{coefhat} (estimated effect) and \code{tstat}.
+\item \code{model_used}: the fitting strategy that succeeded: \code{"default"},
+\code{"ARIMA(0,0,0)_with_xreg"} or \code{"ARIMA(0,0,0)_without_xreg"}.
+\item \code{tso}: the full \code{tso()} output, only if \code{return_tso = TRUE}.
+}
 }
 \description{
-This function detects temporary outliers in a given time series
-using `tsoutliers::tso()`.
+Detects temporary outliers in a time series using \code{\link[tsoutliers:tso]{tsoutliers::tso()}}:
+additive outliers (AO) and temporary changes (TC) by default.
 }
 \details{
-If `tso()` fails with the default ARIMA model selection, it is retried with
-an ARIMA(0,0,0) model that keeps `xreg`. If that also fails, it is retried
+If \code{tso()} fails with the default ARIMA model selection, it is retried with
+an ARIMA(0,0,0) model that keeps \code{xreg}. If that also fails, it is retried
 with ARIMA(0,0,0) and no regressors, i.e. a constant mean. That last model
 ignores trend, seasonality and level shifts, so it may detect fewer outliers.
 A message is printed each time a fallback is used.

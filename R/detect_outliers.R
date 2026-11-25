@@ -1,25 +1,39 @@
 #' Detection of temporary time series outliers
 #'
-#' This function detects temporary outliers in a given time series
-#' using `tsoutliers::tso()`.
+#' Detects temporary outliers in a time series using [tsoutliers::tso()]:
+#' additive outliers (AO) and temporary changes (TC) by default.
 #'
-#' @param data A `data.frame` containing the dependent variable and dates.
+#' @param data A data frame or `data.table` containing the response column,
+#'   with rows in time order.
 #' @param response_col Name of the column containing the time series values,
-#'  e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.
-#' @param scale_ts If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.
-#' @param xreg matrix of external regressors passed to `tso()`. Constant
-#'   columns (such as an intercept) and linearly dependent columns are removed
-#'   first, because `tso()` estimates its own mean. Default `NULL`.
+#'   e.g. `"NET_MASS"`, `"STAT_VALUE"` or `"volume"`.
+#' @param scale_ts If `TRUE`, the series is scaled to zero mean and unit
+#'   variance with [scale()] before detection. The effect columns and the
+#'   `coefhat` values are then in scaled units. Default `FALSE`.
+#' @param xreg A matrix of external regressors passed to `tso()`, with one row
+#'   per row of `data`. Constant columns (such as an intercept) and linearly
+#'   dependent columns are removed first, because `tso()` estimates its own
+#'   mean. Default `NULL`.
 #' @param return_tso If `TRUE`, the full `tso()` output is included in the
 #'   returned list as element `tso`. Default `FALSE`.
-#' @param tso_params A named list of additional arguments passed directly to `tsoutliers::tso()`,
-#'   e.g. `list(cval = 5, types = c("AO", "TC", "IO"))`. Default `list()`.
+#' @param tso_params A named list of additional arguments passed to
+#'   `tsoutliers::tso()`, e.g. `list(cval = 4, maxit.iloop = 20)`. Unless
+#'   overridden, `types = c("AO", "TC")` and `cval = 5` are used, which differ
+#'   from the `tso()` defaults. Other types, such as `"IO"`, can be requested
+#'   and appear in `outliers`, but only AO and TC effect columns are added to
+#'   `data`. Default `list()`.
 #'
-#' @return A list with elements (i) `data`, the original time series dataset with outlier covariates
-#' columns appended when detected, (ii) `outliers`, the outlier summary table returned by `tso()`,
-#' and (iii) `model_used`, identifying the successful ARIMA fitting strategy.
-#' If `return_tso = TRUE`, an additional element `tso` is included.
-#' Returns `NULL` if all attempts to fit `tso()` fail.
+#' @return `NULL` if every attempt to fit `tso()` fails; otherwise a list with
+#'   elements:
+#'
+#' * `data`: `data` as a `data.table`, with one effect column per detected AO
+#'   or TC outlier appended, numbered in order of detection (`AO1`, `AO2`,
+#'   `TC1`, ...).
+#' * `outliers`: the outlier table returned by `tso()`, with columns `type`,
+#'   `ind` (row position), `time`, `coefhat` (estimated effect) and `tstat`.
+#' * `model_used`: the fitting strategy that succeeded: `"default"`,
+#'   `"ARIMA(0,0,0)_with_xreg"` or `"ARIMA(0,0,0)_without_xreg"`.
+#' * `tso`: the full `tso()` output, only if `return_tso = TRUE`.
 #'
 #' @details
 #' If `tso()` fails with the default ARIMA model selection, it is retried with
