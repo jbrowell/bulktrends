@@ -2,7 +2,7 @@
 # Based on the r-lib/actions v2 examples: https://github.com/r-lib/actions/tree/v2/examples
 on:
   push:
-    branches: [develop]
+    branches: [developm, main]
   pull_request:
 
 name: test.yaml
