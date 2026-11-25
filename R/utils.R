@@ -430,7 +430,7 @@ open_userguide <- function(path = NULL) {
 uktrade_tsibble <- function(
   data,
   response_col = "NET_MASS",
-  comcode_level = c("HS2", "HS4"),
+  comcode_level = NULL,
   group_by = NULL,
   date_col = "DATE_START",
   freq = NULL,
@@ -438,6 +438,10 @@ uktrade_tsibble <- function(
 ) {
   #create categories
   data <- copy(data)
+
+  # if (is.null(comcode_level)) {
+  #   comcode_level <- character(0)
+  # }
 
   if ("category" %in% group_by) {
     data[,
