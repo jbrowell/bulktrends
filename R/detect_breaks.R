@@ -138,7 +138,7 @@ detect_breaks <- function(
   cpt_data <- as.matrix(cbind(response, xreg))
 
   # Default minimum segment length (based on non-intercept regressors)
-  min_segment <- max(15, n_regressors * 3)
+  min_segment <- max(12, n_regressors * 3)
 
   # Allow the user to override minseglen
   if (is.null(break_params$minseglen)) {
