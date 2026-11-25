@@ -56,7 +56,7 @@ test_that("add_date_features adds monthly features", {
     c("linear_trend", "day_of_year", "annual_sin", "annual_cos") %in% names(res)
   ))
   expect_false(any(c("day_of_week", "is_holiday") %in% names(res)))
-  expect_equal(res$linear_trend, lubridate::decimal_date(d$DATE_START))
+  expect_equal(res$linear_trend, lubridate::decimal_date(d$DATE_START) - 2000)
   expect_true(all(abs(res$annual_sin) <= 1 & abs(res$annual_cos) <= 1))
 })
 

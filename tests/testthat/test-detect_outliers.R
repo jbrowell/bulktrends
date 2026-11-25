@@ -1,7 +1,11 @@
 test_that("detect_outliers returns expected structure", {
   res <- detect_outliers(make_monthly_ts(spike_at = 30), "NET_MASS")
   expect_type(res, "list")
-  expect_named(res, c("data", "outliers"))
+  expect_named(res, c("data", "outliers", "model_used"))
+  expect_true(
+    res$model_used %in%
+      c("default", "ARIMA(0,0,0)_with_xreg", "ARIMA(0,0,0)_without_xreg")
+  )
   expect_s3_class(res$outliers, "data.frame")
   expect_true(all(c("type", "ind") %in% names(res$outliers)))
 })

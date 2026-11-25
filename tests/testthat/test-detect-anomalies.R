@@ -1,7 +1,9 @@
 test_that("segment outlier effects are mapped to the full series and formula", {
   dates <- as.Date("2020-01-01") + 0:39
   input <- data.table::data.table(
-    date = dates, y = rep(10, 40), SEG1_AO1 = rep(42, 40)
+    date = dates,
+    y = rep(10, 40),
+    SEG1_AO1 = rep(42, 40)
   )
 
   testthat::local_mocked_bindings(
@@ -31,7 +33,8 @@ test_that("segment outlier effects are mapped to the full series and formula", {
           TC2 = ifelse(seq_len(20) >= 18, 0.7^(seq_len(20) - 18), 0)
         )
         events <- data.frame(
-          type = c("AO", "TC", "AO", "TC"), ind = c(2, 3, 18, 18)
+          type = c("AO", "TC", "AO", "TC"),
+          ind = c(2, 3, 18, 18)
         )
       } else {
         effects <- data.table::data.table(
@@ -46,12 +49,21 @@ test_that("segment outlier effects are mapped to the full series and formula", {
   )
 
   result <- detect_anomalies_single_ts(
-    ts_data = input, id = "test", response_col = "y", date_col = "date",
-    scale_ts = FALSE, model_selection_metric = AIC, verbose = FALSE,
-    tso_params = list(), p = function(...) NULL, break_method = "cpt.reg"
+    ts_data = input,
+    id = "test",
+    response_col = "y",
+    date_col = "date",
+    scale_ts = FALSE,
+    model_selection_metric = AIC,
+    verbose = FALSE,
+    tso_params = list(),
+    p = function(...) NULL,
+    break_method = "cpt.reg"
   )
 
-  local_events <- result$outliers[result$outliers$anomaly_type == "Segment_Outlier"]
+  local_events <- result$outliers[
+    result$outliers$anomaly_type == "Segment_Outlier"
+  ]
   expect_equal(local_events$ind, c(2, 3, 29))
   expect_equal(local_events$time, dates[c(2, 3, 29)])
   expect_equal(local_events$segment, c("1", "1", "2"))
@@ -60,11 +72,17 @@ test_that("segment outlier effects are mapped to the full series and formula", {
   expect_length(effects, 3)
   expect_true(all(effects %in% names(result$list_of_ts)))
   expect_equal(result$list_of_ts[["SEG1_AO1"]], rep(42, 40))
-  expect_equal(result$list_of_ts[[effects[1]]], c(as.numeric(1:20 == 2), rep(0, 20)))
+  expect_equal(
+    result$list_of_ts[[effects[1]]],
+    c(as.numeric(1:20 == 2), rep(0, 20))
+  )
   expect_equal(
     result$list_of_ts[[effects[2]]],
     c(ifelse(1:20 >= 3, 0.7^(1:20 - 3), 0), rep(0, 20))
   )
-  expect_equal(result$list_of_ts[[effects[3]]], c(rep(0, 20), as.numeric(1:20 == 9)))
+  expect_equal(
+    result$list_of_ts[[effects[3]]],
+    c(rep(0, 20), as.numeric(1:20 == 9))
+  )
   expect_true("AO1" %in% all.vars(result$formula))
 })

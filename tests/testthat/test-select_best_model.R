@@ -18,7 +18,11 @@ test_that("select_best_model errors for unsupported frequency without formulas",
 
 test_that("select_best_model returns expected structure for monthly data", {
   res <- suppressWarnings(
-    select_best_model(make_monthly_ts(), response_col = "NET_MASS")
+    select_best_model(
+      make_monthly_ts(),
+      response_col = "NET_MASS",
+      break_method = "cpt.reg"
+    )
   )
   expect_type(res, "list")
   expect_true(all(c("data", "formula") %in% names(res)))
@@ -33,7 +37,7 @@ test_that("select_best_model returns expected structure for monthly data", {
 test_that("select_best_model accepts data.frame input", {
   d <- as.data.frame(make_monthly_ts())
   res <- suppressWarnings(
-    select_best_model(d, response_col = "NET_MASS", break_detection = FALSE)
+    select_best_model(d, response_col = "NET_MASS", break_method = "cpt.reg")
   )
   expect_s3_class(res$data, "data.table")
 })
@@ -42,27 +46,33 @@ test_that("select_best_model without break detection returns no break entry", {
   res <- select_best_model(
     make_monthly_ts(shift_at = 40),
     response_col = "NET_MASS",
-    break_detection = FALSE
+    break_method = NULL
   )
   expect_null(res$break_entry)
   expect_false("segments" %in% names(res$data))
 })
 
-test_that("select_best_model detects an injected level shift", {
-  res <- suppressWarnings(select_best_model(
-    make_monthly_ts(shift_at = 40),
-    response_col = "NET_MASS"
-  ))
-  expect_s3_class(res$break_entry, "data.table")
-  expect_true("segments" %in% names(res$data))
-  expect_true("segments" %in% all.vars(res$formula))
-  expect_true(any(abs(res$break_entry$ind - 39) <= 2))
-})
+for (bm in c("breakpoints", "cpt.reg")) {
+  test_that(
+    paste0("select_best_model detects an injected level shift (", bm, ")"),
+    {
+      res <- suppressWarnings(select_best_model(
+        make_monthly_ts(shift_at = 40),
+        response_col = "NET_MASS",
+        break_method = bm
+      ))
+      expect_s3_class(res$break_entry, "data.table")
+      expect_true("segments" %in% names(res$data))
+      expect_true("segments" %in% all.vars(res$formula))
+      expect_true(any(abs(res$break_entry$ind - 39) <= 2))
+    }
+  )
+}
 
 test_that("select_best_model uses user-supplied formulas", {
   d <- add_date_features(make_monthly_ts(), "DATE_START", freq = "month")
   f <- list(NET_MASS ~ 1, NET_MASS ~ linear_trend)
-  res <- select_best_model(d, formulas = f, break_detection = FALSE)
+  res <- select_best_model(d, formulas = f, break_method = "cpt.reg")
   expect_true(
     any(vapply(f, function(x) identical(x, res$formula), logical(1)))
   )
@@ -74,13 +84,13 @@ test_that("select_best_model respects the metric argument", {
     d,
     response_col = "NET_MASS",
     metric = AIC,
-    break_detection = FALSE
+    break_method = "cpt.reg"
   )
   bic <- select_best_model(
     d,
     response_col = "NET_MASS",
     metric = BIC,
-    break_detection = FALSE
+    break_method = "cpt.reg"
   )
   expect_s3_class(aic$formula, "formula")
   expect_s3_class(bic$formula, "formula")
