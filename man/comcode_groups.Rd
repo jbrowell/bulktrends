@@ -16,7 +16,7 @@ A named `list` containing a group of commodity codes
 `bulktrends`
 }
 \usage{
-data(comcode_groups)
+comcode_groups
 }
 \description{
 Useful groups of commodity codes for filtering import data.

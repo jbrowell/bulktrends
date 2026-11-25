@@ -21,7 +21,9 @@ e.g. `"NET_MASS"`, `"STAT_VALUE"` or `volume`.}
 
 \item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
 
-\item{xreg}{matrix of external regressors passed to `tso()`. Default `NULL`.}
+\item{xreg}{matrix of external regressors passed to `tso()`. Constant
+columns (such as an intercept) and linearly dependent columns are removed
+first, because `tso()` estimates its own mean. Default `NULL`.}
 
 \item{return_tso}{If `TRUE`, the full `tso()` output is included in the
 returned list as element `tso`. Default `FALSE`.}

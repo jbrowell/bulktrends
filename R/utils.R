@@ -229,13 +229,12 @@ extract_ts <- function(
 #'
 #' @export
 add_date_features <- function(
-    data,
-    date_col,
-    division = "england-and-wales",
-    holidays = NULL,
-    freq = NULL
+  data,
+  date_col,
+  division = "england-and-wales",
+  holidays = NULL,
+  freq = NULL
 ) {
-
   if (!inherits(data, "data.table")) {
     data <- data.table::as.data.table(data)
   } else {
@@ -254,14 +253,12 @@ add_date_features <- function(
     stop("\"freq\" must be \"day\", \"week\" or \"month\"")
   }
 
-
   dates <- data[[date_col]]
 
   data[, linear_trend := lubridate::decimal_date(dates) - 2000]
   data[, day_of_year := as.integer(format(dates, "%j"))]
   data[, annual_sin := sin(2 * pi * day_of_year / 365)]
   data[, annual_cos := cos(2 * pi * day_of_year / 365)]
-
 
   # Warn about ignored arguments for non-daily data
   if (freq != "day") {
@@ -275,9 +272,8 @@ add_date_features <- function(
 
   # Daily-only features
   if (freq == "day") {
-
     if (is.null(holidays)) {
-      data(uk_bank_holidays,package = "bulktrends", envir=environment())
+      data(uk_bank_holidays, package = "bulktrends", envir = environment())
       holidays <- uk_bank_holidays
     }
 
@@ -634,4 +630,65 @@ uktrade_tsibble <- function(
     fabletools::aggregate_key(!!level, value = sum(value, na.rm = TRUE))
   setnames(ts_table, "value", response_col)
   return(ts_table)
+}
+
+
+#' Remove constant columns from a regressor matrix
+#'
+#' Drops every column whose values are all identical (including all-zero
+#' columns), whatever its name. Used to strip intercepts and degenerate
+#' dummies before a matrix is passed to a fitting routine that handles the
+#' mean itself.
+#'
+#' @param x A numeric matrix.
+#'
+#' @return `x` without its constant columns.
+#'
+#' @keywords internal
+.drop_constant_cols <- function(x) {
+  if (is.null(x) || ncol(x) == 0) {
+    return(x)
+  }
+  is_constant <- apply(x, 2, function(col) all(col == col[1]))
+  x[, !is_constant, drop = FALSE]
+}
+
+#' Remove linearly dependent columns from a regressor matrix
+#'
+#' Keeps a full-rank subset of columns using a QR decomposition. Earlier
+#' columns are retained in preference to later ones.
+#'
+#' @param x A numeric matrix.
+#'
+#' @return `x` restricted to linearly independent columns.
+#'
+#' @keywords internal
+.drop_collinear_cols <- function(x) {
+  if (is.null(x) || ncol(x) == 0) {
+    return(x)
+  }
+  qr_decomp <- qr(x)
+  keep <- sort(qr_decomp$pivot[seq_len(qr_decomp$rank)])
+  x[, keep, drop = FALSE]
+}
+
+#' Add structural-break segments to a regression formula
+#'
+#' Interacts every term in `formula` with the `segments` factor so that each
+#' segment has its own coefficients. For an intercept-only formula
+#' (`y ~ 1`), `update(f, . ~ . * segments)` simplifies back to `y ~ 1`, so
+#' `y ~ segments` (one mean per segment) is returned instead.
+#'
+#' @param formula A two-sided model formula.
+#'
+#' @return The segmented formula.
+#'
+#' @keywords internal
+.add_segments <- function(formula) {
+  term_labels <- attr(stats::terms(formula), "term.labels")
+  if (length(term_labels) == 0) {
+    stats::update(formula, . ~ segments)
+  } else {
+    stats::update(formula, . ~ . * segments)
+  }
 }

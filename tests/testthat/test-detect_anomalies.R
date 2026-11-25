@@ -262,3 +262,45 @@ test_that("detect_anomalies_single_ts emits messages when verbose", {
     "Selecting baseline model for s1"
   )
 })
+
+# Intercept-only models ------------------------------------------------------
+
+for (bm in c("breakpoints", "cpt.reg")) {
+  test_that(
+    paste0("detect_anomalies handles an intercept-only model (", bm, ")"),
+    {
+      set.seed(3)
+      d <- data.table::data.table(
+        DATE_START = seq(as.Date("2018-01-01"), by = "month", length.out = 72),
+        NET_MASS = 100 + stats::rnorm(72, sd = 2)
+      )
+      d[40:72, NET_MASS := NET_MASS + 20]
+
+      # Restrict model selection to the intercept-only candidate so the rest
+      # of the pipeline is exercised with `NET_MASS ~ 1`
+      real_select_best_model <- select_best_model
+      testthat::local_mocked_bindings(
+        select_best_model = function(data, ...) {
+          args <- list(...)
+          args$formulas <- list(NET_MASS ~ 1)
+          args$response_col <- NULL
+          do.call(real_select_best_model, c(list(data = data), args))
+        },
+        .package = "bulktrends"
+      )
+
+      expect_no_warning(
+        res <- detect_anomalies(list(s1 = d), break_method = bm)
+      )
+
+      breaks <- res$outliers[anomaly_type == "Break"]
+      expect_gt(nrow(breaks), 0)
+      expect_true(any(abs(breaks$ind - 39) <= 2))
+
+      # Only segment means plus any outlier effects remain in the formula
+      rhs <- setdiff(all.vars(res$formulas$s1), "NET_MASS")
+      expect_true("segments" %in% rhs)
+      expect_true(all(rhs == "segments" | grepl("^(SEG[0-9]+_)?(AO|TC)", rhs)))
+    }
+  )
+}

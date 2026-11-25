@@ -1,4 +1,3 @@
-
 #' Select the best regression model for a time series
 #'
 #' This function evaluates a set of candidate regression formulas containing
@@ -29,33 +28,33 @@
 #'
 #' @export
 select_best_model <- function(
-    data,
-    date_col = "DATE_START",
-    formulas = NULL,
-    response_col = NULL,
-    metric = AIC,
-    break_method = NULL,
-    break_params = list(),
-    freq = NULL
+  data,
+  date_col = "DATE_START",
+  formulas = NULL,
+  response_col = NULL,
+  metric = AIC,
+  break_method = NULL,
+  break_params = list(),
+  freq = NULL
 ) {
   if (!inherits(data, "data.table")) {
     data <- data.table::as.data.table(data)
   }
-  
+
   if (is.null(formulas) & is.null(response_col)) {
     stop("Must supply either formulas or response_col.")
   }
-  
+
   if (is.null(response_col)) {
     f <- formulas[[1]]
     response_col <- all.vars(f)[attr(terms(f), "response")]
   }
-  
+
   if (is.null(formulas)) {
     if (is.null(freq)) {
       freq <- detect_date_frequency(data[[date_col]])
     }
-    
+
     if (freq == "month") {
       formulas <- list(
         ~ -1,
@@ -64,13 +63,12 @@ select_best_model <- function(
         ~ annual_sin + annual_cos,
         ~ linear_trend + annual_sin + annual_cos
       )
-      
+
       formulas <- lapply(formulas, function(f) {
         as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
-      
+
       data <- add_date_features(data, date_col, freq = "month")
-      
     } else if (freq == "day") {
       formulas <- list(
         ~ -1,
@@ -81,36 +79,35 @@ select_best_model <- function(
         ~ linear_trend + annual_sin + annual_cos + day_of_week,
         ~ linear_trend + annual_sin + annual_cos + day_of_week + is_holiday
       )
-      
+
       formulas <- lapply(formulas, function(f) {
         as.formula(paste(response_col, "~", deparse(f[[2]])))
       })
-      
+
       data <- add_date_features(data, date_col, freq = "day")
-      
     } else {
       stop("\"formulas=NULL\" and data isn't daily or monthly.")
     }
   }
-  
+
   output <- list(data = data, formula = NULL, baseline_formula = NULL)
-  
+
   current_metric <- Inf
-  
+
   # base models
   for (i in seq_along(formulas)) {
     model_fit <- try(
       lm(formula = formulas[[i]], data = data),
       silent = TRUE
     )
-    
+
     if ("try-error" %in% class(model_fit)) {
       warning("Model failed: ", deparse(formulas[[i]]), "\n")
       next
     }
-    
+
     new_metric <- metric(model_fit)
-    
+
     if (new_metric < current_metric) {
       current_metric <- new_metric
       output <- list(
@@ -120,7 +117,7 @@ select_best_model <- function(
       )
     }
   }
-  
+
   # detect_breaks loop
   if (!is.null(break_method)) {
     for (i in seq_along(formulas)) {
@@ -134,31 +131,31 @@ select_best_model <- function(
         ),
         silent = TRUE
       )
-      
+
       if ("try-error" %in% class(breaks)) {
         warning("Breaks detection failed: ", deparse(formulas[[i]]), "\n")
         next
       }
-      
+
       if (is.null(breaks)) {
         next
       }
-      
+
       segments <- breaks$segments
-      fmla <- update(formulas[[i]], . ~ . * segments)
-      
+      fmla <- .add_segments(formulas[[i]])
+
       model_fit <- try(
         lm(formula = fmla, data = cbind(data, segments)),
         silent = TRUE
       )
-      
+
       if ("try-error" %in% class(model_fit)) {
         warning("Model failed: ", deparse(fmla), "\n")
         next
       }
-      
+
       new_metric <- metric(model_fit)
-      
+
       if (new_metric < current_metric) {
         current_metric <- new_metric
         output <- list(
@@ -171,10 +168,10 @@ select_best_model <- function(
       }
     }
   }
-  
+
   if (is.null(output$formula)) {
     warning("No valid model found. Returning original data with NULL formula.")
   }
-  
+
   return(output)
 }

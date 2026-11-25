@@ -45,15 +45,15 @@
 #'
 #' @export
 detect_anomalies <- function(
-    data,
-    response_col = "NET_MASS",
-    date_col = "DATE_START",
-    model_selection_metric = AIC,
-    break_method = "cpt.reg",
-    break_params = list(),
-    scale_ts = FALSE,
-    verbose = FALSE,
-    tso_params = list()
+  data,
+  response_col = "NET_MASS",
+  date_col = "DATE_START",
+  model_selection_metric = AIC,
+  break_method = "cpt.reg",
+  break_params = list(),
+  scale_ts = FALSE,
+  verbose = FALSE,
+  tso_params = list()
 ) {
   if (inherits(data, "tbl_ts")) {
     key_tbl <- dplyr::group_keys(tsibble::group_by_key(data))
@@ -136,17 +136,17 @@ detect_anomalies <- function(
 #' @keywords internal
 #'
 detect_anomalies_single_ts <- function(
-    ts_data,
-    id,
-    response_col,
-    date_col,
-    scale_ts,
-    model_selection_metric,
-    verbose,
-    tso_params,
-    p,
-    break_method,
-    break_params = list()
+  ts_data,
+  id,
+  response_col,
+  date_col,
+  scale_ts,
+  model_selection_metric,
+  verbose,
+  tso_params,
+  p,
+  break_method,
+  break_params = list()
 ) {
   is_tsibble_input <- inherits(ts_data, "tbl_ts")
   original_ts <- ts_data
@@ -257,8 +257,8 @@ detect_anomalies_single_ts <- function(
 
   if (
     inherits(global_outliers, "error") ||
-    is.null(global_outliers) ||
-    is.null(global_outliers$tso)
+      is.null(global_outliers) ||
+      is.null(global_outliers$tso)
   ) {
     message("Skipping time series ", id, ": global outlier detection failed.")
     p(sprintf("Skipped %s", id))
@@ -350,7 +350,7 @@ detect_anomalies_single_ts <- function(
 
   if (
     !is.null(global_outliers$outliers) &&
-    nrow(global_outliers$outliers) > 0
+      nrow(global_outliers$outliers) > 0
   ) {
     global_entry <- data.table::as.data.table(global_outliers$outliers)
     global_entry[, id := id]
@@ -372,7 +372,6 @@ detect_anomalies_single_ts <- function(
   segment_effect_vars <- character()
 
   for (seg_id in levels(ts_data$segments)) {
-
     seg_idx <- which(ts_data$segments == seg_id)
 
     if (length(seg_idx) < 8) {
@@ -430,8 +429,8 @@ detect_anomalies_single_ts <- function(
 
     if (
       inherits(seg_out, "error") ||
-      is.null(seg_out) ||
-      is.null(seg_out$data)
+        is.null(seg_out) ||
+        is.null(seg_out$data)
     ) {
       next
     }
@@ -446,14 +445,12 @@ detect_anomalies_single_ts <- function(
     )
 
     if (length(local_effects) > 0) {
-
       segment_number <- match(
         seg_id,
         levels(ts_data$segments)
       )
 
       for (effect_name in local_effects) {
-
         base_effect_name <- paste0(
           "SEG",
           segment_number,
@@ -461,13 +458,16 @@ detect_anomalies_single_ts <- function(
           effect_name
         )
 
-        new_effect_name <- utils::tail(make.unique(
-          c(
-            names(ts_data),
-            names(original_ts),
-            base_effect_name
-          )
-        ), 1L)
+        new_effect_name <- utils::tail(
+          make.unique(
+            c(
+              names(ts_data),
+              names(original_ts),
+              base_effect_name
+            )
+          ),
+          1L
+        )
 
         # Create a full-length effect vector.
         # Values outside this segment are zero.
@@ -497,9 +497,8 @@ detect_anomalies_single_ts <- function(
 
     if (
       !is.null(seg_out$outliers) &&
-      nrow(seg_out$outliers) > 0
+        nrow(seg_out$outliers) > 0
     ) {
-
       entry <- data.table::as.data.table(
         seg_out$outliers
       )
@@ -564,11 +563,9 @@ detect_anomalies_single_ts <- function(
   global_effects_to_remove <- character()
 
   if (nrow(suppressed_global) > 0) {
-
     for (i in seq_len(nrow(suppressed_global))) {
-
       event_type <- suppressed_global$type[i]
-      event_ind  <- suppressed_global$ind[i]
+      event_ind <- suppressed_global$ind[i]
 
       candidates <- grep(
         paste0("^", event_type, "\\d+$"),
@@ -602,12 +599,10 @@ detect_anomalies_single_ts <- function(
   segment_effects_to_remove <- character()
 
   if (nrow(suppressed_segment) > 0) {
-
     for (i in seq_len(nrow(suppressed_segment))) {
-
       event_type <- suppressed_segment$type[i]
-      event_ind  <- suppressed_segment$ind[i]
-      event_seg  <- suppressed_segment$segment[i]
+      event_ind <- suppressed_segment$ind[i]
+      event_seg <- suppressed_segment$segment[i]
 
       segment_number <- match(
         event_seg,
@@ -647,7 +642,6 @@ detect_anomalies_single_ts <- function(
   )
 
   if (length(effects_to_remove) > 0) {
-
     ts_data[, (effects_to_remove) := NULL]
 
     segment_effect_vars <- setdiff(
@@ -707,7 +701,7 @@ detect_anomalies_single_ts <- function(
 
   # Start with the break-adjusted specification when breaks exist.
   final_formula <- if (!is.null(final_breaks)) {
-    stats::update(break_detect_formula, . ~ . * segments)
+    .add_segments(break_detect_formula)
   } else {
     baseline_formula
   }

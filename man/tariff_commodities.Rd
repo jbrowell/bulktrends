@@ -22,7 +22,7 @@ Licence: Open Government Licence v3.0
   \url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
 }
 \usage{
-data(tariff_commodities)
+tariff_commodities
 }
 \description{
 A cleaned dataset of historical UK tariff commodity records,

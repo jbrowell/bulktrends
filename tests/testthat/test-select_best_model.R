@@ -72,7 +72,7 @@ for (bm in c("breakpoints", "cpt.reg")) {
 test_that("select_best_model uses user-supplied formulas", {
   d <- add_date_features(make_monthly_ts(), "DATE_START", freq = "month")
   f <- list(NET_MASS ~ 1, NET_MASS ~ linear_trend)
-  res <- select_best_model(d, formulas = f, break_method = "cpt.reg")
+  res <- select_best_model(d, formulas = f, break_method = NULL)
   expect_true(
     any(vapply(f, function(x) identical(x, res$formula), logical(1)))
   )
@@ -95,3 +95,16 @@ test_that("select_best_model respects the metric argument", {
   expect_s3_class(aic$formula, "formula")
   expect_s3_class(bic$formula, "formula")
 })
+
+for (bm in c("breakpoints", "cpt.reg")) {
+  test_that(
+    paste0("select_best_model break detection raises no warnings (", bm, ")"),
+    {
+      expect_no_warning(select_best_model(
+        make_monthly_ts(shift_at = 40),
+        response_col = "NET_MASS",
+        break_method = bm
+      ))
+    }
+  )
+}

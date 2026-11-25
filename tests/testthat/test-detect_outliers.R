@@ -72,3 +72,30 @@ test_that("detect_outliers returns NULL when tso fails", {
   )
   expect_null(res)
 })
+
+test_that("detect_outliers removes constant and collinear xreg columns", {
+  d <- make_monthly_ts(spike_at = 30)
+  d <- add_date_features(d, "DATE_START", freq = "month")
+  xreg <- stats::model.matrix(
+    ~ linear_trend + annual_sin + annual_cos,
+    data = d
+  )
+  xreg <- cbind(
+    xreg,
+    all_zero = 0,
+    constant = 5,
+    duplicate = xreg[, "linear_trend"]
+  )
+  res <- detect_outliers(d, "NET_MASS", xreg = xreg)
+
+  expect_equal(res$model_used, "default")
+  expect_true(30 %in% res$outliers$ind)
+})
+
+test_that("detect_outliers treats an intercept-only xreg as no xreg", {
+  d <- make_monthly_ts(spike_at = 30)
+  xreg <- stats::model.matrix(NET_MASS ~ 1, data = d)
+  res_int <- detect_outliers(d, "NET_MASS", xreg = xreg, return_tso = TRUE)
+  res_null <- detect_outliers(d, "NET_MASS", return_tso = TRUE)
+  expect_equal(res_int$outliers, res_null$outliers)
+})
