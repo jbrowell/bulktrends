@@ -38,7 +38,7 @@
 #' Method `"cpt.reg"` uses [changepoint::cpt.reg()], with PELT by default.
 #' It always fits a mean term: constant and collinear regressors are removed
 #' and a single intercept is included, even if `formula` excludes one. The
-#' default `minseglen` is `max(15, 3 * k)`, where `k` is the number of
+#' default `minseglen` is `max(12, 3 * k)`, where `k` is the number of
 #' regressors other than the intercept. A break at the last observation is
 #' ignored.
 #'
@@ -138,7 +138,7 @@ detect_breaks <- function(
   cpt_data <- as.matrix(cbind(response, xreg))
 
   # Default minimum segment length (based on non-intercept regressors)
-  min_segment <- max(15, n_regressors * 3)
+  min_segment <- max(12, n_regressors * 3)
 
   # Allow the user to override minseglen
   if (is.null(break_params$minseglen)) {

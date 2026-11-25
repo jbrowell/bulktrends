@@ -58,7 +58,7 @@ Method \code{"breakpoints"} uses \code{\link[strucchangeRcpp:breakpoints]{strucc
 Method \code{"cpt.reg"} uses \code{\link[changepoint:cpt.reg]{changepoint::cpt.reg()}}, with PELT by default.
 It always fits a mean term: constant and collinear regressors are removed
 and a single intercept is included, even if \code{formula} excludes one. The
-default \code{minseglen} is \code{max(15, 3 * k)}, where \code{k} is the number of
+default \code{minseglen} is \code{max(12, 3 * k)}, where \code{k} is the number of
 regressors other than the intercept. A break at the last observation is
 ignored.
 }
