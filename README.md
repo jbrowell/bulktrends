@@ -1,3 +1,8 @@
+<!-- badges: start -->
+[![test](https://github.com/jbrowell/bulktrends/actions/workflows/test.yaml/badge.svg)](https://github.com/jbrowell/bulktrends/actions/workflows/test.yaml)
+[![R-CMD-check](https://github.com/jbrowell/bulktrends/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jbrowell/bulktrends/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+  
 # bulktrends
 
 An `R` package for analysing and forecasting UK trade data. For example usage, see [the user guide](https://jbrowell.github.io/bulktrends/).

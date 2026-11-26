@@ -5,3 +5,6 @@
 ^data/Rbuildignore/.+$
 ^data-raw$
 ^AGENTS\.md$
+^[.]?air[.]toml$
+^\.vscode$
+^\.github$

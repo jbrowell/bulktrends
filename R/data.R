@@ -2,7 +2,7 @@
 #'
 #' Useful groups of commodity codes for filtering import data.
 #'
-#' @format ## `comcode_groups`
+#' @format
 #' A named `list` containing a group of commodity codes
 #' \describe{
 #'   \item{name}{Name of group}
@@ -20,7 +20,7 @@
 #' substitute days and one-off special bank holidays (e.g. the Queen's
 #' Platinum Jubilee 2022, King's Coronation 2023).
 #'
-#' @format ## `uk_bank_holidays`
+#' @format
 #' A `data.table` with the following columns:
 #' \describe{
 #'   \item{date}{Date of the bank holiday (`Date`)}
@@ -52,7 +52,7 @@
 #' Each source is fetched independently; the script continues if one is
 #' unavailable.
 #'
-#' Use [get_uk_bank_holidays()] to fetch up-to-date data directly from
+#' Use `get_uk_bank_holidays()` to fetch up-to-date data directly from
 #' \url{https://www.gov.uk/bank-holidays.json}.
 #'
 #' @source \url{https://www.gov.uk/bank-holidays}
