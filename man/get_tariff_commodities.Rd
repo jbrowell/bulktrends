@@ -13,7 +13,7 @@ to FALSE.}
 }
 \value{
 A cleaned data frame of historical tariff records, with
-  a `created_at` attribute recording the download date.
+a \code{created_at} attribute recording the download date.
 }
 \description{
 Downloads the latest available historical tariff dataset,
@@ -23,9 +23,8 @@ cleans its columns, and returns the resulting data frame.
 Optionally, the dataset bundled with the locally installed
 bulktrends package can be updated.
 
-
 To update the dataset bundled with the package, run
-`source("data-raw/tariff_commodities.R")` from the package root.
+\code{source("data-raw/tariff_commodities.R")} from the package root.
 This downloads and cleans the latest data and saves it to
-`data/tariff_commodities.rda`.
+\code{data/tariff_commodities.rda}.
 }

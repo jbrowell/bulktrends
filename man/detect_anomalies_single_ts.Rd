@@ -13,36 +13,49 @@ detect_anomalies_single_ts(
   model_selection_metric,
   verbose,
   tso_params,
-  p
+  p,
+  break_method,
+  break_params = list()
 )
 }
 \arguments{
-\item{ts_data}{A single time series as a tsibble, data.table, or data frame.}
+\item{ts_data}{A single time series as a tsibble, \code{data.table} or data
+frame. Columns that are not atomic vectors, such as the keys created by
+\code{\link[fabletools:aggregate_key]{fabletools::aggregate_key()}}, are set aside during processing and
+restored in the result.}
 
-\item{id}{Identifier for the time series.}
+\item{id}{Identifier for the time series, used in messages and in the \code{id}
+column of the result.}
 
-\item{response_col}{Quantity to be analysed, e.g. `NET_MASS`, `STAT_VALUE` or `volume`.}
+\item{response_col}{Name of the column to be analysed, e.g. \code{"NET_MASS"}.}
 
-\item{date_col}{Name of column containing timestamps.}
+\item{date_col}{Name of the column containing timestamps.}
 
-\item{scale_ts}{If `TRUE`, time series is scaled to zero mean and unit variance using `scale()`. Default `FALSE`.}
+\item{scale_ts}{If \code{TRUE}, the series is scaled before global outlier
+detection. See \code{\link[=detect_anomalies]{detect_anomalies()}}.}
 
-\item{model_selection_metric}{A function used for model selection, e.g. `AIC`
-or `BIC`. Passed to `select_best_model()`. Default `AIC`.}
+\item{model_selection_metric}{A function used for model selection, e.g.
+\link{AIC} or \link{BIC}. Passed to \code{\link[=select_best_model]{select_best_model()}}.}
 
-\item{verbose}{If `TRUE`, progress messages are displayed. Default `FALSE`.}
+\item{verbose}{If \code{TRUE}, progress messages and skip messages are
+displayed.}
 
-\item{tso_params}{A named list of additional arguments passed to [tsoutliers::tso()], e.g.
-`list(cval = 5, types = c("AO", "TC"), maxit.iloop = 20, maxit.oloop = 10)`.
-Default `list()`.}
+\item{tso_params}{A named list of additional arguments passed to
+\code{\link[tsoutliers:tso]{tsoutliers::tso()}}. See \code{\link[=detect_anomalies]{detect_anomalies()}}.}
 
-\item{p}{A `progressr` progressor function.}
+\item{p}{A \code{progressr} progressor function.}
+
+\item{break_method}{Name of the structural break detection method, either
+\code{"breakpoints"} or \code{"cpt.reg"}. Required.}
+
+\item{break_params}{A named list of additional arguments passed to the
+selected break detection function. Default \code{list()}.}
 }
 \value{
-A list containing detected outliers, the augmented time series,
-  the updated model formula, and the series identifier.
+A list with elements \code{outliers}, \code{list_of_ts}, \code{formula} and \code{id},
+as described in \code{\link[=detect_anomalies]{detect_anomalies()}}, or \code{NULL} if the series is skipped.
 }
 \description{
-Detect anomalies in a single time series
+Runs the steps of \code{\link[=detect_anomalies]{detect_anomalies()}} for one series.
 }
 \keyword{internal}

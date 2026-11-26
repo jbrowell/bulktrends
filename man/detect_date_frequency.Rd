@@ -7,11 +7,18 @@
 detect_date_frequency(dates)
 }
 \arguments{
-\item{dates}{A vector of dates}
+\item{dates}{A vector of dates, or values that can be converted with
+\code{\link[=as.Date]{as.Date()}} (e.g. \code{"2024-01-31"}). Duplicates and order do not matter.}
 }
 \value{
-A character string indicating the detected date frequency: "day", "week", or "month".
+A character string: \code{"day"}, \code{"week"} or \code{"month"}.
 }
 \description{
-This function detects the frequency of a time series.
+Detects the frequency of a time series from the gaps between its dates.
+}
+\details{
+The frequency is based on the median gap between consecutive unique dates:
+3 days or less gives \code{"day"}, exactly 7 days gives \code{"week"}, and 28 to 31
+days gives \code{"month"}. Any other gap gives an error, as do fewer than 2
+unique dates.
 }

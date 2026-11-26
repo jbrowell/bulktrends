@@ -14,7 +14,7 @@ test_that("comcode_description handles a longer code", {
   )
 })
 
-test_that("comcode_description handles an shorter code", {
+test_that("comcode_description handles a shorter code", {
   env <- new.env()
   data("test_comcode_table", envir = env)
   expect_error(

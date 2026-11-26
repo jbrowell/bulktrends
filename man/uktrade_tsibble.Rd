@@ -7,7 +7,7 @@
 uktrade_tsibble(
   data,
   response_col = "NET_MASS",
-  comcode_level = c("HS2", "HS4"),
+  comcode_level = NULL,
   group_by = NULL,
   date_col = "DATE_START",
   freq = NULL,
@@ -15,17 +15,17 @@ uktrade_tsibble(
 )
 }
 \arguments{
-\item{data}{A `data.table` containing trade data. Must include columns
-`COMCODE` and specified `response_col`.}
+\item{data}{A \code{data.table} containing trade data. Must include columns
+\code{COMCODE} and specified \code{response_col}.}
 
-\item{response_col}{Quantity to be extracted and aggregated as time series, e.g.`NET_MASS`, `volume`}
+\item{response_col}{Quantity to be extracted and aggregated as time series, e.g.\code{NET_MASS}, \code{volume}}
 
 \item{comcode_level}{Hierarchy columns to use as tsibble keys
-and in hierarchical aggregation. Defaults to `c("HS2", "HS4")`.
-Expected commodity hierarchy columns are `"HS2"`, `"HS4"`,`"HS6"`, `"CN8"`, and `"CN10"`.}
+and in hierarchical aggregation. Defaults to \code{c("HS2", "HS4")}.
+Expected commodity hierarchy columns are \code{"HS2"}, \code{"HS4"},\code{"HS6"}, \code{"CN8"}, and \code{"CN10"}.}
 
-\item{group_by}{Optional classification group in `data`, e.g. `PORT_CODE`. Use `"category"` to
-group commodities by plants and animals. Default is `NULL`.}
+\item{group_by}{Optional classification group in \code{data}, e.g. \code{PORT_CODE}. Use \code{"category"} to
+group commodities by plants and animals. Default is \code{NULL}.}
 
 \item{date_col}{Name of column containing timestamps.}
 
@@ -46,11 +46,11 @@ periods with zero, and aggregating values per hierarchies.
 Daily or monthly data is expected and detected automatically. Missing
 values are filled.
 
-By default, `freq=NULL` and will be detected automatically. However, this may
-fail for sparse data, in which case `freq` should be set manually. Options are
+By default, \code{freq=NULL} and will be detected automatically. However, this may
+fail for sparse data, in which case \code{freq} should be set manually. Options are
 "day", "week", or "month".
 
-The `category` column labels commodity codes found in
-`comcode_groups$animal_SPS` as `"Animal"` and those in
-`comcode_groups$plant_SPS` as `"Plant"`.
+The \code{category} column labels commodity codes found in
+\code{comcode_groups$animal_SPS} as \code{"Animal"} and those in
+\code{comcode_groups$plant_SPS} as \code{"Plant"}.
 }

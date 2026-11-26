@@ -11,10 +11,10 @@ read_ipaffs(path)
 files in sub-directories are read recursively.}
 }
 \value{
-A `data.table` of trade data with columns containing timestamps.
+A \code{data.table} of trade data with columns containing timestamps.
 }
 \description{
-Load a single or multiple daily data `.csv` files in a directory (and its
+Load a single or multiple daily data \code{.csv} files in a directory (and its
 sub-directories) from IPAFFS
 }
 \details{

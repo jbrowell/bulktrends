@@ -14,17 +14,19 @@ comcode_plot(
 )
 }
 \arguments{
-\item{import_data}{A `data.table` containing trade data. Must include "COMCODE".}
+\item{import_data}{A \code{data.table} containing trade data. Must include "COMCODE".}
 
 \item{code}{A character string representing any HS2/HS4/HS6/CN8 code.}
 
-\item{comcode_lookup}{A `data.table` containing details of each code level.
-May be obtained via `uktrades_request(endpoint = "Commodity")$value`.}
+\item{comcode_lookup}{A \code{data.table} containing details of each code level.
+May be obtained via \code{uktrades_request(endpoint = "Commodity")$value}.}
 
 \item{variable}{A character string representing the variable to be visualised
-- must be the name of a numeric column in `import_data` or "`volume`.  If
-`volume`, this is computed as the number of rows in `import_data` by time period
-and commodity code.}
+\itemize{
+\item must be the name of a numeric column in \code{import_data} or "\code{volume}.  If
+\code{volume}, this is computed as the number of rows in \code{import_data} by time period
+and commodity code.
+}}
 
 \item{date_col}{Name of column containing timestamps.}
 }

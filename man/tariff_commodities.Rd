@@ -7,19 +7,19 @@
 \format{
 A data frame with six columns:
 \describe{
-  \item{comcode}{The cleaned commodity code.}
-  \item{valid_from}{The date from which the record is valid.}
-  \item{valid_to}{The date until which the record is valid; may be missing.}
-  \item{trackedmodel_ptr_id}{The tracked model pointer ID.}
-  \item{sid}{The system identifier for the commodity record.}
-  \item{suffix}{The tariff code suffix.}
+\item{comcode}{The cleaned commodity code.}
+\item{valid_from}{The date from which the record is valid.}
+\item{valid_to}{The date until which the record is valid; may be missing.}
+\item{trackedmodel_ptr_id}{The tracked model pointer ID.}
+\item{sid}{The system identifier for the commodity record.}
+\item{suffix}{The tariff code suffix.}
 }
 }
 \source{
 UK Trade API: \url{https://data.api.trade.gov.uk/}
 
 Licence: Open Government Licence v3.0
-  \url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
+\url{https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/}
 }
 \usage{
 tariff_commodities
@@ -32,13 +32,13 @@ present.
 }
 \details{
 The source of this dataset is updated regularly.
-The dataset includes an attribute, `created_at`, recording the date
+The dataset includes an attribute, \code{created_at}, recording the date
 on which the dataset was downloaded and created by the
-`get_tariff_commodities()` function. Running
-`get_tariff_commodities(update_local_package = TRUE)` will update the local
-copy stored in your local installation of `bulktrends`.
+\code{get_tariff_commodities()} function. Running
+\code{get_tariff_commodities(update_local_package = TRUE)} will update the local
+copy stored in your local installation of \code{bulktrends}.
 
-Use `build_comcode_validity_history()` to process this data to obtain the
+Use \code{build_comcode_validity_history()} to process this data to obtain the
 valid periods for a specified commodity code.
 
 The underlying data is made available under the Open Government
