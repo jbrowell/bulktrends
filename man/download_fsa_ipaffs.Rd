@@ -16,19 +16,19 @@ download_fsa_ipaffs(
 \item{dest_dir}{Path to an existing directory where files will be saved.}
 
 \item{dataset}{Character vector of datasets to download. One or both of
-`"fnao"` (Food of Non-Animal Origin) and `"poao"` (Products of Animal
+\code{"fnao"} (Food of Non-Animal Origin) and \code{"poao"} (Products of Animal
 Origin). Defaults to both.}
 
-\item{from_date}{Optional lower bound on the file month. A `Date` object or
-a character string in `"YYYY-MM"` format. `NULL` (default) means no lower
+\item{from_date}{Optional lower bound on the file month. A \code{Date} object or
+a character string in \code{"YYYY-MM"} format. \code{NULL} (default) means no lower
 bound.}
 
-\item{to_date}{Optional upper bound on the file month. A `Date` object or a
-character string in `"YYYY-MM"` format. `NULL` (default) means no upper
+\item{to_date}{Optional upper bound on the file month. A \code{Date} object or a
+character string in \code{"YYYY-MM"} format. \code{NULL} (default) means no upper
 bound.}
 
-\item{overwrite}{Logical. If `FALSE` (default), files already present in
-`dest_dir` are skipped.}
+\item{overwrite}{Logical. If \code{FALSE} (default), files already present in
+\code{dest_dir} are skipped.}
 }
 \value{
 Invisibly returns a character vector of paths to downloaded files.
@@ -41,14 +41,14 @@ local directory.
 \details{
 CSV files are collected from the FSA open data catalogue:
 \itemize{
-  \item FNAO: \url{https://data.food.gov.uk/catalog/datasets/71f9bee8-b68c-4ffc-813e-901d1ac20245}
-  \item POAO: \url{https://data.food.gov.uk/catalog/datasets/1a6ebd38-460e-4734-aa59-40fdd6b8e209}
+\item FNAO: \url{https://data.food.gov.uk/catalog/datasets/71f9bee8-b68c-4ffc-813e-901d1ac20245}
+\item POAO: \url{https://data.food.gov.uk/catalog/datasets/1a6ebd38-460e-4734-aa59-40fdd6b8e209}
 }
 Both datasets cover January 2017 to the present and are updated monthly.
 Files whose dates cannot be parsed from the filename are always downloaded.
 
 Requires the \pkg{rvest} package. Install it with
-`install.packages("rvest")` if needed.
+\code{install.packages("rvest")} if needed.
 }
 \examples{
 \dontrun{

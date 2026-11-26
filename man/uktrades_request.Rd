@@ -17,5 +17,5 @@ Request data from UK Trades API
 }
 \details{
 For endpoint documentation visit https://www.uktradeinfo.com/api-documentation/.
-`endpoint` is appended to "https://api.uktradeinfo.com/".
+\code{endpoint} is appended to "https://api.uktradeinfo.com/".
 }

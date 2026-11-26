@@ -1,82 +1,108 @@
-# devtools::load_all()
-# testthat::test_file("tests/testthat/test-detect_breaks.R")
+for (bm in c("breakpoints", "cpt.reg")) {
+  test_that(paste0("detect_breaks finds an injected level shift (", bm, ")"), {
+    d <- make_monthly_ts(shift_at = 40)
+    res <- detect_breaks(
+      data = d,
+      formula = NET_MASS ~ 1,
+      break_method = bm,
+      date_col = "DATE_START"
+    )
 
-test_that("detect_breaks returns detected breaks and segment indicators", {
-  data <- data.frame(
-    DATE_START = as.Date("2020-01-01") + 0:39,
-    value = c(rep(10, 20), rep(30, 20))
+    expect_type(res, "list")
+    expect_named(res, c("break_entry", "segments"))
+    expect_s3_class(res$break_entry, "data.table")
+    expect_named(res$break_entry, c("type", "ind", "time"))
+    expect_true(all(res$break_entry$type == "SB"))
+    expect_s3_class(res$break_entry$time, "Date")
+    expect_equal(res$break_entry$time, d$DATE_START[res$break_entry$ind])
+    expect_true(any(abs(res$break_entry$ind - 39) <= 2))
+
+    expect_s3_class(res$segments, "data.table")
+    expect_equal(nrow(res$segments), nrow(d))
+    expect_s3_class(res$segments$segments, "factor")
+    expect_equal(nlevels(res$segments$segments), nrow(res$break_entry) + 1)
+  })
+
+  test_that(
+    paste0("detect_breaks returns NULL when there is no break (", bm, ")"),
+    {
+      set.seed(42)
+      d <- data.table::data.table(
+        DATE_START = seq(as.Date("2018-01-01"), by = "month", length.out = 60),
+        NET_MASS = 100 + stats::rnorm(60)
+      )
+      expect_null(detect_breaks(
+        data = d,
+        formula = NET_MASS ~ 1,
+        break_method = bm,
+        date_col = "DATE_START"
+      ))
+    }
   )
 
-  result <- detect_breaks(data, formula = value ~ 1)
+  test_that(
+    paste0("detect_breaks errors on missing response column (", bm, ")"),
+    {
+      d <- make_monthly_ts()
+      expect_error(detect_breaks(
+        data = d,
+        formula = missing_col ~ 1,
+        break_method = bm,
+        date_col = "DATE_START"
+      ))
+    }
+  )
+}
 
-  expect_equal(
-    result$break_entry,
-    data.table::data.table(
-      type = "SB",
-      ind = 20,
-      time = as.Date("2020-01-20")
+# Intercept handling ---------------------------------------------------------
+
+for (bm in c("breakpoints", "cpt.reg")) {
+  test_that(
+    paste0("detect_breaks returns NULL for a model with no terms (", bm, ")"),
+    {
+      d <- make_monthly_ts(shift_at = 40)
+      expect_no_error(
+        res <- detect_breaks(
+          data = d,
+          formula = NET_MASS ~ -1,
+          break_method = bm,
+          date_col = "DATE_START"
+        )
+      )
+      expect_null(res)
+    }
+  )
+}
+
+test_that("detect_breaks cpt.reg handles the intercept without warnings", {
+  d <- add_date_features(
+    make_monthly_ts(shift_at = 40),
+    "DATE_START",
+    freq = "month"
+  )
+  expect_no_warning(
+    res <- detect_breaks(
+      data = d,
+      formula = NET_MASS ~ linear_trend + annual_sin + annual_cos,
+      break_method = "cpt.reg",
+      date_col = "DATE_START"
     )
   )
-  expect_equal(
-    result$segments$segments,
-    factor(
-      c(rep("segment1", 20), rep("segment2", 20)),
-      levels = c("segment1", "segment2")
-    )
-  )
+  expect_true(any(abs(res$break_entry$ind - 39) <= 2))
 })
 
-test_that("detect_breaks returns NULL when no break is detected", {
-  data <- data.frame(
-    observation_date = as.Date("2020-01-01") + 0:39,
-    value = rep(10, 40)
+test_that("detect_breaks cpt.reg fits regressors with an intercept removed", {
+  d <- add_date_features(
+    make_monthly_ts(shift_at = 40),
+    "DATE_START",
+    freq = "month"
   )
-
-  expect_null(
+  expect_no_warning(
     detect_breaks(
-      data,
-      date_col = "observation_date",
-      formula = value ~ 1
+      data = d,
+      formula = NET_MASS ~ linear_trend - 1,
+      break_method = "cpt.reg",
+      date_col = "DATE_START"
     )
-  )
-})
-
-test_that("detect_breaks returns the documented output formats", {
-  data <- data.frame(
-    DATE_START = as.Date("2020-01-01") + 0:39,
-    value = c(rep(10, 20), rep(30, 20))
-  )
-
-  result <- detect_breaks(data, formula = value ~ 1)
-
-  expect_type(result, "list")
-  expect_named(result, c("break_entry", "segments"))
-  expect_s3_class(result$break_entry, "data.table")
-  expect_s3_class(result$segments, "data.table")
-  expect_named(result$break_entry, c("type", "ind", "time"))
-  expect_type(result$break_entry$type, "character")
-  expect_type(result$break_entry$ind, "double")
-  expect_s3_class(result$break_entry$time, "Date")
-  expect_type(result$segments$segments, "integer")
-  expect_true(is.factor(result$segments$segments))
-})
-
-test_that("detect_breaks rejects inputs in the wrong format", {
-  data <- data.frame(
-    DATE_START = as.Date("2020-01-01") + 0:39,
-    value = c(rep(10, 20), rep(30, 20))
-  )
-
-  expect_error(
-    detect_breaks(data$value, formula = value ~ 1),
-    "'data' must be a data.frame, environment, or list"
-  )
-  expect_error(
-    detect_breaks(data),
-    "argument \"formula\" is missing"
-  )
-  expect_error(
-    detect_breaks(data, formula = missing ~ 1),
-    "invalid type \\(special\\) for variable 'missing'"
   )
 })

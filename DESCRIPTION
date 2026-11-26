@@ -1,15 +1,15 @@
 Package: bulktrends
 Type: Package
 Title: An R Package for the Analysis of UK Trade Data
-Version: 0.1.2
+Version: 0.2.0
 Authors@R: c(
     person("Jethro", "Browell", email = "jethro.browell@glasgow.ac.uk", role = c("aut", "cre")),
-    person("Janeeta", "Maunthrooa", email = "Janeeta.Maunthrooa@glasgow.ac.uk", role = c("aut")))
+    person("Janeeta", "Maunthrooa", email = "Janeeta.Maunthrooa@glasgow.ac.uk", role = c("aut")),
+    person("Ionut", "Paun", email = "Ionut.Paun@glasgow.ac.uk", role = c("aut")))
 Description: This package contains functions tailored to UK Trade Data as provided by the UK Government. It speeds up common tasks such as loading and plotting, analysis including outlier/intervention detection, and forecasting.
 License: BSD 3 Clause
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.3.3
+LazyData: false
 Depends:
     R (>= 3.5.0),
     jsonlite (>= 2.0.0),
@@ -22,12 +22,18 @@ Depends:
     progressr (>= 0.18.0),
     strucchangeRcpp (>= 1.5.0)
 Imports:
+    dplyr,
+    rlang,
     tsibble (>= 1.2.0),
     fable (>= 0.5.0),
-    fabletools (>= 0.6.0)
+    fabletools (>= 0.6.0),
+    changepoint (>= 2.3)
 Suggests:
     usethis (>= 2.1.0),
     rvest (>= 1.0.0),
     R.utils,
     testthat (>= 3.0.0)
+Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

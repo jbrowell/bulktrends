@@ -101,7 +101,7 @@ This package is managed using the [Gitflow workflow](https://www.atlassian.com/g
 
 Create a pull request when you're ready to share with other contributors. Request a review from CoPilot in the first instance for immediate feedback. When ready, tag another contributor for a review.
 
-Currently, no branch protection is in place, so take care, especially when merging into `main`!
+Branch protection is in place. A PR with review and approval from at least one contributor is required to merge into `main` and `develop`.
 
 ### General Guidelines
 
@@ -135,6 +135,7 @@ The following people have contributed to the development of this repository:
 
 * Jethro Browell (`@jbrowell`), University of Glasgow, ([email](mailto:jethro.browell@glasgow.ac.uk))
 * Janeeta Maunthrooa (`@janeetam`), University of Glasgow
+* Ionut Paun (`@ionut199418`), University of Glasgow
 * Damien Hicks (`@Gitmojoworking`), Defra
 
 This work has been supported by:
