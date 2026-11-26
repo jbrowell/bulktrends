@@ -5,14 +5,17 @@
 \alias{comcode_groups}
 \title{COMCODE Groups}
 \format{
-A named `list` containing a group of commodity codes
+\subsection{\code{comcode_groups}}{
+
+A named \code{list} containing a group of commodity codes
 \describe{
-  \item{name}{Name of group}
-  \item{value}{vector of Cn8 codes (`character`) in specified group}
+\item{name}{Name of group}
+\item{value}{vector of Cn8 codes (\code{character}) in specified group}
+}
 }
 }
 \source{
-`bulktrends`
+\code{bulktrends}
 }
 \usage{
 data(comcode_groups)

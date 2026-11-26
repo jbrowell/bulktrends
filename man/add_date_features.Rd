@@ -8,39 +8,59 @@ add_date_features(
   data,
   date_col,
   division = "england-and-wales",
-  holidays = bulktrends::uk_bank_holidays,
+  holidays = NULL,
   freq = NULL
 )
 }
 \arguments{
-\item{data}{A `data.table` containing trade data.}
+\item{data}{A data frame or \code{data.table} containing trade data.}
 
-\item{date_col}{Name of column containing timestamps.}
+\item{date_col}{Name of the column containing timestamps. It must be of
+class \code{Date}.}
 
 \item{division}{UK division for bank holiday lookup. One of
-`"england-and-wales"` (default), `"scotland"`, or `"northern-ireland"`.}
+\code{"england-and-wales"} (default), \code{"scotland"} or \code{"northern-ireland"}.
+Only used for daily data.}
 
-\item{holidays}{A `data.frame` or `data.table` of bank holidays with at least
-`date` and `title` columns, as returned by [get_uk_bank_holidays()].
-Defaults to the bundled [uk_bank_holidays] dataset.}
+\item{holidays}{A data frame or \code{data.table} of bank holidays with at least
+\code{date}, \code{title} and \code{division} columns, as returned by
+\code{\link[=get_uk_bank_holidays]{get_uk_bank_holidays()}}. If \code{NULL} (the default), the bundled
+\link{uk_bank_holidays} dataset is used. Only used for daily data.}
 
-\item{freq}{Frequency of the input time series. If `NULL` it will be
-auto-detected (`'day'`, `'week'`, or `'month'`).}
+\item{freq}{Frequency of the series: \code{"day"}, \code{"week"} or \code{"month"}. If
+\code{NULL} (the default), it is detected with \code{\link[=detect_date_frequency]{detect_date_frequency()}}.}
 }
 \value{
-A `data.table` with the original data and additional calendar features, including
-day of week, day of year, `holiday` (holiday title or `NA`), and `is_holiday` (`logical`).
+A \code{data.table} with the original data plus these columns:
+\itemize{
+\item For all frequencies: \code{linear_trend}, \code{day_of_year}, \code{annual_sin} and
+\code{annual_cos} (\code{sin} and \code{cos} of \code{2 * pi * day_of_year / 365}).
+\item For daily data only: \code{day_of_week} (from \code{\link[=weekdays]{weekdays()}}, so the day names
+depend on the locale), \code{holiday} (the holiday title, or \code{NA}) and
+\code{is_holiday} (\code{logical}).
+}
+
+Any existing columns with these names are overwritten.
 }
 \description{
-A function that identifies the features (bank holidays) of dates provided, and
-creates the linear_trend covariates (formerly in select_best_model() ) based on date stamp not row number.
+Adds trend, seasonal and calendar covariates to a time series, including
+UK bank holidays for daily data.
 }
 \details{
-Bank holiday data is sourced from the bundled [uk_bank_holidays] dataset,
+\code{linear_trend} is the decimal year of each date minus 2000, as given by
+\code{lubridate::decimal_date(date) - 2000}; for example, 1 July 2023 is about
+23.5. One unit is therefore one year. The offset keeps the trend close to
+zero, so that it is not nearly collinear with an intercept in short series.
+
+Bank holiday data is sourced from the bundled \link{uk_bank_holidays} dataset,
 which was compiled from the official gov.uk published data
 (\url{https://www.gov.uk/bank-holidays.json}).  The stored dataset includes
 substitute days and one-off special bank holidays.
 
-To use the latest published data call [get_uk_bank_holidays()] and pass the
-result via the `holidays` argument.
+To use the latest published data call \code{\link[=get_uk_bank_holidays]{get_uk_bank_holidays()}} and pass the
+result via the \code{holidays} argument.
+
+A warning is given if \code{division} or \code{holidays} is supplied for non-daily
+data, where they are ignored, and if any dates fall outside the period
+covered by the holidays data, where \code{holiday} is then \code{NA}.
 }

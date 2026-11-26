@@ -10,38 +10,75 @@ select_best_model(
   formulas = NULL,
   response_col = NULL,
   metric = AIC,
-  break_detection = TRUE,
+  break_method = NULL,
+  break_params = list(),
   freq = NULL
 )
 }
 \arguments{
-\item{data}{A `data.frame` containing the dependent variable and dates.}
+\item{data}{A data frame or \code{data.table} containing the response and the
+date column. The date column must be of class \code{Date}.}
 
-\item{date_col}{Name of column containing timestamps. Default `"DATE_START"`.}
+\item{date_col}{Name of the column containing timestamps. Default
+\code{"DATE_START"}.}
 
-\item{formulas}{A list of formulas specifying candidate models. When `NULL`,
-default formulas are generated based on `freq`. Available covariates for
-monthly data are `linear_trend`, `annual_sin`, and `annual_cos`; for daily
-data `day_of_week` and `is_holiday` are also available.}
+\item{formulas}{A list of candidate formulas. If \code{NULL} (the default),
+standard candidates are used and the date features they need are added
+with \code{\link[=add_date_features]{add_date_features()}}; see Details. If you supply your own
+formulas, date features are not added, so \code{data} must already contain
+every column the formulas use.}
 
-\item{response_col}{If `formulas` not provided, default formulas will be used
-but the column containing the response variable must be specified.}
+\item{response_col}{Name of the response column. Required if \code{formulas}
+is \code{NULL}; otherwise it is taken from the first formula.}
 
-\item{metric}{A function used to evaluate model fit, e.g. [AIC] or [BIC]. Default `AIC`.}
+\item{metric}{A function used to compare fitted models, e.g. \link{AIC} or
+\link{BIC}. Default \code{AIC}.}
 
-\item{break_detection}{If `TRUE`, structural break detection is
-performed and break-adjusted models are also evaluated.}
+\item{break_method}{Name of the structural break detection method, either
+\code{"breakpoints"} or \code{"cpt.reg"}, or \code{NULL} (the default) for no break
+detection. See \code{\link[=detect_breaks]{detect_breaks()}}.}
 
-\item{freq}{Frequency of the input time series. If NULL it will be auto-detected ('day', 'week', or 'month').}
+\item{break_params}{A named list of additional arguments passed to the
+selected break detection function. Default \code{list()}.}
+
+\item{freq}{Frequency of the series: \code{"day"}, \code{"week"} or \code{"month"}. If
+\code{NULL} (the default), it is detected with \code{\link[=detect_date_frequency]{detect_date_frequency()}}.
+Only used when \code{formulas} is \code{NULL}. Standard candidates exist only for
+daily and monthly data, so weekly data with \code{formulas = NULL} gives an
+error.}
 }
 \value{
-A list containing (i) `data`, the time series' data with any generated regressors
-and structural break segment variables, (ii)  `formula`, the optimal selected model formula, and
-(iii)  `break_entry`, a `data.table` describing any detected structural breaks
-or `NULL` if no breaks were found.
+A list with elements:
+\itemize{
+\item \code{data}: \code{data}, as a \code{data.table}, with any generated date features and,
+if a model with breaks was selected, the \code{segments} column.
+\item \code{formula}: the selected formula, or \code{NULL} (with a warning) if no
+candidate could be fitted.
+\item \code{baseline_formula}: the best candidate without breaks.
+\item \code{break_detection_formula}: only present if a model with breaks was
+selected; the candidate from which it was built.
+\item \code{break_entry}: only present if a model with breaks was selected; the
+\code{break_entry} table from \code{\link[=detect_breaks]{detect_breaks()}}.
+}
 }
 \description{
-This function evaluates a set of candidate regression formulas containing
-trend and seasonal regressors and selects the model with the lowest value
-of the specified selection metric (for example AIC or BIC).
+Fits a set of candidate regression models with \code{\link[=lm]{lm()}} and selects the one
+with the lowest value of \code{metric}. When \code{break_method} is given, each
+candidate is also refitted with structural breaks, and these models compete
+with the candidates without breaks.
+}
+\details{
+The standard candidates have no regressors (\code{~ -1}), an intercept only
+(\code{~ 1}), a linear trend (\code{~ linear_trend}), annual seasonality
+(\code{~ annual_sin + annual_cos}), and trend plus seasonality. For daily data,
+two further candidates add \code{day_of_week}, then \code{day_of_week} and
+\code{is_holiday}.
+
+With break detection, \code{\link[=detect_breaks]{detect_breaks()}} is run for each candidate. If
+breaks are found, the candidate is refitted with every term interacted
+with the \code{segments} factor (\code{formula * segments}), or with one mean per
+segment (\code{~ segments}) for an intercept-only candidate.
+
+A warning is given for each candidate that cannot be fitted, and for each
+candidate where break detection fails.
 }

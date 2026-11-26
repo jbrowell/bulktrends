@@ -7,22 +7,22 @@
 update_uktradeinfo(existing, path, date_range = NULL)
 }
 \arguments{
-\item{existing}{A `data.table` of existing UK Trade Info data, as returned
-by [read_uktradeinfo()], containing at least a `DATE_START` column.}
+\item{existing}{A \code{data.table} of existing UK Trade Info data, as returned
+by \code{\link[=read_uktradeinfo]{read_uktradeinfo()}}, containing at least a \code{DATE_START} column.}
 
-\item{path}{Path to a `.txt` file, a `.zip` archive, or a directory
-containing `.txt` and/or `.zip` files (searched recursively). Files whose
-periods are already represented in `existing` are skipped unless
-`date_range` is specified.}
+\item{path}{Path to a \code{.txt} file, a \code{.zip} archive, or a directory
+containing \code{.txt} and/or \code{.zip} files (searched recursively). Files whose
+periods are already represented in \code{existing} are skipped unless
+\code{date_range} is specified.}
 
-\item{date_range}{Optional length-2 vector of `Date` objects (or strings
-coercible to `Date`) giving the inclusive start and end of a date range to
-refresh. When supplied, rows in `existing` whose `DATE_START` falls within
-this range are removed and replaced with data read from `path`.}
+\item{date_range}{Optional length-2 vector of \code{Date} objects (or strings
+coercible to \code{Date}) giving the inclusive start and end of a date range to
+refresh. When supplied, rows in \code{existing} whose \code{DATE_START} falls within
+this range are removed and replaced with data read from \code{path}.}
 }
 \value{
-A `data.table` combining `existing` with any newly loaded data,
-  ordered by `DATE_START`.
+A \code{data.table} combining \code{existing} with any newly loaded data,
+ordered by \code{DATE_START}.
 }
 \description{
 Add new monthly import data to an existing dataset by reading only files
@@ -33,16 +33,16 @@ range.
 The period covered by each file is determined from its name. Two formats are
 recognised:
 \itemize{
-  \item `BDSImpYYMM` (e.g. `BDSImp2404.txt`) — a single month.
-  \item `bdsimp_mon-monYYarchive` (e.g. `bdsimp_jan-jun22archive.zip`) — a
-    multi-month archive; the file is included if any month in the range is
-    new or falls within `date_range`.
+\item \code{BDSImpYYMM} (e.g. \code{BDSImp2404.txt}) — a single month.
+\item \code{bdsimp_mon-monYYarchive} (e.g. \code{bdsimp_jan-jun22archive.zip}) — a
+multi-month archive; the file is included if any month in the range is
+new or falls within \code{date_range}.
 }
 Files whose names match neither pattern are skipped with a warning.
 
-Two-digit years are interpreted as 1990–1999 for `YY >= 90` and
+Two-digit years are interpreted as 1990–1999 for \code{YY >= 90} and
 2000–2089 otherwise.
 
 This function can be slow to read a large number of files but is much faster
-if a `future::plan()` is set that enables parallel computation.
+if a \code{future::plan()} is set that enables parallel computation.
 }

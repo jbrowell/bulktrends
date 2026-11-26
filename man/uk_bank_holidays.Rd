@@ -5,16 +5,19 @@
 \alias{uk_bank_holidays}
 \title{UK Bank Holidays}
 \format{
-A `data.table` with the following columns:
+\subsection{\code{uk_bank_holidays}}{
+
+A \code{data.table} with the following columns:
 \describe{
-  \item{date}{Date of the bank holiday (`Date`)}
-  \item{title}{Name of the bank holiday (`character`)}
-  \item{notes}{Additional notes, e.g. `"Substitute day"` or `"Extra bank holiday"` (`character`)}
-  \item{division}{UK division: `"england-and-wales"`, `"scotland"`, or `"northern-ireland"` (`character`)}
+\item{date}{Date of the bank holiday (\code{Date})}
+\item{title}{Name of the bank holiday (\code{character})}
+\item{notes}{Additional notes, e.g. \code{"Substitute day"} or \code{"Extra bank holiday"} (\code{character})}
+\item{division}{UK division: \code{"england-and-wales"}, \code{"scotland"}, or \code{"northern-ireland"} (\code{character})}
 }
-The dataset also carries a `created_at` attribute (a `character` string in
-`"YYYY-MM-DD"` format) recording the date on which `data-raw/uk_bank_holidays.R`
+The dataset also carries a \code{created_at} attribute (a \code{character} string in
+\code{"YYYY-MM-DD"} format) recording the date on which \code{data-raw/uk_bank_holidays.R}
 was last run to generate this file.
+}
 }
 \source{
 \url{https://www.gov.uk/bank-holidays}
@@ -34,9 +37,9 @@ Platinum Jubilee 2022, King's Coronation 2023).
 \details{
 Coverage:
 \itemize{
-  \item England and Wales: 2015 to latest available in the gov.uk API
-  \item Scotland: 2015 to latest available in the gov.uk API
-  \item Northern Ireland: 2015 to latest available in the gov.uk API
+\item England and Wales: 2015 to latest available in the gov.uk API
+\item Scotland: 2015 to latest available in the gov.uk API
+\item Northern Ireland: 2015 to latest available in the gov.uk API
 }
 
 \strong{Sources and priority:} When regenerating via
@@ -44,15 +47,15 @@ Coverage:
 for maximum date coverage.  Where the same date and division appears in both
 sources, the higher-priority source wins:
 \enumerate{
-  \item \url{https://www.gov.uk/bank-holidays.json} — official API
-        (highest priority; supersedes the alphagov source)
-  \item alphagov/calendars GitHub repository — extends coverage into
-        older date ranges not present in the gov.uk API
+\item \url{https://www.gov.uk/bank-holidays.json} — official API
+(highest priority; supersedes the alphagov source)
+\item alphagov/calendars GitHub repository — extends coverage into
+older date ranges not present in the gov.uk API
 }
 Each source is fetched independently; the script continues if one is
 unavailable.
 
-Use `get_uk_bank_holidays()` to fetch up-to-date data directly from
+Use \code{\link[=get_uk_bank_holidays]{get_uk_bank_holidays()}} to fetch up-to-date data directly from
 \url{https://www.gov.uk/bank-holidays.json}.
 }
 \keyword{datasets}
